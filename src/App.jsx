@@ -17,13 +17,8 @@ function App() {
         </a>
       </div>
       <h1>Vite + React</h1>
-<<<<<<< HEAD
-      <p>BuiTrungTuan-2174801030024</p>
-      <p>Lê Thái Vỹ</p>
-=======
-      <p>Bùi Trung Tuấn</p>
-      <h2>Lê Thái Vỹ</h2>
->>>>>>> f70d98b3a76f5373a9c8f0d363c609498b87ddbd
+      <p>
+        Damn quorc Trunr</p>
       <div className="card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}

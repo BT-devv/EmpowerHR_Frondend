@@ -2,8 +2,11 @@ import { useState } from "react";
 import logo from "../assets/logoapp.png";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [password, setPassword] = useState("");
@@ -68,7 +71,7 @@ const Login = () => {
           icon: "success",
           timer: 2000,
         });
-        // navigate("/dashboard");
+        navigate("/dashboard");
       } else {
         Swal.fire({
           text: message,
@@ -143,7 +146,7 @@ const Login = () => {
               type="email"
               placeholder="Enter your Email here"
               value={email}
-              className={`text-black ml-[15%] bg-[#B0BAC3] opacity-40 h-[50px] rounded-[12px] w-[70%] px-[15px] outline-none border-2 shadow-[0px_3px_#888888] placeholder:text-black ${
+              className={`text-black bg-[#B0BAC3] opacity-40 h-[50px] rounded-[12px] w-[70%] px-[15px] outline-none border-2 shadow-[0px_3px_#888888] placeholder:text-black ${
                 emailBorder ? "border-red-500" : "border-[#B0BAC3]"
               }`}
               onChange={(e) => {
@@ -167,7 +170,7 @@ const Login = () => {
                 type={isPasswordVisible ? "text" : "password"}
                 placeholder="Enter your Password here"
                 value={password}
-                className={`text-black ml-[15%] bg-[#B0BAC3] opacity-40 h-[50px] rounded-[12px] w-[70%] px-[15px] outline-none border-2 shadow-[0px_3px_#888888] placeholder:text-black ${
+                className={`text-black bg-[#B0BAC3] opacity-40 h-[50px] rounded-[12px] w-[70%] px-[15px] outline-none border-2 shadow-[0px_3px_#888888] placeholder:text-black ${
                   passwordBorder ? "border-red-500" : "border-[#B0BAC3]"
                 }`}
                 onChange={(e) => {

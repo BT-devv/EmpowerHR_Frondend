@@ -1,5 +1,5 @@
 import Slidebar from "../components/Slidebar";
-import Navbar from "../components/Navbar";
+// import Navbar from "../components/Navbar";
 
 const Dashboard = () => {
   return (

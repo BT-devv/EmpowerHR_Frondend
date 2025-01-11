@@ -1,11 +1,14 @@
 import Slidebar from "../components/Slidebar";
-// import Navbar from "../components/Navbar";
+import Navbar from "../components/Navbar";
 
 const Dashboard = () => {
   return (
-    <div className="flex ">
-      <Slidebar />
-      <p className="mt-[20px]">COMMING SOON</p>
+    <div className="">
+      <div className="flex ">
+        <Slidebar />
+        <Navbar />
+      </div>
+      <p className="">COMMING SOON</p>
     </div>
   );
 };

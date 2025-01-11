@@ -146,7 +146,7 @@ const Login = () => {
               type="email"
               placeholder="Enter your Email here"
               value={email}
-              className={`text-black bg-[#B0BAC3] opacity-40 h-[50px] rounded-[12px] w-[70%] px-[15px] outline-none border-2 shadow-[0px_3px_#888888] placeholder:text-black ${
+              className={`text-black bg-[#B0BAC3] opacity-40 h-[50px] rounded-[12px] w-[70%] px-[15px] cursor-pointer outline-none border-2 hover:border-[#2EB67D] shadow-[0px_3px_#888888] placeholder:text-black ${
                 emailBorder ? "border-red-500" : "border-[#B0BAC3]"
               }`}
               onChange={(e) => {
@@ -170,7 +170,7 @@ const Login = () => {
                 type={isPasswordVisible ? "text" : "password"}
                 placeholder="Enter your Password here"
                 value={password}
-                className={`text-black bg-[#B0BAC3] opacity-40 h-[50px] rounded-[12px] w-[70%] px-[15px] outline-none border-2 shadow-[0px_3px_#888888] placeholder:text-black ${
+                className={`text-black bg-[#B0BAC3] opacity-40 h-[50px] rounded-[12px] w-[70%] px-[15px] outline-none cursor-pointer border-2 hover:border-[#2EB67D] shadow-[0px_3px_#888888] placeholder:text-black ${
                   passwordBorder ? "border-red-500" : "border-[#B0BAC3]"
                 }`}
                 onChange={(e) => {

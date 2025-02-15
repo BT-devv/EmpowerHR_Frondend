@@ -5,11 +5,9 @@ import { HiMiniSquares2X2 } from "react-icons/hi2";
 import { BiSolidMessageDetail } from "react-icons/bi";
 import { BiSolidCalendar } from "react-icons/bi";
 import { FaUserFriends } from "react-icons/fa";
-import { PiToolboxFill } from "react-icons/pi";
-import { RiExchange2Fill } from "react-icons/ri";
+import { VscSettings } from "react-icons/vsc";
 import { PiNotepadFill } from "react-icons/pi";
 import { AiFillControl } from "react-icons/ai";
-import { BsPcDisplay } from "react-icons/bs";
 
 const Slidebar = () => {
   const navigate = useNavigate();
@@ -22,12 +20,7 @@ const Slidebar = () => {
       "/dashboard": "dashboard",
       "/message": "message",
       "/calendar": "calendar",
-      "/job": "job",
-      "/candidates": "candidates",
-      "/myreferrals": "myreferrals",
-      "/carrersite": "carrersite",
       "/employee": "employee",
-      "/projectmanagement": "projectmanagement",
       "/checkincheckout": "checkincheckout",
       "/overtime": "overtime",
       "/absense": "absense",
@@ -61,7 +54,7 @@ const Slidebar = () => {
         <ul className="flex flex-col mt-[5%]">
           <div className="flex">
             <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px]  ${
+              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
                 selectedItem === "dashboard"
                   ? "bg-[#2EB67D] text-white"
                   : "bg-white text-black"
@@ -74,12 +67,12 @@ const Slidebar = () => {
           </div>
           <div className="flex">
             <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px]  ${
+              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
                 selectedItem === "message"
                   ? "bg-[#2EB67D] text-white"
                   : "bg-white text-black"
               }`}
-              onClick={() => toggleMenu("message")}
+              onClick={() => toggleMenu("message", "/message")}
             >
               <BiSolidMessageDetail className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
               Message
@@ -87,12 +80,12 @@ const Slidebar = () => {
           </div>
           <div className="flex">
             <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] ${
+              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
                 selectedItem === "calendar"
                   ? "bg-[#2EB67D] text-white"
                   : "bg-white text-black"
               }`}
-              onClick={() => toggleMenu("calendar")}
+              onClick={() => toggleMenu("calendar", "/calendar")}
             >
               <BiSolidCalendar className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
               Calendar
@@ -101,17 +94,17 @@ const Slidebar = () => {
         </ul>
       </div>
       {/* Recruitment */}
-      <div className="mt-[10%]">
+      {/* <div className="mt-[10%]">
         <p className="flex font-bold">RECRUITMENT</p>
         <ul className="flex flex-col mt-[5%]">
           <div className="flex">
             <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] ${
+              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
                 selectedItem === "job"
                   ? "bg-[#2EB67D] text-white"
                   : "bg-white text-black"
               }`}
-              onClick={() => toggleMenu("job")}
+              onClick={() => toggleMenu("job", "/job")}
             >
               <PiToolboxFill className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
               Jobs
@@ -119,12 +112,12 @@ const Slidebar = () => {
           </div>
           <div className="flex">
             <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] ${
+              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
                 selectedItem === "candidates"
                   ? "bg-[#2EB67D] text-white"
                   : "bg-white text-black"
               }`}
-              onClick={() => toggleMenu("candidates")}
+              onClick={() => toggleMenu("candidates", "/candidates")}
             >
               <FaUserFriends className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
               Cadidates
@@ -132,12 +125,12 @@ const Slidebar = () => {
           </div>
           <div className="flex">
             <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] ${
+              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
                 selectedItem === "myreferrals"
                   ? "bg-[#2EB67D] text-white"
                   : "bg-white text-black"
               }`}
-              onClick={() => toggleMenu("myreferrals")}
+              onClick={() => toggleMenu("myreferrals", "/myreferrals")}
             >
               <RiExchange2Fill className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
               My Referrals
@@ -145,26 +138,26 @@ const Slidebar = () => {
           </div>
           <div className="flex">
             <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] ${
+              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
                 selectedItem === "carrersite"
                   ? "bg-[#2EB67D] text-white"
                   : "bg-white text-black"
               }`}
-              onClick={() => toggleMenu("carrersite")}
+              onClick={() => toggleMenu("carrersite", "/carrersite")}
             >
               <BsPcDisplay className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
               Career Site
             </li>
           </div>
         </ul>
-      </div>
+      </div> */}
       {/* Organization */}
       <div className="mt-[10%]">
         <p className="flex font-bold">ORGANIZATION</p>
         <ul className="flex flex-col mt-[5%]">
           <div className="flex">
             <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] transition-all duration-500 ${
+              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
                 selectedItem === "employee"
                   ? "bg-[#2EB67D] text-white"
                   : "bg-white text-black"
@@ -177,25 +170,12 @@ const Slidebar = () => {
           </div>
           <div className="flex">
             <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] transition-all duration-500 ${
-                selectedItem === "projectmanagement"
-                  ? "bg-[#2EB67D] text-white"
-                  : "bg-white text-black"
-              }`}
-              onClick={() => toggleMenu("projectmanagement")}
-            >
-              <RiExchange2Fill className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
-              Project management
-            </li>
-          </div>
-          <div className="flex">
-            <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] transition-all duration-500 ${
+              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
                 selectedItem === "checkincheckout"
                   ? "bg-[#2EB67D] text-white"
                   : "bg-white text-black"
               }`}
-              onClick={() => toggleMenu("checkincheckout")}
+              onClick={() => toggleMenu("checkincheckout", "/checkincheckout")}
             >
               <PiNotepadFill className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
               Check-in/Check-out
@@ -203,12 +183,12 @@ const Slidebar = () => {
           </div>
           <div className="flex">
             <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] transition-all duration-500 ${
+              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
                 selectedItem === "overtime"
                   ? "bg-[#2EB67D] text-white"
                   : "bg-white text-black"
               }`}
-              onClick={() => toggleMenu("overtime")}
+              onClick={() => toggleMenu("overtime", "/overtime")}
             >
               <AiFillControl className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
               Overtime
@@ -216,53 +196,23 @@ const Slidebar = () => {
           </div>
           <div className="flex">
             <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] transition-all duration-500 ${
+              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
                 selectedItem === "absense"
                   ? "bg-[#2EB67D] text-white"
                   : "bg-white text-black"
               }`}
-              onClick={() => toggleMenu("absense")}
+              onClick={() => toggleMenu("absense", "/absense")}
             >
               <AiFillControl className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
               Absence
             </li>
           </div>
-          <div className="flex">
+          <div className="flex border-[#B8BDC5] border-2 rounded-[10px] mt-[200%]">
             <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] transition-all duration-500 ${
-                selectedItem === "setting"
-                  ? "bg-[#2EB67D] text-white"
-                  : "bg-white text-black"
-              }`}
-              onClick={() => toggleMenu("setting")}
+              className="flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointe text-[#979797] "
+              onClick={() => toggleMenu("setting", "/settings")}
             >
-              <AiFillControl className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
-              Settings
-            </li>
-          </div>
-          <div className="flex">
-            <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] transition-all duration-500 ${
-                selectedItem === "setting"
-                  ? "bg-[#2EB67D] text-white"
-                  : "bg-white text-black"
-              }`}
-              onClick={() => toggleMenu("setting")}
-            >
-              <AiFillControl className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
-              Settings
-            </li>
-          </div>
-          <div className="flex">
-            <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] transition-all duration-500 ${
-                selectedItem === "setting"
-                  ? "bg-[#2EB67D] text-white"
-                  : "bg-white text-black"
-              }`}
-              onClick={() => toggleMenu("setting")}
-            >
-              <AiFillControl className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
+              <VscSettings className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
               Settings
             </li>
           </div>

@@ -3,6 +3,8 @@ import logo from "../assets/logoapp.png";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
+import { FaRegEye } from "react-icons/fa";
+import { FaRegEyeSlash } from "react-icons/fa";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -57,10 +59,13 @@ const Login = () => {
       return;
     }
     try {
-      const response = await axios.post("http://localhost:3000/api/login", {
-        email,
-        password,
-      });
+      const response = await axios.post(
+        "http://localhost:3000/api/user/login",
+        {
+          email,
+          password,
+        }
+      );
 
       const { success, message, token } = response.data;
 
@@ -69,8 +74,9 @@ const Login = () => {
         Swal.fire({
           text: message,
           icon: "success",
-          timer: 2000,
         });
+        localStorage.setItem("token", response.data.token);
+        // alert(response.data.token);
         navigate("/dashboard");
       } else {
         Swal.fire({
@@ -146,7 +152,7 @@ const Login = () => {
               type="email"
               placeholder="Enter your Email here"
               value={email}
-              className={`text-black bg-[#B0BAC3] opacity-40 h-[50px] rounded-[12px] w-[70%] px-[15px] cursor-pointer outline-none border-2 hover:border-[#2EB67D] shadow-[0px_3px_#888888] placeholder:text-black ${
+              className={`text-black bg-[rgba(176,186,195,0.4)] h-[50px] rounded-[12px] w-[70%] px-[15px] cursor-text outline-none focus:border-[#2EB67D] hover:border-[#2EB67D] shadow-[0px_3px_#888888] focus:border-2 hover:border-2 border-2 ${
                 emailBorder ? "border-red-500" : "border-[#B0BAC3]"
               }`}
               onChange={(e) => {
@@ -170,7 +176,7 @@ const Login = () => {
                 type={isPasswordVisible ? "text" : "password"}
                 placeholder="Enter your Password here"
                 value={password}
-                className={`text-black bg-[#B0BAC3] opacity-40 h-[50px] rounded-[12px] w-[70%] px-[15px] outline-none cursor-pointer border-2 hover:border-[#2EB67D] shadow-[0px_3px_#888888] placeholder:text-black ${
+                className={`text-black bg-[rgba(176,186,195,0.4)]  h-[50px] rounded-[12px] w-[70%] px-[15px] outline-none cursor-text hover:border-[#2EB67D] focus:border-[#2EB67D]  shadow-[0px_3px_#888888] focus:border-2 hover:border-2 border-2 ${
                   passwordBorder ? "border-red-500" : "border-[#B0BAC3]"
                 }`}
                 onChange={(e) => {
@@ -178,12 +184,18 @@ const Login = () => {
                   setPassword(e.target.value);
                 }}
               ></input>
-              <img
-                alt="logo"
-                src="src\assets\eye.png"
-                onClick={togglePasswordVisibility}
-                className="absolute left-[80%] w-[17px] h-[15px] mt-[-30px]"
-              />
+
+              {isPasswordVisible ? (
+                <FaRegEyeSlash
+                  onClick={togglePasswordVisibility}
+                  className="absolute left-[80%] w-[19px] h-[15px] mt-[-30px] cursor-pointer"
+                />
+              ) : (
+                <FaRegEye
+                  onClick={togglePasswordVisibility}
+                  className="absolute left-[80%] w-[19px] h-[15px] mt-[-30px] cursor-pointer "
+                />
+              )}
             </div>
             {passwordError && (
               <p className="text-red-500 text-[15px] mt-[10px] text-left ml-[17%]">

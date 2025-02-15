@@ -7,10 +7,9 @@ import axios from "axios";
 import Modal from "react-modal";
 import { format } from "date-fns";
 import Swal from "sweetalert2";
-
+import avatar from "../assets/avatar.png";
 // icon
 import { CiSearch } from "react-icons/ci";
-import { IoFilterOutline } from "react-icons/io5";
 import { IoIosArrowDown } from "react-icons/io";
 import { CiCalendarDate } from "react-icons/ci";
 import { LuSquareArrowLeft } from "react-icons/lu";
@@ -22,17 +21,23 @@ import { BiDotsHorizontalRounded } from "react-icons/bi";
 import { FaRegEye } from "react-icons/fa";
 import { FaRegEyeSlash } from "react-icons/fa";
 import { IoIosArrowRoundForward } from "react-icons/io";
+import { BsFilterLeft } from "react-icons/bs";
+import { AiOutlineMail } from "react-icons/ai";
+import { FiPhone } from "react-icons/fi";
 
 Modal.setAppElement("#root");
 const Team = () => {
   const [data, setData] = useState([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isGenderOpen, setIsGenderOpen] = useState(false); //Dropdown gende
+  const [isRoleOpen, setIsRoleOpen] = useState(false); //Dropdown role
+  const [isTypeOpen, setIsTypeOpen] = useState(false); //Dropdown type
   const dropdownRef = useRef(null);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [more, setMore] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [error, setError] = useState("");
+  const [viewMode, setViewMode] = useState("list");
 
   // modal
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -54,10 +59,13 @@ const Team = () => {
   const [idCard, setIdCard] = useState("");
   const [gender, setGender] = useState("Choose your gender");
   const [department, setDepartment] = useState("");
-  const [type, setType] = useState("");
-  const [role, setRole] = useState("");
+  const [type, setType] = useState("Choose employee type");
+  const [role, setRole] = useState("Choose employee role");
   // const [avatar, setAvatar] = useState("");
+
   const genderData = ["Male", "Female", "Other"];
+  const roleData = ["Admin", "Project Manager", "Staff"];
+  const typeData = ["Full-time", "Fart-time", "Collabration", "Intern"];
 
   const [passwordCheck, setPasswordCheck] = useState("");
 
@@ -118,10 +126,22 @@ const Team = () => {
   };
 
   // Dropdown selection of gender
-  const toggleDropdown = () => setIsOpen(!isOpen);
-  const handleOptionClick = (option) => {
+  const toggleGenderDropdown = () => setIsGenderOpen(!isGenderOpen);
+  const handleOptionClick1 = (option) => {
     setGender(option);
-    setIsOpen(false);
+    setIsGenderOpen(false);
+  };
+  // Dropdown selection of role
+  const toggleRoleDropdown = () => setIsRoleOpen(!isRoleOpen);
+  const handleOptionClick2 = (option) => {
+    setRole(option);
+    setIsRoleOpen(false);
+  };
+  // Dropdown selection of type
+  const toggleTypeDropdown = () => setIsTypeOpen(!isTypeOpen);
+  const handleOptionClick3 = (option) => {
+    setType(option);
+    setIsTypeOpen(false);
   };
 
   // Get date
@@ -130,7 +150,7 @@ const Team = () => {
   // Prevent click outside
   const handleClickOutside = (event) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-      setIsOpen(false);
+      setIsGenderOpen(false);
     }
   };
 
@@ -144,10 +164,33 @@ const Team = () => {
   // Get all users
   useEffect(() => {
     axios
-      .get("http://localhost:3000/api/getallusers")
+      .get("http://localhost:3000/api/user/users")
       .then((response) => {
         setData(response.data);
-        console.log(data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data from API", error);
+      });
+  }, []);
+
+  // Get employeeID
+  // useEffect(() => {
+  //   axios
+  //     .get("http://localhost:3000/api/user/users")
+  //     .then((response) => {
+  //       setData(response.data);
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error fetching data from API", error);
+  //     });
+  // }, []);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3000/api/new-employee-id")
+      .then((response) => {
+        // setData(response.data);
+        alert(response.data);
       })
       .catch((error) => {
         console.error("Error fetching data from API", error);
@@ -164,6 +207,8 @@ const Team = () => {
       phoneNumber.trim() === "" ||
       !dateOfBirth ||
       gender === "Choose your gender" ||
+      type === "Choose employee type" ||
+      role === "Choose employee role" ||
       address.trim() === ""
     ) {
       Swal.fire({
@@ -178,7 +223,7 @@ const Team = () => {
       password: password,
       firstName: firstName,
       lastName: lastName,
-      employeeType: type,
+      employeeType: "Fulltime",
       role: role,
       department: department,
       dateOfBirth: dateOfBirth,
@@ -188,11 +233,11 @@ const Team = () => {
       idCardNumber: idCard,
       avatar: "https://example.com/avatar.jpg",
     };
-    // alert(JSON.stringify(newUserData));
+    alert(JSON.stringify(newUserData));
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/users",
+        "http://localhost:3000/api/user/create-user",
         newUserData
       );
 
@@ -272,7 +317,7 @@ const Team = () => {
   const verifyDelete = async () => {
     try {
       const response = await axios.delete(
-        `http://localhost:3000/api/users/${selectedEmployee._id}`
+        `http://localhost:3000/api/user/${selectedEmployee._id}`
       );
       if (response.status === 200) {
         closeCheckModal();
@@ -323,406 +368,533 @@ const Team = () => {
 
   return (
     <div className="flex ">
-      <Slidebar />
-      <div className="flex flex-col flex-grow">
-        <Navbar className="w-full" />
+      <Slidebar className="w-[250px]" />
+      <div className="flex flex-col flex-grow w-full">
+        <Navbar />
         {/* more */}
-        <div className="flex p-4 mt-[15px]">
-          {/* search */}
-          <div className="relative mr-[20px]">
-            <CiSearch className="absolute top-[50%] left-4 transform -translate-y-1/2 w-[20px] h-[20px]" />
-            <input
-              type="text"
-              placeholder="Search by name, role, department..."
-              className="h-[50px] w-[331px] pl-12 rounded-[12px] border-2 bg-white border-gray-200 focus:outline-none text-[15px] text-black"
-            />
-          </div>
-          {/* filter */}
-          <div className="flex relative mr-[70px]">
-            <button className="flex items-center justify-between h-[50px] w-[100px] px-4 rounded-tl-[12px] rounded-bl-[12px] border-2 bg-white border-gray-200 focus:outline-none text-[15px]">
-              <span className="ml-[10px]">Filter</span>
-              <IoFilterOutline className="w-[20px] h-[20px]" />
-            </button>
-            <button className="flex items-center justify-between h-[50px] w-[100px] px-4 rounded-tr-[12px] rounded-br-[12px] border-2 bg-white border-gray-200 focus:outline-none text-[15px]">
-              <span className="ml-[10px]">Grid</span>
-              <PiGridFourThin className="w-[20px] h-[20px]" />
-            </button>
-          </div>
-
-          {/* all department */}
-          <div className="relative mr-[20px]">
-            <button className="flex items-center justify-between h-[50px] w-[196px] px-4 rounded-[12px] border-2 bg-white border-gray-200 focus:outline-none text-[15px] ">
-              <span className="ml-[10px]">All Departments</span>
-              <IoIosArrowDown className="w-[20px] h-[20px]" />
-            </button>
-          </div>
-
-          {/* Calendar */}
-          <div className="relative mr-[20px]">
-            <CiCalendarDate className="absolute top-[50%] left-4 transform -translate-y-1/2 w-[20px] h-[20px]" />
-            <div className="flex items-center top-[50%] h-[50px] w-[169px] pl-12 rounded-[12px] border-2 bg-white border-gray-200 focus:outline-none text-[15px] text-black">
-              {currentDate}
+        <div className="w-full">
+          <div className="flex p-4 mt-[15px] ">
+            {/* search */}
+            <div className="relative mr-[20px]">
+              <CiSearch className="absolute top-[50%] left-4 transform -translate-y-1/2 w-[20px] h-[20px]" />
+              <input
+                type="text"
+                placeholder="Search by name, role, department..."
+                className="h-[50px] w-[331px] pl-12 rounded-[12px] border-2 bg-white border-gray-200 focus:outline-none text-[15px] text-black focus:border-[#2EB67D] hover:border-[#2EB67D]"
+              />
             </div>
-          </div>
-          {/* button add */}
-          <div className="mr-[15px]">
-            <button
-              onClick={() => setModalIsOpen(true)}
-              className="h-[50px] w-[180px] rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 focus:outline-none text-[15px]"
+            {/* filter */}
+            <div className="flex relative mr-[80px]">
+              <div
+                className={`flex items-center h-[50px] w-[100px] px-4 rounded-tl-[12px] rounded-bl-[12px] border-t-2 border-b-2 border-l-2 ${
+                  viewMode === "list"
+                    ? "bg-[#C5C5C5]"
+                    : "bg-white hover:bg-[#C5C5C5]"
+                } border-gray-200 text-[15px] cursor-pointer`}
+                onClick={() => setViewMode("list")}
+              >
+                <BsFilterLeft className="w-[20px] h-[20px]" />
+                <span className="ml-[10px]">List</span>
+              </div>
+              <div
+                className={`flex items-center h-[50px] w-[100px] px-4 rounded-tr-[12px] rounded-br-[12px] border-t-2 border-b-2 border-r-2 ${
+                  viewMode === "grid"
+                    ? "bg-[#C5C5C5]"
+                    : "bg-white hover:bg-[#C5C5C5]"
+                } border-gray-200 text-[15px] cursor-pointer`}
+                onClick={() => setViewMode("grid")}
+              >
+                <PiGridFourThin className="w-[20px] h-[20px]" />
+                <span className="ml-[10px]">Grid</span>
+              </div>
+            </div>
+            {/* all department */}
+            <div className="relative mr-[20px]">
+              <button className="flex items-center justify-between h-[50px] w-[196px] px-4 rounded-[12px] border-2 bg-white border-gray-200 focus:outline-none text-[15px] hover:border-[#2EB67D] focus:border-[#2EB67D]  ">
+                <span className="ml-[10px]">All Departments</span>
+                <IoIosArrowDown className="w-[20px] h-[20px]" />
+              </button>
+            </div>
+
+            {/* Calendar */}
+            <div className="relative mr-[20px]">
+              <CiCalendarDate className="absolute top-[50%] left-4 transform -translate-y-1/2 w-[20px] h-[20px]" />
+              <div className="flex items-center top-[50%] h-[50px] w-[169px] pl-12 rounded-[12px] border-2 bg-white border-gray-200 focus:outline-none text-[15px] text-black">
+                {currentDate}
+              </div>
+            </div>
+            {/* button add */}
+            <div className="mr-[15px]">
+              <button
+                onClick={() => setModalIsOpen(true)}
+                className="h-[50px] w-[180px] rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 focus:outline-none hover:border-[#2EB67D] focus:border-[#2EB67D]  text-[15px]"
+              >
+                Add new employee
+              </button>
+            </div>
+            {/* Modal create user */}
+            <Modal
+              isOpen={modalIsOpen}
+              onRequestClose={() => setModalIsOpen(false)}
+              contentLabel="Modal Create User"
+              shouldCloseOnOverlayClick={false}
+              className="bg-white rounded-[15px] shadow-lg w-auto p-6 transition-all duration-500"
+              overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
             >
-              Add new employee
-            </button>
-          </div>
-          {/* Modal create user */}
-          <Modal
-            isOpen={modalIsOpen}
-            onRequestClose={() => setModalIsOpen(false)}
-            contentLabel="Modal Create User"
-            shouldCloseOnOverlayClick={false}
-            className="bg-white rounded-[15px] shadow-lg w-auto p-6 transition-all duration-500"
-            overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
-          >
-            <div className="flex space-x-14">
-              <div className="ml-[10px]">
-                <button className="flex flex-col ml-[20px] border-[1px] mr-[15px] rounded-[50%] w-[180px] h-[180px] bg-[#EAEAEA] border-[#C5C5C5] text-[#C5C5C5] text-[10px] justify-center items-center">
-                  <HiOutlinePhoto className="w-[25px] h-[25px]" />
-                  <p className="w-[120px] mt-[5px]">
-                    Image: png, jpg, jpeg. Size Maximum: 1mb. Resolution:
-                    500x500px.
-                  </p>
-                </button>
-                {/* <img
+              <div className="flex space-x-14">
+                <div className="ml-[10px]">
+                  <button className="flex flex-col ml-[20px] border-[1px] mr-[15px] rounded-[50%] w-[180px] h-[180px] bg-[#EAEAEA] border-[#C5C5C5] text-[#C5C5C5] text-[10px] justify-center items-center  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2">
+                    <HiOutlinePhoto className="w-[25px] h-[25px]" />
+                    <p className="w-[120px] mt-[5px]">
+                      Image: png, jpg, jpeg. Size Maximum: 1mb. Resolution:
+                      500x500px.
+                    </p>
+                  </button>
+                  {/* <img
                   src="srcassetsBlobsVector.png"
                   alt="avatar"
                   className="border-[1px] mr-[15px] rounded-[50%] w-[180px] h-[180px] bg-[#EAEAEA] border-[#C5C5C5]"
                 /> */}
-                <p className="flex ml-[8px]  bg-[#EAEAEA] text-[#2EB67D] text-[36px] justify-center items-center w-[220px] border-[#C5C5C5] rounded-[10px] border-[1px] mt-[20px]">
-                  PMOC0001
-                </p>
-              </div>
-              <div>
-                <p className="text-[15px] font-bold">First name</p>
-                <input
-                  type="text"
-                  className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[10px]"
-                  value={firstName}
-                  onChange={(e) => {
-                    setFirstName(e.target.value);
-                  }}
-                ></input>
-                <p className="mt-[10px] text-[15px] font-bold">Email</p>
-                <div className="relative mt-[5px] w-[300px]">
+                  <p className="flex ml-[8px]  bg-[#EAEAEA] text-[#2EB67D] text-[36px] justify-center items-center w-[220px] border-[#C5C5C5] rounded-[10px] border-[1px] mt-[20px]">
+                    PMOC0001
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[15px] font-bold">First name</p>
                   <input
                     type="text"
-                    placeholder="Enter email"
-                    className="border-[#C5C5C5] rounded-[8px] border-[1px] w-full h-[40px] pr-[100px] pl-[15px] text-[14px]"
-                    value={email}
+                    className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[10px]  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                    value={firstName}
                     onChange={(e) => {
-                      setEmail(e.target.value);
+                      setFirstName(e.target.value);
                     }}
-                  />
-                  <span className="absolute top-1/2 right-[10px] transform -translate-y-1/2 text-black">
-                    @hrempow.com
-                  </span>
-                </div>
-                <p className="mt-[10px] text-[15px] font-bold">Department</p>
-                <input
-                  type="text"
-                  value={department}
-                  onChange={(e) => {
-                    setDepartment(e.target.value);
-                  }}
-                  className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px]"
-                ></input>
-              </div>
-              <div>
-                <p className="text-[15px] font-bold">Last name</p>
-                <input
-                  type="text"
-                  className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px]"
-                  value={lastName}
-                  onChange={(e) => {
-                    setLastName(e.target.value);
-                  }}
-                ></input>
-                <p className="mt-[10px] text-[15px] font-bold">Password</p>
-                <input
-                  type="text"
-                  placeholder="Enter employee's password"
-                  className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px] text-[14px]"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                  }}
-                ></input>
-                <p className="mt-[10px] text-[15px] font-bold">Employee role</p>
-                <input
-                  type="text"
-                  className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px]"
-                  value={role}
-                  onChange={(e) => {
-                    setRole(e.target.value);
-                  }}
-                ></input>
-                <p className="mt-[10px] text-[15px] font-bold">Employee type</p>
-                <input
-                  type="text"
-                  value={type}
-                  onChange={(e) => {
-                    setType(e.target.value);
-                  }}
-                  className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px]"
-                ></input>
-              </div>
-            </div>
-            <div className="border-t border-[#B8BDC5] border-1 w-full mt-[20px]"></div>
-            <div className="flex mt-[15px] ml-[10px]">
-              <div>
-                <p className="text-[15px] space-x-5 font-bold">Phone number</p>
-                <input
-                  type="text"
-                  className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px]"
-                  value={phoneNumber}
-                  onChange={(e) => {
-                    setPhoneNumber(e.target.value);
-                  }}
-                ></input>
-              </div>
-              <div className="ml-[20px]">
-                <p className="text-[15px] font-bold">Address</p>
-                <input
-                  type="text"
-                  className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[620px] h-[40px] mt-[5px] pl-[15px]"
-                  value={address}
-                  onChange={(e) => {
-                    setAddress(e.target.value);
-                  }}
-                ></input>
-              </div>
-            </div>
-            <div className="flex mt-[10px] space-x-5 ml-[10px]">
-              <div>
-                <p className="text-[15px] font-bold">Province</p>
-                <input
-                  type="text"
-                  className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px]"
-                  value={province}
-                  onChange={(e) => {
-                    setProvince(e.target.value);
-                  }}
-                ></input>
-              </div>
-              <div>
-                <p className="text-[15px] font-bold">City</p>
-                <input
-                  type="text"
-                  className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px]"
-                  value={city}
-                  onChange={(e) => {
-                    setCity(e.target.value);
-                  }}
-                ></input>
-              </div>
-              <div>
-                <p className="text-[15px] font-bold">Postcode</p>
-                <input
-                  type="text"
-                  className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px]"
-                  value={postcode}
-                  onChange={(e) => {
-                    setPostcode(e.target.value);
-                  }}
-                ></input>
-              </div>
-            </div>
-            <div className="flex mt-[10px] space-x-5 ml-[10px]">
-              <div
-                className="relative inline-block text-left "
-                ref={dropdownRef}
-              >
-                <p className="text-[15px] font-bold">Gender</p>
-                <div className="relative">
-                  <button
-                    type="button"
-                    className="inline-flex w-[300px] h-[41px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400"
-                    id="menu-button"
-                    aria-expanded="true"
-                    aria-haspopup="true"
-                    onClick={toggleDropdown}
-                  >
-                    <span className="text-[14px] font-light">{gender}</span>
-                    <IoIosArrowDown />
-                  </button>
-                </div>
-                {isOpen && (
-                  <div className="absolute bottom-[calc(70%)] right-0 z-10 mt-2 w-[200px] bg-white rounded-md shadow-lg border border-gray-200">
-                    <ul className="py-1">
-                      {genderData.map((option, index) => (
-                        <li
-                          key={index}
-                          onClick={() => handleOptionClick(option)}
-                          className="block px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
-                        >
-                          {option}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-              <div>
-                <p className="text-[15px] font-bold">D.O.B</p>
-                <div className="relative mt-[5px] w-[300px] h-[41px]">
-                  <DatePicker
-                    selected={dateOfBirth}
-                    onChange={(date) => setDateOfBirth(date)}
-                    placeholderText="Choose your date of birth"
-                    className="w-[300px] border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block pr-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  />
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <IoIosArrowDown />
-                  </div>
-                </div>
-              </div>
-              <div>
-                <p className="text-[15px] font-bold">ID card number</p>
-                <input
-                  type="text"
-                  className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px]"
-                  value={idCard}
-                  onChange={(e) => {
-                    setIdCard(e.target.value);
-                  }}
-                ></input>
-              </div>
-            </div>
-
-            {/* Button */}
-            <div className="flex justify-end mr-[10px]">
-              <button
-                onClick={closeModal}
-                className="mt-4 bg-white text-[#FF6262] w-[200px] h-[45px] rounded-[10px] border-[#C5C5C5] "
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreate}
-                className="mt-4 bg-[#E7F7EF] text-[#097C44] w-[200px] h-[45px] rounded-[10px] border-[#C5C5C5] ml-[10px]"
-              >
-                Create
-              </button>
-            </div>
-          </Modal>
-        </div>
-        {/* list employees */}
-        <div className="overflow-x-auto mt-[20px] text-[15px] ml-[15px] w-full">
-          <table className="border-collapse bg-white rounded-[20px] overflow-hidden">
-            <thead>
-              <tr className="bg-[#E2E2E2] text-left">
-                <th className="px-7 py-4 border-b border-gray-300">
-                  <input
-                    type="checkbox"
-                    disabled
-                    className="h-5 w-5 mt-[8px] border-gray-300 rounded"
-                  />
-                </th>
-                <th className="px-6 py-4 border-b border-gray-300">Employee</th>
-                <th className="px-6 py-4 border-b border-gray-300">Role</th>
-                <th className="px-6 py-4 border-b border-gray-300 ">
-                  Employment Type
-                </th>
-                <th className="px-6 py-4 border-b border-gray-300">Status</th>
-                <th className="px-6 py-4 border-b border-gray-300">Email</th>
-                <th className="px-6 py-4 border-b border-gray-300">
-                  Phone number
-                </th>
-                <th className="px-7 py-4 border-b border-gray-300">View</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentItems.map((item) => (
-                <tr
-                  key={item.employee}
-                  className="hover:bg-gray-50 cursor-pointer"
-                  onClick={() => handleRowClick(item)}
-                >
-                  <td className="px-7 py-3 border-b border-gray-200">
+                  ></input>
+                  <p className="mt-[10px] text-[15px] font-bold">Email</p>
+                  <div className="relative mt-[5px] w-[300px]">
                     <input
-                      type="checkbox"
-                      className="h-5 w-5 text-blue-400 border-gray-300 rounded"
+                      type="text"
+                      placeholder="Enter email"
+                      className="border-[#C5C5C5] rounded-[8px] border-[1px] w-full h-[40px] pr-[100px] pl-[15px] text-[15px]  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                      }}
                     />
-                  </td>
-                  <td className="px-6 py-3 border-b border-gray-200">
-                    <div className="flex items-center w-[200px]">
-                      <img
-                        src={item.avatar}
-                        alt={item.avatar}
-                        className="mr-[15px] rounded-[50px] w-[40px] h-[40px]"
+                    <span className="absolute top-1/2 right-[10px] transform -translate-y-1/2 text-black">
+                      @hrempow.com
+                    </span>
+                  </div>
+                  <p className="mt-[10px] text-[15px] font-bold">Department</p>
+                  <input
+                    type="text"
+                    value={department}
+                    onChange={(e) => {
+                      setDepartment(e.target.value);
+                    }}
+                    className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px]  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                  ></input>
+                </div>
+                <div>
+                  <p className="text-[15px] font-bold">Last name</p>
+                  <input
+                    type="text"
+                    className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px]  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                    value={lastName}
+                    onChange={(e) => {
+                      setLastName(e.target.value);
+                    }}
+                  ></input>
+                  <p className="mt-[10px] text-[15px] font-bold">Password</p>
+                  <input
+                    type="text"
+                    placeholder="Enter employee's password"
+                    className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px] text-[15px]  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                    }}
+                  ></input>
+                  <p className="mt-[10px] text-[15px] font-bold">
+                    Employee role
+                  </p>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      className="inline-flex border-2 w-[300px] h-[41px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                      id="menu-button"
+                      aria-expanded="true"
+                      aria-haspopup="true"
+                      onClick={toggleRoleDropdown}
+                    >
+                      <span className="text-[15px]">{role}</span>
+                      <IoIosArrowDown />
+                    </button>
+                  </div>
+                  {isRoleOpen && (
+                    <div className="absolute z-10 mt-2 w-[300px] bg-white rounded-md shadow-lg border border-gray-200">
+                      <ul className="py-1">
+                        {roleData.map((option, index) => (
+                          <li
+                            key={index}
+                            onClick={() => handleOptionClick2(option)}
+                            className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                          >
+                            {option}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  <p className="mt-[10px] text-[15px] font-bold">
+                    Employee type
+                  </p>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      className="inline-flex border-2 w-[300px] h-[41px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                      id="menu-button"
+                      aria-expanded="true"
+                      aria-haspopup="true"
+                      onClick={toggleTypeDropdown}
+                    >
+                      <span className="text-[15px">{type}</span>
+                      <IoIosArrowDown />
+                    </button>
+                  </div>
+                  {isTypeOpen && (
+                    <div className="absolute z-10 mt-2 w-[300px] bg-white rounded-md shadow-lg border border-gray-200">
+                      <ul className="py-1">
+                        {typeData.map((option, index) => (
+                          <li
+                            key={index}
+                            onClick={() => handleOptionClick3(option)}
+                            className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                          >
+                            {option}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="border-t border-[#B8BDC5] border-1 w-full mt-[20px]"></div>
+              <div className="flex mt-[15px] ml-[10px]">
+                <div>
+                  <p className="text-[15px] space-x-5 font-bold">
+                    Phone number
+                  </p>
+                  <input
+                    type="tel"
+                    className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                    value={phoneNumber}
+                    onChange={(e) => {
+                      setPhoneNumber(e.target.value);
+                    }}
+                  ></input>
+                </div>
+                <div className="ml-[20px]">
+                  <p className="text-[15px] font-bold">Address</p>
+                  <input
+                    type="text"
+                    className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[620px] h-[40px] mt-[5px] pl-[15px]  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                    value={address}
+                    onChange={(e) => {
+                      setAddress(e.target.value);
+                    }}
+                  ></input>
+                </div>
+              </div>
+              <div className="flex mt-[10px] space-x-5 ml-[10px]">
+                <div>
+                  <p className="text-[15px] font-bold">Province</p>
+                  <input
+                    type="text"
+                    className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px]  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                    value={province}
+                    onChange={(e) => {
+                      setProvince(e.target.value);
+                    }}
+                  ></input>
+                </div>
+                <div>
+                  <p className="text-[15px] font-bold">City</p>
+                  <input
+                    type="text"
+                    className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px]  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                    value={city}
+                    onChange={(e) => {
+                      setCity(e.target.value);
+                    }}
+                  ></input>
+                </div>
+                <div>
+                  <p className="text-[15px] font-bold">Postcode</p>
+                  <input
+                    type="text"
+                    className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                    value={postcode}
+                    onChange={(e) => {
+                      setPostcode(e.target.value);
+                    }}
+                  ></input>
+                </div>
+              </div>
+              <div className="flex mt-[10px] space-x-5 ml-[10px]">
+                <div
+                  className="relative inline-block text-left "
+                  ref={dropdownRef}
+                >
+                  <p className="text-[15px] font-bold">Gender</p>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      className="inline-flex w-[300px] h-[41px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                      id="menu-button"
+                      aria-expanded="true"
+                      aria-haspopup="true"
+                      onClick={toggleGenderDropdown}
+                    >
+                      <span className="text-[15px]">{gender}</span>
+                      <IoIosArrowDown />
+                    </button>
+                  </div>
+                  {isGenderOpen && (
+                    <div className="absolute bottom-[calc(70%)] z-10 mt-2 w-[300px] bg-white rounded-md shadow-lg border border-gray-200">
+                      <ul className="py-1">
+                        {genderData.map((option, index) => (
+                          <li
+                            key={index}
+                            onClick={() => handleOptionClick1(option)}
+                            className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                          >
+                            {option}
+                          </li>
+                        ))}
+                        x
+                      </ul>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <p className="text-[15px] font-bold">D.O.B</p>
+                  <div className="relative mt-[5px] w-[300px] h-[41px]">
+                    <DatePicker
+                      selected={dateOfBirth}
+                      onChange={(date) => setDateOfBirth(date)}
+                      placeholderText="Choose your date of birth"
+                      className="w-[300px] border border-gray-300 text-gray-900 text-sm rounded-lg  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 block pr-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                      <IoIosArrowDown />
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[15px] font-bold">ID card number</p>
+                  <input
+                    type="text"
+                    className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px]  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                    value={idCard}
+                    onChange={(e) => {
+                      setIdCard(e.target.value);
+                    }}
+                  ></input>
+                </div>
+              </div>
+
+              {/* Button */}
+              <div className="flex justify-end mr-[10px]">
+                <button
+                  onClick={closeModal}
+                  className="mt-4 bg-white text-[#FF6262] w-[200px] h-[45px] rounded-[10px] border-[#C5C5C5] "
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreate}
+                  className="mt-4 bg-[#E7F7EF] text-[#097C44] w-[200px] h-[45px] rounded-[10px] border-[#C5C5C5] ml-[10px]"
+                >
+                  Create
+                </button>
+              </div>
+            </Modal>
+          </div>
+          {/* list employees*/}
+          {viewMode === "list" ? (
+            <div className="overflow-x-auto mt-[20px] text-[15px] ml-[15px]">
+              <table className="border-collapse bg-white rounded-[20px] overflow-hidden w-full ">
+                <thead>
+                  <tr className="bg-[#E2E2E2] text-left">
+                    <th className="px-7 py-4 border-b border-gray-300">
+                      <input
+                        type="checkbox"
+                        disabled
+                        className="h-5 w-5 mt-[8px] border-gray-300 rounded"
                       />
-                      {`${item.firstName} ${item.lastName}`}
-                    </div>
-                  </td>
-                  <td className="px-6 py-3 border-b border-gray-200">
-                    <div className="truncate w-[80px] text-left">
-                      {item.department}
-                    </div>
-                  </td>
-                  <td className="px-6 py-3 border-b border-gray-200">
-                    <span
-                      className={`px-2 py-1 border rounded-md text-sm ${
-                        item.employeeType === "Fulltime"
-                          ? "text-[#534FEB] border-[#534FEB] bg-[#534FEB] bg-opacity-10"
-                          : ""
-                      } ${
-                        item.employeeType === "Partime"
-                          ? "text-[#1C6CE5] border-[#1C6CE5] bg-[#1C6CE5] bg-opacity-10"
-                          : ""
-                      } ${
-                        item.employeeType === "Collab"
-                          ? "text-[#FF0000] border-[#FF0000] bg-[#FF0000] bg-opacity-10"
-                          : ""
-                      }`}
+                    </th>
+                    <th className="px-6 py-4 border-b border-gray-300">
+                      Employee
+                    </th>
+                    <th className="px-6 py-4 border-b border-gray-300">Role</th>
+                    <th className="px-6 py-4 border-b border-gray-300 ">
+                      Employment Type
+                    </th>
+                    <th className="px-6 py-4 border-b border-gray-300">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 border-b border-gray-300">
+                      Email
+                    </th>
+                    <th className="px-6 py-4 border-b border-gray-300">
+                      Phone number
+                    </th>
+                    <th className="px-7 py-4 border-b border-gray-300">View</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentItems.map((item) => (
+                    <tr
+                      key={item.employee}
+                      className="hover:bg-gray-50 cursor-pointer"
+                      onClick={(e) => {
+                        if (e.target.type !== "checkbox") {
+                          handleRowClick(item);
+                        }
+                      }}
                     >
-                      {item.employeeType === "Fulltime"
-                        ? "Full-Time"
-                        : item.employeeType === "Partime"
-                        ? "Part-Time"
-                        : item.employeeType === "Collab"
-                        ? "Collaboration"
-                        : "Intern"}
-                    </span>
-                  </td>
-                  <td className="px-6 py-3 border-b border-gray-200">
-                    <span
-                      className={`px-2 py-1 border rounded-md text-sm ${
-                        item.status === "Active"
-                          ? "text-[#069855] border-[#069855] bg-[#069855] bg-opacity-10"
-                          : ""
-                      } ${
-                        item.status === "Inactive"
-                          ? "text-[#D39C1D] border-[#D39C1D] bg-[#D39C1D] bg-opacity-10"
-                          : ""
-                      }`}
-                    >
-                      {item.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-3 border-b border-gray-200">
-                    <div className="truncate w-[150px] text-left">
-                      {item.email}
+                      <td className="px-7 py-3 border-b border-gray-200">
+                        <input
+                          type="checkbox"
+                          className="h-5 w-5 checked:bg-[#2EB67D] checked:border-[#2EB67D] border-gray-300 rounded"
+                        />
+                      </td>
+                      <td className="px-6 py-3 border-b border-gray-200">
+                        <div className="flex items-center w-[200px]">
+                          <img
+                            src={avatar}
+                            alt={avatar}
+                            className="mr-[15px] rounded-[50px] w-[40px] h-[40px]"
+                          />
+                          {`${item.firstName} ${item.lastName}`}
+                        </div>
+                      </td>
+                      <td className="px-6 py-3 border-b border-gray-200">
+                        <div className="truncate w-[80px] text-left">
+                          {item.department}
+                        </div>
+                      </td>
+                      <td className="px-6 py-3 border-b border-gray-200">
+                        <span
+                          className={`px-2 py-1 border rounded-md text-sm ${
+                            item.employeeType === "Fulltime"
+                              ? "text-[#534FEB] border-[#534FEB] bg-[#534FEB] bg-opacity-10"
+                              : ""
+                          } ${
+                            item.employeeType === "Partime"
+                              ? "text-[#1C6CE5] border-[#1C6CE5] bg-[#1C6CE5] bg-opacity-10"
+                              : ""
+                          } ${
+                            item.employeeType === "Collab"
+                              ? "text-[#FF0000] border-[#FF0000] bg-[#FF0000] bg-opacity-10"
+                              : ""
+                          }`}
+                        >
+                          {item.employeeType === "Fulltime"
+                            ? "Full-Time"
+                            : item.employeeType === "Partime"
+                            ? "Part-Time"
+                            : item.employeeType === "Collab"
+                            ? "Collaboration"
+                            : "Intern"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3 border-b border-gray-200">
+                        <span
+                          className={`px-2 py-1 border rounded-md text-sm ${
+                            item.status === "Active"
+                              ? "text-[#069855] border-[#069855] bg-[#069855] bg-opacity-10"
+                              : ""
+                          } ${
+                            item.status === "Inactive"
+                              ? "text-[#D39C1D] border-[#D39C1D] bg-[#D39C1D] bg-opacity-10"
+                              : ""
+                          }`}
+                        >
+                          {item.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3 border-b border-gray-200">
+                        <div className="truncate w-[150px] text-left">
+                          {item.email}
+                        </div>
+                      </td>
+                      <td className="px-6 py-3 border-b border-gray-200">
+                        <div className="truncate w-[130px]">
+                          {item.phoneNumber}
+                        </div>
+                      </td>
+                      <td className="px-6 py-3 border-b border-gray-200">
+                        {item.view}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="grid grid-cols-4">
+              {currentItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-[#EAEAEA] w-[280px] h-[330px] mt-[20px] ml-[15px] rounded-[15px]"
+                >
+                  <div className="flex space-x-[120px]">
+                    <div className="mt-[10px] ml-[15px] ">
+                      <img
+                        src={avatar}
+                        alt={avatar}
+                        className="rounded-[50px] w-[85px] h-[85px] ml-[10px]"
+                      />
+                      <div className="text-left mt-[10px] ml-[10px]">
+                        <p className="font-bold uppercase whitespace-nowrap overflow-hidden text-ellipsis">
+                          {`${item.firstName} ${item.lastName}`}
+                        </p>
+                        <p className="text-[#979797] text-[14px]">
+                          {item.department}
+                        </p>
+                      </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-3 border-b border-gray-200">
-                    <div className="truncate w-[130px]">{item.phoneNumber}</div>
-                  </td>
-                  <td className="px-6 py-3 border-b border-gray-200">
-                    {item.view}
-                  </td>
-                </tr>
+                    <BiDotsHorizontalRounded className="w-[35px] h-[35px] mt-[10px] cursor-pointer" />
+                  </div>
+                  <div className="bg-[#FFFFFF] rounded-[15px] h-[48%] w-[93%] ml-[10px] mt-[15px]">
+                    <div className="flex space-x-[30%] text-[14px] ml-[15px] text-left">
+                      <div className="mt-[5%]">
+                        <p className="text-[#979797]">Department</p>
+                        <p className="font-bold">{item.department}</p>
+                      </div>
+                      <div className="mt-[5%]">
+                        <p className="text-[#979797]">Hired date</p>
+                        <p className="font-bold">{item.hiredDate}</p>
+                      </div>
+                    </div>
+                    <div className="ml-[15px] mt-[15%]">
+                      <div className="flex items-center">
+                        <AiOutlineMail className="text-[#5ADAA4] w-[20px] h-[20px] mr-[10px]" />
+                        <p className="text-[13px]">{item.email}</p>
+                      </div>
+                      <div className="flex mt-[5%]">
+                        <FiPhone className="text-[#5ADAA4] w-[20px] h-[20px] mr-[10px]" />
+                        <p className="text-[13px]">{item.phoneNumber}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          )}
         </div>
+
         {/* Modal detail employee */}
         {selectedEmployee && (
           <Modal
@@ -886,8 +1058,8 @@ const Team = () => {
               <div className="flex mt-[10px] ml-[50px]">
                 <div>
                   <img
-                    src="srcassetsBlobsVector.png"
-                    alt="avatar"
+                    src={avatar}
+                    alt={avatar}
                     className="border-[1px] rounded-[50%] w-[180px] h-[180px] bg-[#EAEAEA] border-[#C5C5C5]"
                   />
                   <p className="text-[#2EB67D] text-[30px] w-[220px] mt-[10px] font-bold mr-[20px] ml-[-10px]">
@@ -1009,7 +1181,7 @@ const Team = () => {
           </Modal>
         )}
         {/* infor bottom */}
-        <div className="mt-[20px] ml-[35px] flex items-center gap-[40%]">
+        <div className="mt-[50px] ml-[15px] flex items-center justify-between ">
           <p>
             Showing{" "}
             <b>
@@ -1018,7 +1190,7 @@ const Team = () => {
             employees
           </p>
           {/* Pagination */}
-          <div className="flex items-center space-x-2 ml-[100px]">
+          <div className="flex items-center space-x-2 mr-[50px]">
             <button
               onClick={handlePreviousPage}
               disabled={currentPage === 1}

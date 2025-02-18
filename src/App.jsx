@@ -19,6 +19,7 @@ function App() {
         <Route path="/myreferrals" element={<Comingsoon />} />
         <Route path="/carrersite" element={<Comingsoon />} />
         <Route path="/employee" element={<Employee />} />
+        <Route path="/payroll" element={<Comingsoon />} />
         <Route path="/projectmanagement" element={<Comingsoon />} />
         <Route path="/checkincheckout" element={<Comingsoon />} />
         <Route path="/overtime" element={<Comingsoon />} />

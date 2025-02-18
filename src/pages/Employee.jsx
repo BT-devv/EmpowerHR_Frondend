@@ -164,7 +164,7 @@ const Team = () => {
   // Get all users
   useEffect(() => {
     axios
-      .get("http://localhost:3000/api/user/users")
+      .get(import.meta.env.VITE_GETALLUSER)
       .then((response) => {
         setData(response.data);
       })
@@ -237,7 +237,7 @@ const Team = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/user/create-user",
+        import.meta.env.VITE_CREATEUSER,
         newUserData
       );
 
@@ -386,7 +386,7 @@ const Team = () => {
             {/* filter */}
             <div className="flex relative mr-[80px]">
               <div
-                className={`flex items-center h-[50px] w-[100px] px-4 rounded-tl-[12px] rounded-bl-[12px] border-t-2 border-b-2 border-l-2 ${
+                className={`flex items-center h-[50px] w-[100px] px-4 rounded-tl-[12px] rounded-bl-[12px] border-t-2 border-b-2 border-l-2 caret-transparent ${
                   viewMode === "list"
                     ? "bg-[#C5C5C5]"
                     : "bg-white hover:bg-[#C5C5C5]"
@@ -397,7 +397,7 @@ const Team = () => {
                 <span className="ml-[10px]">List</span>
               </div>
               <div
-                className={`flex items-center h-[50px] w-[100px] px-4 rounded-tr-[12px] rounded-br-[12px] border-t-2 border-b-2 border-r-2 ${
+                className={`flex items-center h-[50px] w-[100px] px-4 rounded-tr-[12px] rounded-br-[12px] border-t-2 border-b-2 border-r-2 caret-transparent ${
                   viewMode === "grid"
                     ? "bg-[#C5C5C5]"
                     : "bg-white hover:bg-[#C5C5C5]"
@@ -417,7 +417,7 @@ const Team = () => {
             </div>
 
             {/* Calendar */}
-            <div className="relative mr-[20px]">
+            <div className="relative mr-[20px] caret-transparent cursor-default">
               <CiCalendarDate className="absolute top-[50%] left-4 transform -translate-y-1/2 w-[20px] h-[20px]" />
               <div className="flex items-center top-[50%] h-[50px] w-[169px] pl-12 rounded-[12px] border-2 bg-white border-gray-200 focus:outline-none text-[15px] text-black">
                 {currentDate}
@@ -455,133 +455,147 @@ const Team = () => {
                   alt="avatar"
                   className="border-[1px] mr-[15px] rounded-[50%] w-[180px] h-[180px] bg-[#EAEAEA] border-[#C5C5C5]"
                 /> */}
-                  <p className="flex ml-[8px]  bg-[#EAEAEA] text-[#2EB67D] text-[36px] justify-center items-center w-[220px] border-[#C5C5C5] rounded-[10px] border-[1px] mt-[20px]">
+                  <p className="flex ml-[8px] bg-[#EAEAEA] text-[#2EB67D] text-[36px] justify-center items-center w-[220px] caret-transparent border-[#C5C5C5] rounded-[10px] border-[1px] mt-[20px]">
                     PMOC0001
                   </p>
                 </div>
-                <div>
-                  <p className="text-[15px] font-bold">First name</p>
-                  <input
-                    type="text"
-                    className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[10px]  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
-                    value={firstName}
-                    onChange={(e) => {
-                      setFirstName(e.target.value);
-                    }}
-                  ></input>
-                  <p className="mt-[10px] text-[15px] font-bold">Email</p>
-                  <div className="relative mt-[5px] w-[300px]">
-                    <input
-                      type="text"
-                      placeholder="Enter email"
-                      className="border-[#C5C5C5] rounded-[8px] border-[1px] w-full h-[40px] pr-[100px] pl-[15px] text-[15px]  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
-                      value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value);
-                      }}
-                    />
-                    <span className="absolute top-1/2 right-[10px] transform -translate-y-1/2 text-black">
-                      @hrempow.com
-                    </span>
-                  </div>
-                  <p className="mt-[10px] text-[15px] font-bold">Department</p>
-                  <input
-                    type="text"
-                    value={department}
-                    onChange={(e) => {
-                      setDepartment(e.target.value);
-                    }}
-                    className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px]  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
-                  ></input>
-                </div>
-                <div>
-                  <p className="text-[15px] font-bold">Last name</p>
-                  <input
-                    type="text"
-                    className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px]  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
-                    value={lastName}
-                    onChange={(e) => {
-                      setLastName(e.target.value);
-                    }}
-                  ></input>
-                  <p className="mt-[10px] text-[15px] font-bold">Password</p>
-                  <input
-                    type="text"
-                    placeholder="Enter employee's password"
-                    className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px] text-[15px]  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
-                    value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                    }}
-                  ></input>
-                  <p className="mt-[10px] text-[15px] font-bold">
-                    Employee role
-                  </p>
-                  <div className="relative">
-                    <button
-                      type="button"
-                      className="inline-flex border-2 w-[300px] h-[41px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
-                      id="menu-button"
-                      aria-expanded="true"
-                      aria-haspopup="true"
-                      onClick={toggleRoleDropdown}
-                    >
-                      <span className="text-[15px]">{role}</span>
-                      <IoIosArrowDown />
-                    </button>
-                  </div>
-                  {isRoleOpen && (
-                    <div className="absolute z-10 mt-2 w-[300px] bg-white rounded-md shadow-lg border border-gray-200">
-                      <ul className="py-1">
-                        {roleData.map((option, index) => (
-                          <li
-                            key={index}
-                            onClick={() => handleOptionClick2(option)}
-                            className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
-                          >
-                            {option}
-                          </li>
-                        ))}
-                      </ul>
+                <div className="flex flex-col">
+                  {/* First Name & Last Name */}
+                  <div className="flex space-x-14">
+                    <div>
+                      <p className="text-[15px] font-bold caret-transparent">
+                        First name
+                      </p>
+                      <input
+                        type="text"
+                        className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                        value={firstName}
+                        onChange={(e) => {
+                          setFirstName(e.target.value);
+                        }}
+                      />
                     </div>
-                  )}
-                  <p className="mt-[10px] text-[15px] font-bold">
-                    Employee type
-                  </p>
-                  <div className="relative">
-                    <button
-                      type="button"
-                      className="inline-flex border-2 w-[300px] h-[41px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
-                      id="menu-button"
-                      aria-expanded="true"
-                      aria-haspopup="true"
-                      onClick={toggleTypeDropdown}
-                    >
-                      <span className="text-[15px">{type}</span>
-                      <IoIosArrowDown />
-                    </button>
-                  </div>
-                  {isTypeOpen && (
-                    <div className="absolute z-10 mt-2 w-[300px] bg-white rounded-md shadow-lg border border-gray-200">
-                      <ul className="py-1">
-                        {typeData.map((option, index) => (
-                          <li
-                            key={index}
-                            onClick={() => handleOptionClick3(option)}
-                            className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
-                          >
-                            {option}
-                          </li>
-                        ))}
-                      </ul>
+                    <div>
+                      <p className="text-[15px] font-bold caret-transparent">
+                        Last name
+                      </p>
+                      <input
+                        type="text"
+                        className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                        value={lastName}
+                        onChange={(e) => {
+                          setLastName(e.target.value);
+                        }}
+                      />
                     </div>
-                  )}
+                  </div>
+                  {/* Email */}
+                  <div className="mt-[10px] w-full">
+                    <p className="text-[15px] font-bold caret-transparent">
+                      Email
+                    </p>
+                    <div className="relative mt-[5px] w-full">
+                      <input
+                        type="text"
+                        placeholder="Enter email"
+                        className="border-[#C5C5C5] rounded-[8px] border-[1px] w-full h-[40px] pr-[100px] pl-[15px] text-[15px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                        value={email}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                        }}
+                      />
+                      <span className="absolute top-1/2 right-[10px] transform -translate-y-1/2 text-black">
+                        @hrempow.com
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex space-x-14">
+                    <div>
+                      <p className="mt-[10px] text-[15px] font-bold caret-transparent">
+                        Department
+                      </p>
+                      <input
+                        type="text"
+                        value={department}
+                        onChange={(e) => {
+                          setDepartment(e.target.value);
+                        }}
+                        className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px]  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                      ></input>
+                    </div>
+                    {/* role */}
+                    <div>
+                      <p className="mt-[10px] text-[15px] font-bold caret-transparent">
+                        Employee role
+                      </p>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          className="inline-flex border-2 w-[300px] h-[41px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                          id="menu-button"
+                          aria-expanded="true"
+                          aria-haspopup="true"
+                          onClick={toggleRoleDropdown}
+                        >
+                          <span className="text-[15px]">{role}</span>
+                          <IoIosArrowDown />
+                        </button>
+                      </div>
+                      {isRoleOpen && (
+                        <div className="absolute z-10 mt-2 w-[300px] bg-white rounded-md shadow-lg border border-gray-200">
+                          <ul className="py-1">
+                            {roleData.map((option, index) => (
+                              <li
+                                key={index}
+                                onClick={() => handleOptionClick2(option)}
+                                className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                              >
+                                {option}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {/* type */}
+                      <p className="mt-[10px] text-[15px] font-bold caret-transparent">
+                        Employee type
+                      </p>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          className="inline-flex border-2 w-[300px] h-[41px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                          id="menu-button"
+                          aria-expanded="true"
+                          aria-haspopup="true"
+                          onClick={toggleTypeDropdown}
+                        >
+                          <span className="text-[15px">{type}</span>
+                          <IoIosArrowDown />
+                        </button>
+                      </div>
+                      {isTypeOpen && (
+                        <div className="absolute z-10 mt-2 w-[300px] bg-white rounded-md shadow-lg border border-gray-200">
+                          <ul className="py-1">
+                            {typeData.map((option, index) => (
+                              <li
+                                key={index}
+                                onClick={() => handleOptionClick3(option)}
+                                className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                              >
+                                {option}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className="border-t border-[#B8BDC5] border-1 w-full mt-[20px]"></div>
               <div className="flex mt-[15px] ml-[10px]">
                 <div>
-                  <p className="text-[15px] space-x-5 font-bold">
+                  <p className="text-[15px] space-x-5 font-bold caret-transparent">
                     Phone number
                   </p>
                   <input
@@ -594,7 +608,9 @@ const Team = () => {
                   ></input>
                 </div>
                 <div className="ml-[20px]">
-                  <p className="text-[15px] font-bold">Address</p>
+                  <p className="text-[15px] font-bold caret-transparent">
+                    Address
+                  </p>
                   <input
                     type="text"
                     className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[620px] h-[40px] mt-[5px] pl-[15px]  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
@@ -607,7 +623,9 @@ const Team = () => {
               </div>
               <div className="flex mt-[10px] space-x-5 ml-[10px]">
                 <div>
-                  <p className="text-[15px] font-bold">Province</p>
+                  <p className="text-[15px] font-bold caret-transparent">
+                    Province
+                  </p>
                   <input
                     type="text"
                     className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px]  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
@@ -618,7 +636,9 @@ const Team = () => {
                   ></input>
                 </div>
                 <div>
-                  <p className="text-[15px] font-bold">City</p>
+                  <p className="text-[15px] font-bold caret-transparent">
+                    City
+                  </p>
                   <input
                     type="text"
                     className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px]  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
@@ -629,7 +649,9 @@ const Team = () => {
                   ></input>
                 </div>
                 <div>
-                  <p className="text-[15px] font-bold">Postcode</p>
+                  <p className="text-[15px] font-bold caret-transparent">
+                    Postcode
+                  </p>
                   <input
                     type="text"
                     className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
@@ -645,7 +667,9 @@ const Team = () => {
                   className="relative inline-block text-left "
                   ref={dropdownRef}
                 >
-                  <p className="text-[15px] font-bold">Gender</p>
+                  <p className="text-[15px] font-bold caret-transparent">
+                    Gender
+                  </p>
                   <div className="relative">
                     <button
                       type="button"
@@ -677,7 +701,9 @@ const Team = () => {
                   )}
                 </div>
                 <div>
-                  <p className="text-[15px] font-bold">D.O.B</p>
+                  <p className="text-[15px] font-bold caret-transparent">
+                    D.O.B
+                  </p>
                   <div className="relative mt-[5px] w-[300px] h-[41px]">
                     <DatePicker
                       selected={dateOfBirth}
@@ -691,7 +717,9 @@ const Team = () => {
                   </div>
                 </div>
                 <div>
-                  <p className="text-[15px] font-bold">ID card number</p>
+                  <p className="text-[15px] font-bold caret-transparent">
+                    ID card number
+                  </p>
                   <input
                     type="text"
                     className="border-[#C5C5C5] rounded-[8px] border-[1px] w-[300px] h-[40px] mt-[5px] pl-[15px]  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
@@ -733,23 +761,27 @@ const Team = () => {
                         className="h-5 w-5 mt-[8px] border-gray-300 rounded"
                       />
                     </th>
-                    <th className="px-6 py-4 border-b border-gray-300">
+                    <th className="px-6 py-4 border-b border-gray-300 caret-transparent">
                       Employee
                     </th>
-                    <th className="px-6 py-4 border-b border-gray-300">Role</th>
-                    <th className="px-6 py-4 border-b border-gray-300 ">
+                    <th className="px-6 py-4 border-b border-gray-300 caret-transparent">
+                      Role
+                    </th>
+                    <th className="px-6 py-4 border-b border-gray-300 caret-transparent">
                       Employment Type
                     </th>
-                    <th className="px-6 py-4 border-b border-gray-300">
+                    <th className="px-6 py-4 border-b border-gray-300 caret-transparent">
                       Status
                     </th>
-                    <th className="px-6 py-4 border-b border-gray-300">
+                    <th className="px-6 py-4 border-b border-gray-300 caret-transparent">
                       Email
                     </th>
-                    <th className="px-6 py-4 border-b border-gray-300">
+                    <th className="px-6 py-4 border-b border-gray-300 caret-transparent">
                       Phone number
                     </th>
-                    <th className="px-7 py-4 border-b border-gray-300">View</th>
+                    <th className="px-7 py-4 border-b border-gray-300 caret-transparent">
+                      View
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1181,7 +1213,7 @@ const Team = () => {
           </Modal>
         )}
         {/* infor bottom */}
-        <div className="mt-[50px] ml-[15px] flex items-center justify-between ">
+        <div className="mt-[50px] ml-[15px] flex items-center justify-between caret-transparent">
           <p>
             Showing{" "}
             <b>

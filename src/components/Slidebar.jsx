@@ -8,6 +8,7 @@ import { FaUserFriends } from "react-icons/fa";
 import { VscSettings } from "react-icons/vsc";
 import { PiNotepadFill } from "react-icons/pi";
 import { AiFillControl } from "react-icons/ai";
+import { CiDollar } from "react-icons/ci";
 
 const Slidebar = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const Slidebar = () => {
     const pathToItem = {
       "/dashboard": "dashboard",
       "/message": "message",
+      "/payroll": "payroll",
       "/calendar": "calendar",
       "/employee": "employee",
       "/checkincheckout": "checkincheckout",
@@ -39,7 +41,7 @@ const Slidebar = () => {
   }, [selectedItem]);
 
   return (
-    <div className=" w-[250px] h-[1080] font-sans flex flex-col justify-center items-center text-[14px] ml-[20px]">
+    <div className=" w-[250px] h-[1080] font-sans flex flex-col justify-center items-center text-[14px] ml-[20px] caret-transparent">
       {/* Logo */}
       <div>
         <img
@@ -93,64 +95,6 @@ const Slidebar = () => {
           </div>
         </ul>
       </div>
-      {/* Recruitment */}
-      {/* <div className="mt-[10%]">
-        <p className="flex font-bold">RECRUITMENT</p>
-        <ul className="flex flex-col mt-[5%]">
-          <div className="flex">
-            <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
-                selectedItem === "job"
-                  ? "bg-[#2EB67D] text-white"
-                  : "bg-white text-black"
-              }`}
-              onClick={() => toggleMenu("job", "/job")}
-            >
-              <PiToolboxFill className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
-              Jobs
-            </li>
-          </div>
-          <div className="flex">
-            <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
-                selectedItem === "candidates"
-                  ? "bg-[#2EB67D] text-white"
-                  : "bg-white text-black"
-              }`}
-              onClick={() => toggleMenu("candidates", "/candidates")}
-            >
-              <FaUserFriends className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
-              Cadidates
-            </li>
-          </div>
-          <div className="flex">
-            <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
-                selectedItem === "myreferrals"
-                  ? "bg-[#2EB67D] text-white"
-                  : "bg-white text-black"
-              }`}
-              onClick={() => toggleMenu("myreferrals", "/myreferrals")}
-            >
-              <RiExchange2Fill className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
-              My Referrals
-            </li>
-          </div>
-          <div className="flex">
-            <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
-                selectedItem === "carrersite"
-                  ? "bg-[#2EB67D] text-white"
-                  : "bg-white text-black"
-              }`}
-              onClick={() => toggleMenu("carrersite", "/carrersite")}
-            >
-              <BsPcDisplay className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
-              Career Site
-            </li>
-          </div>
-        </ul>
-      </div> */}
       {/* Organization */}
       <div className="mt-[10%]">
         <p className="flex font-bold">ORGANIZATION</p>
@@ -166,6 +110,19 @@ const Slidebar = () => {
             >
               <FaUserFriends className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
               Employee
+            </li>
+          </div>
+          <div className="flex">
+            <li
+              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
+                selectedItem === "payroll"
+                  ? "bg-[#2EB67D] text-white"
+                  : "bg-white text-black"
+              }`}
+              onClick={() => toggleMenu("payroll", "/payroll")}
+            >
+              <CiDollar className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
+              Payroll
             </li>
           </div>
           <div className="flex">

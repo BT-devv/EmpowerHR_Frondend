@@ -54,8 +54,8 @@ const Navbar = () => {
     <div className="h-[60px] w-screen flex items-center">
       <AiOutlineMenu className="h-[25px] w-[25px] mr-[30px] ml-[20px]" />
       {/* Search */}
-      <div className="relative">
-        <CiSearch className="absolute top-[50%] left-4 transform -translate-y-1/2 w-[20px] h-[20px]" />
+      <div className="relative ">
+        <CiSearch className="absolute top-[50%] left-4 transform -translate-y-1/2 w-[20px] h-[20px] " />
         <input
           type="text"
           placeholder="Search"

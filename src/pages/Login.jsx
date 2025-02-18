@@ -59,13 +59,10 @@ const Login = () => {
       return;
     }
     try {
-      const response = await axios.post(
-        "http://localhost:3000/api/user/login",
-        {
-          email,
-          password,
-        }
-      );
+      const response = await axios.post(import.meta.env.VITE_LOGIN, {
+        email,
+        password,
+      });
 
       const { success, message, token } = response.data;
 
@@ -107,7 +104,7 @@ const Login = () => {
   };
 
   return (
-    <div className="flex bg-gray-600 w-screen h-screen overflow-hidden">
+    <div className="flex bg-gray-600 w-screen h-screen overflow-hidden ">
       <div className="bg-gray-600 relative z-[1] w-[40%]">
         <div>
           <img
@@ -134,18 +131,18 @@ const Login = () => {
       </div>
       <div className="bg-white rounded-tl-[25px] rounded-bl-[25px] z-[2] w-[60%]">
         {/* Logo */}
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-center caret-transparent">
           <img alt="logo" src={logo} className="h-[70px] mt-[4%]" />
         </div>
         {/* Welcome Back */}
-        <h2 className="mt-[65px] text-[36px] font-poppins font-bold flex items-center justify-center">
+        <h2 className="mt-[65px] text-[36px] font-poppins font-bold flex items-center justify-center caret-transparent">
           Welcome Back!
         </h2>
         {/* Form Fields */}
         <div className="mt-[2%]">
           {/* Email */}
           <div className="">
-            <p className="text-gray-400 text-left ml-[15%] text-[15px]">
+            <p className="text-gray-400 text-left ml-[15%] text-[15px] caret-transparent">
               Email
             </p>
             <input
@@ -161,14 +158,14 @@ const Login = () => {
               }}
             ></input>
             {emailError && (
-              <p className="text-red-500 text-[15px] mt-[10px] text-left ml-[17%]">
+              <p className="text-red-500 text-[15px] mt-[10px] text-left ml-[17%] caret-transparent">
                 {emailError}
               </p>
             )}
           </div>
           {/* Password */}
           <div className="mt-[3%]">
-            <p className="text-[#7C838A] text-left ml-[15%] text-[15px]">
+            <p className="text-[#7C838A] text-left ml-[15%] text-[15px] caret-transparent">
               Password
             </p>
             <div className="relative">
@@ -198,7 +195,7 @@ const Login = () => {
               )}
             </div>
             {passwordError && (
-              <p className="text-red-500 text-[15px] mt-[10px] text-left ml-[17%]">
+              <p className="text-red-500 text-[15px] mt-[10px] text-left ml-[17%] caret-transparent">
                 {passwordError}
               </p>
             )}
@@ -213,7 +210,7 @@ const Login = () => {
             </button>
           </div>
 
-          <p className="text-customGreen text-[15px] mt-[2%] flex items-center justify-center">
+          <p className="text-customGreen text-[15px] mt-[2%] flex items-center justify-center caret-transparent">
             Forgot your password?
           </p>
         </div>

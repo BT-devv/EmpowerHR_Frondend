@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Slidebar from "../components/Slidebar";
 import Navbar from "../components/Navbar";
+import apiRoutes from "../../apiRoutes";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import axios from "axios";
@@ -38,6 +39,7 @@ const Team = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [error, setError] = useState("");
   const [viewMode, setViewMode] = useState("list");
+  const [nextEmployeeID, setNextEmployeeID] = useState("");
 
   // modal
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -164,7 +166,7 @@ const Team = () => {
   // Get all users
   useEffect(() => {
     axios
-      .get(import.meta.env.VITE_GETALLUSER)
+      .get(apiRoutes.user.getAll)
       .then((response) => {
         setData(response.data);
       })
@@ -174,23 +176,11 @@ const Team = () => {
   }, []);
 
   // Get employeeID
-  // useEffect(() => {
-  //   axios
-  //     .get("http://localhost:3000/api/user/users")
-  //     .then((response) => {
-  //       setData(response.data);
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error fetching data from API", error);
-  //     });
-  // }, []);
-
   useEffect(() => {
     axios
-      .get("http://localhost:3000/api/new-employee-id")
+      .post(apiRoutes.user.getNextEmployeeID)
       .then((response) => {
-        // setData(response.data);
-        alert(response.data);
+        setNextEmployeeID(response.data.employeeID);
       })
       .catch((error) => {
         console.error("Error fetching data from API", error);
@@ -237,7 +227,7 @@ const Team = () => {
 
     try {
       const response = await axios.post(
-        import.meta.env.VITE_CREATEUSER,
+        apiRoutes.posts.createUser,
         newUserData
       );
 
@@ -317,7 +307,7 @@ const Team = () => {
   const verifyDelete = async () => {
     try {
       const response = await axios.delete(
-        `http://localhost:3000/api/user/${selectedEmployee._id}`
+        apiRoutes.user.profile(selectedEmployee._id)
       );
       if (response.status === 200) {
         closeCheckModal();
@@ -354,7 +344,6 @@ const Team = () => {
   const handleRowClick = async (item) => {
     setSelectedEmployee(item);
     setIsDetailModalOpen(true);
-    //   alert(JSON.stringify(selectedEmployee));
   };
 
   // Format date of birth
@@ -455,8 +444,8 @@ const Team = () => {
                   alt="avatar"
                   className="border-[1px] mr-[15px] rounded-[50%] w-[180px] h-[180px] bg-[#EAEAEA] border-[#C5C5C5]"
                 /> */}
-                  <p className="flex ml-[8px] bg-[#EAEAEA] text-[#2EB67D] text-[36px] justify-center items-center w-[220px] caret-transparent border-[#C5C5C5] rounded-[10px] border-[1px] mt-[20px]">
-                    PMOC0001
+                  <p className="flex ml-[8px] bg-[#EAEAEA] text-[#2EB67D] text-[31px] justify-center items-center w-[230px] caret-transparent border-[#C5C5C5] rounded-[10px] border-[1px] mt-[20px]">
+                    {nextEmployeeID}
                   </p>
                 </div>
                 <div className="flex flex-col">

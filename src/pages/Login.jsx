@@ -1,4 +1,5 @@
 import { useState } from "react";
+import apiRoutes from "../../apiRoutes";
 import logo from "../assets/logoapp.png";
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -59,7 +60,7 @@ const Login = () => {
       return;
     }
     try {
-      const response = await axios.post(import.meta.env.VITE_LOGIN, {
+      const response = await axios.post(apiRoutes.auth.login, {
         email,
         password,
       });

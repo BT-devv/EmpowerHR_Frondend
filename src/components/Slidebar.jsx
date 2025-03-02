@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 // icon
-import { HiMiniSquares2X2 } from "react-icons/hi2";
-import { BiSolidMessageDetail } from "react-icons/bi";
-import { BiSolidCalendar } from "react-icons/bi";
-import { FaUserFriends } from "react-icons/fa";
-import { VscSettings } from "react-icons/vsc";
-import { PiNotepadFill } from "react-icons/pi";
-import { AiFillControl } from "react-icons/ai";
 import { CiDollar } from "react-icons/ci";
-
+import { HiOutlineSquares2X2 } from "react-icons/hi2";
+import { BiMessageRounded } from "react-icons/bi";
+import { IoCalendarOutline } from "react-icons/io5";
+import { IoTimeOutline } from "react-icons/io5";
+import { IoCloseCircleOutline } from "react-icons/io5";
+import { HiOutlineUserGroup } from "react-icons/hi2";
+import { HiOutlineDocumentCheck } from "react-icons/hi2";
+import { IoSettingsOutline } from "react-icons/io5";
+import { HiQrCode } from "react-icons/hi2";
 const Slidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -23,10 +24,11 @@ const Slidebar = () => {
       "/payroll": "payroll",
       "/calendar": "calendar",
       "/employee": "employee",
-      "/checkincheckout": "checkincheckout",
+      "/attendance": "attendance",
       "/overtime": "overtime",
       "/absense": "absense",
       "/settings": "settings",
+      "/qrscanner": "qrscanner",
     };
     setSelectedItem(pathToItem[location.pathname] || "");
   }, [location.pathname]);
@@ -41,135 +43,149 @@ const Slidebar = () => {
   }, [selectedItem]);
 
   return (
-    <div className=" w-[250px] h-[1080] font-sans flex flex-col justify-center items-center text-[14px] ml-[20px] caret-transparent">
+    <div className="w-[250px] min-w-[250px] h-full font-sans flex flex-col justify-center items-center text-[14px] caret-transparent ">
       {/* Logo */}
       <div>
         <img
           alt="logo"
           src="src\assets\logoapp.png"
-          className="w-[215px] h-[72px] left-[10px]"
+          className="w-[215px] h-[72px] left-[10px] mt-[10%]"
         />
       </div>
       {/* Menu */}
-      <div className="mt-[10%]">
+      <div className="mt-[10%] ml-[10px]">
         <p className="flex font-bold">MENU</p>
         <ul className="flex flex-col mt-[5%]">
           <div className="flex">
             <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
+              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer ${
                 selectedItem === "dashboard"
                   ? "bg-[#2EB67D] text-white"
                   : "bg-white text-black"
               }`}
               onClick={() => toggleMenu("dashboard", "/dashboard")}
             >
-              <HiMiniSquares2X2 className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
+              <HiOutlineSquares2X2 className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />
               Dashboard
             </li>
           </div>
           <div className="flex">
             <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
+              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer ${
                 selectedItem === "message"
                   ? "bg-[#2EB67D] text-white"
                   : "bg-white text-black"
               }`}
               onClick={() => toggleMenu("message", "/message")}
             >
-              <BiSolidMessageDetail className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
+              <BiMessageRounded className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />
               Message
             </li>
           </div>
           <div className="flex">
             <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
+              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer ${
                 selectedItem === "calendar"
                   ? "bg-[#2EB67D] text-white"
                   : "bg-white text-black"
               }`}
               onClick={() => toggleMenu("calendar", "/calendar")}
             >
-              <BiSolidCalendar className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
+              <IoCalendarOutline className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />
               Calendar
             </li>
           </div>
-        </ul>
-      </div>
-      {/* Organization */}
-      <div className="mt-[10%]">
-        <p className="flex font-bold">ORGANIZATION</p>
-        <ul className="flex flex-col mt-[5%]">
           <div className="flex">
             <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
-                selectedItem === "employee"
-                  ? "bg-[#2EB67D] text-white"
-                  : "bg-white text-black"
-              }`}
-              onClick={() => toggleMenu("employee", "/employee")}
-            >
-              <FaUserFriends className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
-              Employee
-            </li>
-          </div>
-          <div className="flex">
-            <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
-                selectedItem === "payroll"
-                  ? "bg-[#2EB67D] text-white"
-                  : "bg-white text-black"
-              }`}
-              onClick={() => toggleMenu("payroll", "/payroll")}
-            >
-              <CiDollar className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
-              Payroll
-            </li>
-          </div>
-          <div className="flex">
-            <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
-                selectedItem === "checkincheckout"
-                  ? "bg-[#2EB67D] text-white"
-                  : "bg-white text-black"
-              }`}
-              onClick={() => toggleMenu("checkincheckout", "/checkincheckout")}
-            >
-              <PiNotepadFill className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
-              Check-in/Check-out
-            </li>
-          </div>
-          <div className="flex">
-            <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
+              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer ${
                 selectedItem === "overtime"
                   ? "bg-[#2EB67D] text-white"
                   : "bg-white text-black"
               }`}
               onClick={() => toggleMenu("overtime", "/overtime")}
             >
-              <AiFillControl className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
+              <IoTimeOutline className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />
               Overtime
             </li>
           </div>
           <div className="flex">
             <li
-              className={`flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointer ${
+              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer ${
                 selectedItem === "absense"
                   ? "bg-[#2EB67D] text-white"
                   : "bg-white text-black"
               }`}
               onClick={() => toggleMenu("absense", "/absense")}
             >
-              <AiFillControl className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
+              <IoCloseCircleOutline className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />
               Absence
             </li>
           </div>
-          <div className="flex border-[#B8BDC5] border-2 rounded-[10px] mt-[200%]">
+        </ul>
+      </div>
+      {/* Organization */}
+      <div className="mt-[10%] ml-[10px]">
+        <p className="flex font-bold">ORGANIZATION</p>
+        <ul className="flex flex-col mt-[5%]">
+          <div className="flex">
             <li
-              className="flex items-center w-[230px] rounded-[8px] h-[50px] cursor-pointe text-[#979797] "
+              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer ${
+                selectedItem === "employee"
+                  ? "bg-[#2EB67D] text-white"
+                  : "bg-white text-black"
+              }`}
+              onClick={() => toggleMenu("employee", "/employee")}
+            >
+              <HiOutlineUserGroup className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />
+              Employee
+            </li>
+          </div>
+          <div className="flex">
+            <li
+              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer ${
+                selectedItem === "payroll"
+                  ? "bg-[#2EB67D] text-white"
+                  : "bg-white text-black"
+              }`}
+              onClick={() => toggleMenu("payroll", "/payroll")}
+            >
+              <CiDollar className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />
+              Payroll
+            </li>
+          </div>
+          <div className="flex">
+            <li
+              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer ${
+                selectedItem === "attendance"
+                  ? "bg-[#2EB67D] text-white"
+                  : "bg-white text-black"
+              }`}
+              onClick={() => toggleMenu("attendance", "/attendance")}
+            >
+              <HiOutlineDocumentCheck className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />
+              Attendance
+            </li>
+          </div>
+          <div className="flex">
+            <li
+              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer ${
+                selectedItem === "qrscanner"
+                  ? "bg-[#2EB67D] text-white"
+                  : "bg-white text-black"
+              }`}
+              onClick={() => toggleMenu("qrscanner", "/qrscanner")}
+            >
+              <HiQrCode className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />
+              QR Scanner
+            </li>
+          </div>
+
+          <div className="flex border-[#B8BDC5] border-2 rounded-[10px] mt-[200%] mb-[5%]">
+            <li
+              className="flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointe text-[#979797] "
               onClick={() => toggleMenu("setting", "/settings")}
             >
-              <VscSettings className="h-[20px] w-[20px] mr-[20px] ml-[20px]" />
+              <IoSettingsOutline className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />
               Settings
             </li>
           </div>

@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import avatar from "../assets/avatar.png";
+import apiRoutes from "../../apiRoutes";
 
 // Icon
-import { AiOutlineMenu } from "react-icons/ai";
 import { CiSearch } from "react-icons/ci";
 import { IoIosArrowDown } from "react-icons/io";
 import { IoNotifications } from "react-icons/io5";
@@ -30,14 +30,13 @@ const Navbar = () => {
 
   useEffect(() => {
     const decodedToken = jwtDecode(token);
-    const employeeId = decodedToken.employeeID;
+    const userId = decodedToken.userId;
 
-    if (employeeId) {
+    if (userId) {
       axios
-        .get(`http://localhost:3000/api/user/${employeeId}`)
+        .get(apiRoutes.user.profile(userId))
         .then((response) => {
           setUserData(response.data);
-          // alert(JSON.stringify(response.data));
         })
         .catch((error) => {
           console.error(
@@ -52,9 +51,8 @@ const Navbar = () => {
 
   return (
     <div className="h-[60px] w-screen flex items-center">
-      <AiOutlineMenu className="h-[25px] w-[25px] mr-[30px] ml-[20px]" />
       {/* Search */}
-      <div className="relative ">
+      <div className="relative ml-[5%]">
         <CiSearch className="absolute top-[50%] left-4 transform -translate-y-1/2 w-[20px] h-[20px] " />
         <input
           type="text"

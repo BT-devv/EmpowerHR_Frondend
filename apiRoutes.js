@@ -8,9 +8,15 @@ const apiRoutes = {
     profile: (employeeId) => `${API_BASE_URL}/user/${employeeId}`,
     getAll: `${API_BASE_URL}/user/users`,
     getNextEmployeeID: `${API_BASE_URL}/user/new-employee-id`,
+    forgotPass: `${API_BASE_URL}/user/forgot-password`,
+    verify: `${API_BASE_URL}/user/verify-otp`,
+    resetPass: `${API_BASE_URL}/user/reset-password`,
   },
   posts: {
     createUser: `${API_BASE_URL}/user/create-user`,
+  },
+  attendance: {
+    scannerQR: `${API_BASE_URL}/user/scan-qr`,
   },
 };
 

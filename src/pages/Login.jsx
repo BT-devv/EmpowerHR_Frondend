@@ -61,20 +61,19 @@ const Login = () => {
     }
     try {
       const response = await axios.post(apiRoutes.auth.login, {
-        email,
+        emailCompany: email,
         password,
       });
 
-      const { success, message, token } = response.data;
+      const { success, message } = response.data;
 
       if (success) {
-        localStorage.setItem("token", token);
         Swal.fire({
           text: message,
           icon: "success",
         });
         localStorage.setItem("token", response.data.token);
-        // alert(response.data.token);
+
         navigate("/dashboard");
       } else {
         Swal.fire({
@@ -150,8 +149,8 @@ const Login = () => {
               type="email"
               placeholder="Enter your Email here"
               value={email}
-              className={`text-black bg-[rgba(176,186,195,0.4)] h-[50px] rounded-[12px] w-[70%] px-[15px] cursor-text outline-none focus:border-[#2EB67D] hover:border-[#2EB67D] shadow-[0px_3px_#888888] focus:border-2 hover:border-2 border-2 ${
-                emailBorder ? "border-red-500" : "border-[#B0BAC3]"
+              className={`text-black bg-[rgba(176,186,195,0.4)] h-[50px] rounded-[12px] w-[70%] px-[15px] cursor-text outline-none focus:border-[#2EB67D] hover:border-[#2EB67D] focus:border-2 hover:border-2 ${
+                emailBorder ? "border-[2px] border-red-500" : ""
               }`}
               onChange={(e) => {
                 handleEmailChange(e);
@@ -174,8 +173,8 @@ const Login = () => {
                 type={isPasswordVisible ? "text" : "password"}
                 placeholder="Enter your Password here"
                 value={password}
-                className={`text-black bg-[rgba(176,186,195,0.4)]  h-[50px] rounded-[12px] w-[70%] px-[15px] outline-none cursor-text hover:border-[#2EB67D] focus:border-[#2EB67D]  shadow-[0px_3px_#888888] focus:border-2 hover:border-2 border-2 ${
-                  passwordBorder ? "border-red-500" : "border-[#B0BAC3]"
+                className={`text-black bg-[rgba(176,186,195,0.4)] h-[50px] rounded-[12px] w-[70%] px-[15px] outline-none cursor-text hover:border-[#2EB67D] focus:border-[#2EB67D] focus:border-2 hover:border-2 border-1 ${
+                  passwordBorder ? "border-[2px] border-red-500" : ""
                 }`}
                 onChange={(e) => {
                   handlePasswordChange(e);
@@ -204,16 +203,22 @@ const Login = () => {
           <div className="flex items-center justify-center">
             <button
               type="submit"
-              className="mt-[3%] bg-[#2EB67D] outline-none w-[15%] text-[18px] focus:outline-none"
+              className="mt-[3%] bg-[#2EB67D] text-white outline-none w-[15%] text-[18px] focus:outline-none"
               onClick={handleSubmit}
             >
-              Login
+              LOGIN
             </button>
           </div>
-
-          <p className="text-customGreen text-[15px] mt-[2%] flex items-center justify-center caret-transparent">
-            Forgot your password?
-          </p>
+          <div className="flex items-center justify-center">
+            <span
+              className="text-customGreen text-[15px] w-fit mt-[2%] caret-transparent cursor-pointer"
+              onClick={() => {
+                navigate("/forgotpass");
+              }}
+            >
+              Forgot your password?
+            </span>
+          </div>
         </div>
       </div>
     </div>

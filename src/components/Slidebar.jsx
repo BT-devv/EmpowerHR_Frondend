@@ -43,7 +43,7 @@ const Slidebar = () => {
   }, [selectedItem]);
 
   return (
-    <div className="w-[250px] min-w-[250px] h-full font-sans flex flex-col justify-center items-center text-[14px] caret-transparent ">
+    <div className="w-[250px] min-w-[250px] h-fit font-sans flex flex-col justify-center items-center text-[14px] caret-transparent border-r-2">
       {/* Logo */}
       <div>
         <img
@@ -58,10 +58,10 @@ const Slidebar = () => {
         <ul className="flex flex-col mt-[5%]">
           <div className="flex">
             <li
-              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer ${
+              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer transition-transform duration-300 ${
                 selectedItem === "dashboard"
-                  ? "bg-[#2EB67D] text-white"
-                  : "bg-white text-black"
+                  ? "bg-[#2EB67D] text-white translate-x-2"
+                  : "bg-white text-[#979797]"
               }`}
               onClick={() => toggleMenu("dashboard", "/dashboard")}
             >
@@ -71,10 +71,10 @@ const Slidebar = () => {
           </div>
           <div className="flex">
             <li
-              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer ${
+              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer transition-transform duration-300 ${
                 selectedItem === "message"
-                  ? "bg-[#2EB67D] text-white"
-                  : "bg-white text-black"
+                  ? "bg-[#2EB67D] text-white translate-x-2"
+                  : "bg-white text-[#979797]"
               }`}
               onClick={() => toggleMenu("message", "/message")}
             >
@@ -84,10 +84,10 @@ const Slidebar = () => {
           </div>
           <div className="flex">
             <li
-              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer ${
+              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer transition-transform duration-300 ${
                 selectedItem === "calendar"
-                  ? "bg-[#2EB67D] text-white"
-                  : "bg-white text-black"
+                  ? "bg-[#2EB67D] text-white translate-x-2"
+                  : "bg-white text-[#979797]"
               }`}
               onClick={() => toggleMenu("calendar", "/calendar")}
             >
@@ -97,10 +97,10 @@ const Slidebar = () => {
           </div>
           <div className="flex">
             <li
-              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer ${
+              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer transition-transform duration-300 ${
                 selectedItem === "overtime"
-                  ? "bg-[#2EB67D] text-white"
-                  : "bg-white text-black"
+                  ? "bg-[#2EB67D] text-white translate-x-2"
+                  : "bg-white text-[#979797]"
               }`}
               onClick={() => toggleMenu("overtime", "/overtime")}
             >
@@ -110,10 +110,10 @@ const Slidebar = () => {
           </div>
           <div className="flex">
             <li
-              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer ${
+              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer transition-transform duration-300 ${
                 selectedItem === "absense"
-                  ? "bg-[#2EB67D] text-white"
-                  : "bg-white text-black"
+                  ? "bg-[#2EB67D] text-white translate-x-2"
+                  : "bg-white text-[#979797]"
               }`}
               onClick={() => toggleMenu("absense", "/absense")}
             >
@@ -129,10 +129,10 @@ const Slidebar = () => {
         <ul className="flex flex-col mt-[5%]">
           <div className="flex">
             <li
-              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer ${
+              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer transition-transform duration-300 ${
                 selectedItem === "employee"
-                  ? "bg-[#2EB67D] text-white"
-                  : "bg-white text-black"
+                  ? "bg-[#2EB67D] text-white translate-x-2"
+                  : "bg-white text-[#979797]"
               }`}
               onClick={() => toggleMenu("employee", "/employee")}
             >
@@ -142,10 +142,10 @@ const Slidebar = () => {
           </div>
           <div className="flex">
             <li
-              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer ${
+              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer transition-transform duration-300 ${
                 selectedItem === "payroll"
-                  ? "bg-[#2EB67D] text-white"
-                  : "bg-white text-black"
+                  ? "bg-[#2EB67D] text-white translate-x-2"
+                  : "bg-white text-[#979797]"
               }`}
               onClick={() => toggleMenu("payroll", "/payroll")}
             >
@@ -155,10 +155,10 @@ const Slidebar = () => {
           </div>
           <div className="flex">
             <li
-              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer ${
+              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer transition-transform duration-300 ${
                 selectedItem === "attendance"
-                  ? "bg-[#2EB67D] text-white"
-                  : "bg-white text-black"
+                  ? "bg-[#2EB67D] text-white translate-x-2"
+                  : "bg-white text-[#979797]"
               }`}
               onClick={() => toggleMenu("attendance", "/attendance")}
             >
@@ -168,10 +168,10 @@ const Slidebar = () => {
           </div>
           <div className="flex">
             <li
-              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer ${
+              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer transition-transform duration-300 ${
                 selectedItem === "qrscanner"
-                  ? "bg-[#2EB67D] text-white"
-                  : "bg-white text-black"
+                  ? "bg-[#2EB67D] text-white translate-x-2"
+                  : "bg-white text-[#979797]"
               }`}
               onClick={() => toggleMenu("qrscanner", "/qrscanner")}
             >
@@ -180,9 +180,9 @@ const Slidebar = () => {
             </li>
           </div>
 
-          <div className="flex border-[#B8BDC5] border-2 rounded-[10px] mt-[200%] mb-[5%]">
+          <div className="flex border-[#B8BDC5] border-2 rounded-[10px] mt-[150%] mb-[5%]">
             <li
-              className="flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointe text-[#979797] "
+              className="flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointe text-[#979797]"
               onClick={() => toggleMenu("setting", "/settings")}
             >
               <IoSettingsOutline className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />

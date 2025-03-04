@@ -50,18 +50,18 @@ const Navbar = () => {
   }, []);
 
   return (
-    <div className="h-[60px] w-screen flex items-center">
+    <div className="h-[6%] w-screen flex items-center">
       {/* Search */}
       <div className="relative ml-[5%]">
         <CiSearch className="absolute top-[50%] left-4 transform -translate-y-1/2 w-[20px] h-[20px] " />
         <input
           type="text"
           placeholder="Search"
-          className="h-[40px] w-[424px] pl-12 rounded-[19px] border-2 bg-[#F5F6FA] border-gray-300 focus:outline-none text-[13px] focus:border-[#2EB67D] hover:border-[#2EB67D]"
+          className="h-[40px] w-[185%] pl-12 rounded-[19px] border-2 bg-[#F5F6FA] border-gray-300 focus:outline-none text-[13px] focus:border-[#2EB67D] hover:border-[#2EB67D]"
         />
       </div>
       <IoNotifications
-        className="w-[25px] h-[25px] ml-[18%]"
+        className="w-[25px] h-[25px] ml-[30%]"
         // onClick={getUser}
       />
       {/* dropdown languages */}
@@ -100,7 +100,7 @@ const Navbar = () => {
         )}
       </div>
       {/* dropdown user */}
-      <div className="flex items-center p-4 rounded-lg w-[250px] h-[60px] bg-white ml-[20px] ">
+      <div className="flex items-center p-4 rounded-lg w-[17%] h-[60px] bg-white ml-[20px] ">
         {/* Avatar */}
         <img
           src={avatar} //change avatar later

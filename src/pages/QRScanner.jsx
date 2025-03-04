@@ -3,7 +3,7 @@ import { Html5QrcodeScanner } from "html5-qrcode";
 import axios from "axios";
 import apiRoutes from "../../apiRoutes";
 
-// Icon
+// Icons
 import { BiHome } from "react-icons/bi";
 import { IoIosArrowRoundForward } from "react-icons/io";
 import { HiQrCode } from "react-icons/hi2";
@@ -11,8 +11,7 @@ import { HiQrCode } from "react-icons/hi2";
 const QRScanner = () => {
   const [scanResult, setScanResult] = useState(null);
   const [message, setMessage] = useState("");
-  const [isCheckedIn, setIsCheckedIn] = useState(false);
-  const [isCheckedOut, setIsCheckedOut] = useState(false);
+  const [status, setStatus] = useState(""); // Trạng thái hiện tại: "Chưa check-in", "Đã check-in", "Đã check-out"
 
   useEffect(() => {
     const scanner = new Html5QrcodeScanner(
@@ -22,31 +21,26 @@ const QRScanner = () => {
     );
 
     scanner.render(
-      (decodedText) => {
-        handleScan(decodedText);
-      },
-      (errorMessage) => {
-        console.log("Lỗi quét:", errorMessage);
-      }
+      (decodedText) => handleScan(decodedText),
+      (errorMessage) => console.log("Lỗi quét:", errorMessage)
     );
 
     return () => scanner.clear();
   }, []);
 
-  const sendToAPI = async (employeeID, action) => {
+  const sendToAPI = async (employeeID) => {
     try {
       const response = await axios.post(apiRoutes.attendance.scannerQR, {
         qrData: { EmployeeID: employeeID },
-        action,
       });
 
-      const responseMessage = response.data.message || `${action} thành công!`;
+      const responseMessage = response.data.message || "Quét thành công!";
       setMessage(responseMessage);
-      alert(action);
-      if (action === "check-in") {
-        setIsCheckedIn(true);
-      } else if (action === "check-out") {
-        setIsCheckedOut(true);
+
+      if (responseMessage.toLowerCase().includes("check-in")) {
+        setStatus("Đã check-in");
+      } else if (responseMessage.toLowerCase().includes("check-out")) {
+        setStatus("Đã check-out");
       }
     } catch (error) {
       setMessage(
@@ -58,51 +52,57 @@ const QRScanner = () => {
 
   const handleScan = (data) => {
     if (data) {
-      const employeeID = data.match(/EmployeeID:\s*(\S+)/)
-        ? data.match(/EmployeeID:\s*(\S+)/)[1]
-        : null;
-
-      if (employeeID) {
-        setScanResult(employeeID);
-
-        if (!isCheckedIn) {
-          sendToAPI(employeeID, "check-in");
-        } else if (!isCheckedOut) {
-          sendToAPI(employeeID, "check-out");
-        } else {
-          setMessage(
-            "Bạn đã check-in & check-out hôm nay, không thể quét nữa."
-          );
+      let employeeID = null;
+      try {
+        const parsedData = JSON.parse(data);
+        if (parsedData.EmployeeID) {
+          employeeID = parsedData.EmployeeID;
         }
-      } else {
-        setMessage("Mã QR không hợp lệ!");
+      } catch (error) {
+        const match = data.match(/EmployeeID:\s*(\S+)/);
+        if (match) {
+          employeeID = match[1];
+        }
+        console.log(error);
       }
+
+      if (!employeeID) {
+        setMessage("Mã QR không hợp lệ!");
+        return;
+      }
+
+      setScanResult(employeeID);
+      if (status === "Đã check-out") {
+        setMessage("Bạn đã check-in & check-out hôm nay, không thể quét nữa.");
+        return;
+      }
+
+      sendToAPI(employeeID);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center w-screen h-screen bg-red-100">
+    <div className="flex flex-col items-center justify-center w-screen h-screen bg-gray-100">
       <h1 className="text-2xl font-bold mb-4">Scan QR Code</h1>
 
       <div className="relative w-[280px] h-[280px]">
         <div id="reader"></div>
       </div>
 
-      <div className="flex flex-col justify-center items-center w-[35%] h-[25%] bg-white rounded-[20px] text-[15px] mt-[2%]">
-        <p>Show your QR code in the highlighted area of the scanning screen</p>
-        <p>Your QR code can be generated in your mobile device:</p>
+      <div className="flex flex-col justify-center items-center w-[80%] md:w-[35%] h-[25%] bg-white rounded-2xl text-center p-4 mt-4 shadow-lg">
+        <p>Đưa mã QR vào khu vực quét để điểm danh</p>
         <p>
-          Access to your <span className="text-[#2EB67D]">Home page</span> and
-          choose the <span className="text-[#2EB67D]">QR icon</span> on the{" "}
-          <span className="text-[#2EB67D]">top left corner</span>
+          Truy cập <span className="text-green-600">Trang chủ</span> và nhấn{" "}
+          <span className="text-green-600">QR icon</span> để lấy mã.
         </p>
-        <div className="flex justify-center items-center space-x-5 mt-[2%]">
-          <div className="flex flex-col text-[#2EB67D] justify-center items-center">
+
+        <div className="flex justify-center items-center space-x-5 mt-3">
+          <div className="flex flex-col text-green-600 justify-center items-center">
             <BiHome className="w-[30px] h-[30px]" />
             <p>Home</p>
           </div>
-          <IoIosArrowRoundForward className="w-[40px] h-[40px] mt-[-10px]" />
-          <HiQrCode className="w-[30px] h-[30px] mt-[-10px]" />
+          <IoIosArrowRoundForward className="w-[40px] h-[40px]" />
+          <HiQrCode className="w-[30px] h-[30px]" />
         </div>
       </div>
 
@@ -111,7 +111,8 @@ const QRScanner = () => {
           <strong>Employee ID:</strong> {scanResult}
         </p>
       )}
-      {message && <p className="mt-2">{message}</p>}
+
+      {message && <p className="mt-2 text-red-600">{message}</p>}
     </div>
   );
 };

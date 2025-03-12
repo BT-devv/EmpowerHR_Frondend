@@ -117,19 +117,24 @@ const Employee = () => {
   };
 
   const handleSaveClick1 = async () => {
-    if (!selectedEmployee?.employeeID) {
+    if (!selectedEmployee?._id) {
       alert("Không tìm thấy ID nhân viên!");
       return;
     }
     try {
       const response = await axios.put(
-        apiRoutes.posts.updateUser(selectedEmployee.employeeID),
+        apiRoutes.posts.updateUser(selectedEmployee._id),
         formData1
       );
 
       if (response.data.success) {
-        alert("Cập nhật thành công!");
-        setIsEditing1(false);
+        Swal.fire({
+          text: response.data.message,
+          icon: response.data.success ? "success" : "error",
+        }).then(() => {
+          setIsEditing1(false);
+          window.location.reload();
+        });
       } else {
         alert("Cập nhật thất bại: " + response.data.message);
       }
@@ -188,19 +193,24 @@ const Employee = () => {
   };
 
   const handleSaveClick2 = async () => {
-    if (!selectedEmployee?.employeeID) {
+    if (!selectedEmployee?._id) {
       alert("Không tìm thấy ID nhân viên!");
       return;
     }
     try {
       const response = await axios.put(
-        apiRoutes.posts.updateUser(selectedEmployee.employeeID),
+        apiRoutes.posts.updateUser(selectedEmployee._id),
         formData2
       );
 
       if (response.data.success) {
-        alert("Cập nhật thành công!");
-        setIsEditing2(false);
+        Swal.fire({
+          text: response.data.message,
+          icon: response.data.success ? "success" : "error",
+        }).then(() => {
+          setIsEditing2(false);
+          window.location.reload();
+        });
       } else {
         alert("Cập nhật thất bại: " + response.data.message);
       }
@@ -686,10 +696,10 @@ const Employee = () => {
   // };
 
   return (
-    <div className="flex">
+    <div className="">
       {selectedEmployee ? (
-        <div className="flex flex-col bg-[#F5F6FA] w-full h-full relative">
-          <div className="bg-[#FFFFFF]    ml-[3%] mt-[2%] rounded-[8px] w-[77%] h-[70px] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
+        <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">
+          <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-[70px] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
             <div className="flex space-x-8 items-center mt-[2%] ml-[2%] text-[#1C1C1C] font-medium">
               <IoIosArrowRoundBack
                 className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
@@ -705,19 +715,24 @@ const Employee = () => {
               <p>Dependents</p>
             </div>
           </div>
-          <div className="bg-[#FFFFFF]  ml-[3%] mt-[2%] rounded-[8px] w-[77%] h-auto text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
+          <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-auto text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
             <div className="flex ml-[2%] mt-[2%]">
               {/* <img
                         alt="logo"
                         src="src/assets/star.png"
                         className="w-[220px] h-[220px] mb-4"
                       /> */}
-              <div className="bg-red-200 w-[240px] h-[255px]"></div>
+              {isEditing1 ? (
+                <div className="bg-red-200 w-[290px] h-[230px]"></div>
+              ) : (
+                <div className="bg-red-200 w-[230px] h-[230px]"></div>
+              )}
+
               <div className="ml-[3%]">
-                <div className="flex items-center justify-between mt-[1%]">
+                <div className="flex items-center justify-between">
                   <p className="text-[20px] font-bold">Personal Information</p>
                   {isEditing1 ? (
-                    <div className="flex space-x-2 mr-[3%]">
+                    <div className="flex space-x-2 mr-[4%]">
                       <IoBookmarkOutline
                         onClick={handleSaveClick1}
                         className="w-[25px] h-[25px] cursor-pointer hover:text-[#069855]"
@@ -729,7 +744,7 @@ const Employee = () => {
                     </div>
                   ) : (
                     <BiEdit
-                      className="w-[25px] h-[25px] text-[#069855] cursor-pointer"
+                      className="w-[25px] h-[25px] mr-[-28%] text-[#069855] cursor-pointer"
                       onClick={handleEditClick1}
                     />
                   )}
@@ -758,7 +773,7 @@ const Employee = () => {
                 </div>
                 <div className="grid grid-cols-4 gap-x-10 mt-4">
                   <div>
-                    <p className="w-fit text-[#828282] ">ID Employee</p>
+                    <p className="w-fit text-[#828282]">ID Employee</p>
                     <p className="mt-[10%] font-bold whitespace-nowrap">
                       {selectedEmployee.employeeID}
                     </p>
@@ -771,7 +786,7 @@ const Employee = () => {
                         name="firstName"
                         value={formData1.firstName}
                         onChange={handleChange1}
-                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[10%]"
+                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[6%]"
                       />
                     ) : (
                       <p className="w-fit font-bold mt-[10%]">
@@ -780,7 +795,7 @@ const Employee = () => {
                     )}
                   </div>
                   <div>
-                    <p className="text-[#828282]">Last Name</p>
+                    <p className="text-[#828282] w-fit">Last Name</p>
 
                     {isEditing1 ? (
                       <input
@@ -788,7 +803,7 @@ const Employee = () => {
                         name="lastName"
                         value={formData1.lastName}
                         onChange={handleChange1}
-                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[10%]"
+                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[6%]"
                       />
                     ) : (
                       <p className="w-fit font-bold mt-[10%]">
@@ -800,7 +815,7 @@ const Employee = () => {
                     <p className="w-fit text-[#828282] whitespace-nowrap">
                       Alias
                     </p>
-                    <p className="mt-[10%] font-bold whitespace-nowrap">
+                    <p className="w-fit mt-[8%] font-bold whitespace-nowrap">
                       {selectedEmployee.alias}
                     </p>
                   </div>
@@ -814,7 +829,7 @@ const Employee = () => {
                         name="idCardNumber"
                         value={formData1.idCardNumber}
                         onChange={handleChange1}
-                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[10%]"
+                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[5%]"
                       />
                     ) : (
                       <p className=" w-fit font-bold mt-[10%]">
@@ -823,7 +838,7 @@ const Employee = () => {
                     )}
                   </div>
                   <div>
-                    <p className="text-[#828282]">Date of Birth</p>
+                    <p className="text-[#828282] mb-2">Date of Birth</p>
                     {isEditing1 ? (
                       <LocalizationProvider dateAdapter={AdapterDayjs}>
                         <DatePicker
@@ -841,6 +856,7 @@ const Employee = () => {
                           renderInput={(params) => (
                             <TextField {...params} fullWidth />
                           )}
+                          slotProps={{ textField: { size: "small" } }}
                         />
                       </LocalizationProvider>
                     ) : (
@@ -859,7 +875,7 @@ const Employee = () => {
                       >
                         <div className="relative">
                           <div
-                            className="inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
+                            className="inline-flex w-[240%] border-gray-200 border-1 h-[42px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
                             onClick={toggleGenderDropdown}
                           >
                             <span className="text-[15px]">
@@ -899,24 +915,24 @@ const Employee = () => {
               </div>
             </div>
           </div>
-          <div className="bg-[#FFFFFF]  ml-[3%] mt-[2%] rounded-[8px] w-[77%] h-fit text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
-            <div className="ml-[2%]">
+          <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-fit text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
+            <div className="ml-[2%] w-full">
               <div className="flex items-center justify-between mt-[2%]">
                 <p className="text-[20px] font-bold">Contact Detail</p>
                 {isEditing2 ? (
-                  <div className="flex space-x-2 mr-[3%]">
+                  <div className="flex space-x-2 mr-[4%]">
                     <IoBookmarkOutline
                       onClick={handleSaveClick2}
                       className="w-[25px] h-[25px] cursor-pointer hover:text-[#069855]"
                     />
                     <IoCloseCircleOutline
                       onClick={handleCancelClick2}
-                      className="w-[25px] h-[25px] cursor-pointer hover:text-[#069855]"
+                      className="w-[25px] h-[25px] mr-[5%] cursor-pointer hover:text-[#069855]"
                     />
                   </div>
                 ) : (
                   <BiEdit
-                    className="w-[25px] h-[25px] text-[#069855] cursor-pointer"
+                    className="w-[25px] h-[25px] mr-[5%] text-[#069855] cursor-pointer"
                     onClick={handleEditClick2}
                   />
                 )}
@@ -932,7 +948,7 @@ const Employee = () => {
                         name="phoneNumber"
                         value={formData2.phoneNumber}
                         onChange={handleChange2}
-                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[2%]"
+                        className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
                       />
                     ) : (
                       <p className="w-fit font-bold mt-[2%]">
@@ -951,7 +967,7 @@ const Employee = () => {
                         name="emailCompany"
                         value={formData2.emailCompany}
                         onChange={handleChange2}
-                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[2%]"
+                        className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
                       />
                     ) : (
                       <p className="w-fit font-bold mt-[2%]">
@@ -972,7 +988,7 @@ const Employee = () => {
                         name="address"
                         value={formData2.address}
                         onChange={handleChange2}
-                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[2%]"
+                        className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
                       />
                     ) : (
                       <p className="w-fit font-bold mt-[2%]">
@@ -990,7 +1006,7 @@ const Employee = () => {
                         name="emailPersonal"
                         value={formData2.emailPersonal}
                         onChange={handleChange2}
-                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[2%]"
+                        className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
                       />
                     ) : (
                       <p className="w-fit font-bold mt-[2%]">
@@ -1010,7 +1026,7 @@ const Employee = () => {
                         name="province"
                         value={formData2.province}
                         onChange={handleChange2}
-                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[2%]"
+                        className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
                       />
                     ) : (
                       <p className="w-fit font-bold mt-[2%]">
@@ -1029,7 +1045,7 @@ const Employee = () => {
                           name="postcode"
                           value={formData2.postcode}
                           onChange={handleChange2}
-                          className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[2%]"
+                          className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
                         />
                       ) : (
                         <p className="w-fit font-bold mt-[2%]">
@@ -1048,7 +1064,7 @@ const Employee = () => {
                           name="city"
                           value={formData2.city}
                           onChange={handleChange2}
-                          className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[2%]"
+                          className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
                         />
                       ) : (
                         <p className="w-fit font-bold mt-[2%]">
@@ -1063,12 +1079,12 @@ const Employee = () => {
               </div>
             </div>
           </div>
-          <div className="bg-[#FFFFFF]  ml-[3%] mt-[2%] rounded-[8px] w-[77%] h-auto text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
-            <div className="ml-[2%]">
+          <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-auto text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
+            <div className="ml-[2%] w-full">
               <div className="flex items-center justify-between mt-[2%]">
                 <p className="text-[20px] font-bold">Bank Account</p>
                 {isEditing3 ? (
-                  <div className="flex space-x-2 mr-[3%]">
+                  <div className="flex space-x-2 mr-[4%]">
                     <IoBookmarkOutline
                       onClick={handleSaveClick3}
                       className="w-[25px] h-[25px] cursor-pointer hover:text-[#069855]"
@@ -1080,7 +1096,7 @@ const Employee = () => {
                   </div>
                 ) : (
                   <BiEdit
-                    className="w-[25px] h-[25px] text-[#069855] cursor-pointer"
+                    className="w-[25px] h-[25px] mr-[5%] text-[#069855] cursor-pointer"
                     onClick={handleEditClick3}
                   />
                 )}
@@ -1088,14 +1104,14 @@ const Employee = () => {
               <div>
                 <div className="grid grid-cols-2 mt-[2%]">
                   <div>
-                    <p className="text-[#828282]">Bank Account Name</p>
+                    <p className="text-[#828282] ">Bank Account Name</p>
                     {isEditing3 ? (
                       <input
                         type="text"
                         name="bankName"
                         value={formData3.bankName}
                         onChange={handleChange3}
-                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[2%]"
+                        className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
                       />
                     ) : (
                       <p className="w-fit font-bold mt-[2%]">
@@ -1113,7 +1129,7 @@ const Employee = () => {
                         name="bankAccountName"
                         value={formData3.bankAccountName}
                         onChange={handleChange3}
-                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[2%]"
+                        className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
                       />
                     ) : (
                       <p className="w-fit font-bold mt-[2%]">
@@ -1134,7 +1150,7 @@ const Employee = () => {
                         name="bankAccountNumber"
                         value={formData3.bankAccountNumber}
                         onChange={handleChange3}
-                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[2%]"
+                        className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
                       />
                     ) : (
                       <p className="w-fit font-bold mt-[2%]">
@@ -1148,12 +1164,12 @@ const Employee = () => {
               </div>
             </div>
           </div>
-          <div className="bg-[#FFFFFF]  ml-[3%] mt-[2%] rounded-[8px] w-[77%] h-auto text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
+          <div className="bg-[#FFFFFF]  ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-auto text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
             <div className="ml-[2%]">
               <div className="flex items-center justify-between mt-[2%]">
                 <p className="text-[20px] font-bold">Employee Access</p>
                 {isEditing4 ? (
-                  <div className="flex space-x-2 mr-[3%]">
+                  <div className="flex space-x-2 mr-[2%]">
                     <IoBookmarkOutline
                       onClick={handleSaveClick4}
                       className="w-[25px] h-[25px] cursor-pointer hover:text-[#069855]"
@@ -1165,7 +1181,7 @@ const Employee = () => {
                   </div>
                 ) : (
                   <BiEdit
-                    className="w-[25px] h-[25px] text-[#069855] cursor-pointer"
+                    className="w-[25px] h-[25px] mr-[3%] text-[#069855] cursor-pointer"
                     onClick={handleEditClick4}
                   />
                 )}
@@ -1365,7 +1381,7 @@ const Employee = () => {
               </div>
             </div>
           </div>
-          <div className="bg-[#FFFFFF]  ml-[3%] mt-[2%] rounded-[8px] w-[77%] h-auto text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] mb-[2%]">
+          <div className="bg-[#FFFFFF]  ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-auto text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] mb-[2%]">
             <div className="mt-[2%] ml-[2%]">
               <div className="flex items-center justify-between">
                 <p className="text-[20px] font-bold">Credential</p>
@@ -1429,10 +1445,10 @@ const Employee = () => {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col bg-[#F5F6FA] w-full h-fit relative">
+        <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">
           <div className="flex ml-[3%] space-x-13 mt-[2%]">
             {/* active */}
-            <div className="bg-white w-[79%] h-[160px] rounded-[40px] flex justify-around items-center shadow-md p-6 relative">
+            <div className="bg-white w-[calc(100vw-340px)] h-[160px] rounded-[40px] flex justify-around items-center shadow-md p-6 relative">
               {/* Total Customers */}
               <div className="flex items-center space-x-4 relative">
                 <div className="relative w-[80px] h-[80px] flex items-center justify-center">
@@ -1464,7 +1480,7 @@ const Employee = () => {
             </div>
             {/* overtime */}
           </div>
-          <div className="flex flex-col bg-[#FFFFFF]  w-[77%] h-auto ml-[3%] rounded-[15px] mt-[2%] mb-[2%] items-start p-[10px]">
+          <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] shadow-[0px_1px_3px_rgba(0,0,0,0.2)] h-auto ml-[3%] rounded-[15px] mt-[2%] mb-[2%] items-start p-[10px]">
             <div className="flex w-full items-center ml-[1%] mt-[2%]">
               <div>
                 <p className="text-[#252C58] text-[20px] font-light">
@@ -2043,7 +2059,7 @@ const Employee = () => {
                       <p className="text-[20px] font-bold">Credential</p>
                       {/* table*/}
                       <div className="text-[14px] ml-[15px] border-l border-b border-r w-fit mb-5">
-                        <table className="rounded-[5px] mt-[2%] bg-white overflow-hidden w-auto caret-transparent border-gray-200 border">
+                        <table className="rounded-[5px] mt-[2%] bg-white overflow-hidden w-[calc(100vw-400px)] caret-transparent border-gray-200 border">
                           <thead>
                             <tr className="bg-[#010101] text-left">
                               <th className="px-5 py-3 caret-transparent text-white font-normal">
@@ -2159,7 +2175,7 @@ const Employee = () => {
 
             {data.length > 0 ? (
               <div className="mt-[10px] text-[14px] ml-[15px] z-0">
-                <table className="border-collapse mt-[2%] bg-white w-full caret-transparent ">
+                <table className="border-collapse mt-[2%] bg-white w-[calc(100vw-400px)] caret-transparent ">
                   <thead>
                     <tr className="border-gray-300 border-t border-b-2 text-left">
                       <th className="px-2 py-5 border-b border-gray-300 caret-transparent text-gray-500">

@@ -12,8 +12,8 @@ const Attendance = () => {
   const currentDate = format(new Date(), "dd MMM, yyyy");
 
   return (
-    <div className="flex flex-col bg-[#F5F6FA] w-full h-full relative ">
-      <div className="flex ml-[3%] space-x-12 mt-[2%]">
+    <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative ">
+      <div className="flex space-x-12 mt-[2%] justify-center">
         {/* on time */}
         <div className="bg-[#FFFFFF] w-[360px] h-[150px] rounded-[40px] relative flex items-center shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
           <div>
@@ -64,7 +64,7 @@ const Attendance = () => {
         </div>
       </div>
       {/* Table */}
-      <div className="flex flex-col bg-[#FFFFFF] w-[77%] h-[77%] ml-[3%] rounded-[15px] mt-[2%] items-start p-[10px]">
+      <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-[77%] ml-[3%] rounded-[15px] mt-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
         <div className="flex w-full items-center ml-[1%] mt-[2%]">
           <div>
             <p className="text-[#252C58] text-[20px] font-light">
@@ -96,7 +96,7 @@ const Attendance = () => {
         </div>
         {/* list */}
         <div className="overflow-x-auto mt-[20px] text-[14px] ml-[15px]">
-          <table className="border-collapse bg-white overflow-hidden w-full ">
+          <table className="border-collapse bg-white overflow-hidden w-[calc(100vw-400px)] ">
             <thead>
               <tr className="border-gray-300 border-t border-b-2 text-left">
                 <th className="px-1 py-5 border-b border-gray-300 caret-transparent text-gray-500">

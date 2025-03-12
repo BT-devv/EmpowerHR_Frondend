@@ -20,6 +20,9 @@ const apiRoutes = {
   attendance: {
     scannerQR: `${API_BASE_URL}/user/scan-qr`,
   },
+  overtime: {
+    request: `${API_BASE_URL}/overtime/request`,
+  },
 };
 
 export default apiRoutes;

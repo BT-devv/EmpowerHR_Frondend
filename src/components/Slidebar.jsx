@@ -43,7 +43,7 @@ const Slidebar = () => {
   }, [selectedItem]);
 
   return (
-    <div className="w-[250px] min-w-[250px] h-fit font-sans flex flex-col justify-center items-center text-[14px] caret-transparent border-r-2">
+    <div className="w-[250px] min-w-[250px] h-fit font-sans flex flex-col justify-center items-center text-[14px] caret-transparent border-r-2 ">
       {/* Logo */}
       <div>
         <img

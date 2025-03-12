@@ -34,7 +34,7 @@ function App() {
           <Route path="absense" element={<Absence />} />
 
           <Route path="employee" element={<Employee />} />
-          <Route path="payroll" element={<Comingsoon />} />
+          <Route path="payroll" element={<Payroll />} />
           <Route path="attendance" element={<Attendance />} />
           <Route path="qrscanner" element={<QRScanner />} />
 

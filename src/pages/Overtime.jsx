@@ -56,38 +56,25 @@ const Overtime = () => {
 
   return (
     <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">
-      <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-[70px] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
-        <div className="flex space-x-8 items-center mt-[2%] ml-[2%] text-[#1C1C1C]">
-          <p
-            className={`cursor-pointer pb-5 ${
-              selectedTab === "overtime"
-                ? "font-bold border-b-2 border-black "
-                : "text-gray-500"
-            }`}
-            onClick={() => setSelectedTab("overtime")}
-          >
-            Overtime Form
-          </p>
-          <p
-            className={`cursor-pointer pb-5 ${
-              selectedTab === "approval"
-                ? "font-bold border-b-2 border-black"
-                : "text-gray-500"
-            }`}
-            onClick={() => setSelectedTab("approval")}
-          >
-            Approval Manager
-          </p>
-          <p
-            className={`cursor-pointer pb-5 ${
-              selectedTab === "history"
-                ? "font-bold border-b-2 border-black"
-                : "text-gray-500"
-            }`}
-            onClick={() => setSelectedTab("history")}
-          >
-            History
-          </p>
+      <div className="bg-white ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-[70px] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] flex items-center">
+        <div className="flex gap-10 md:gap-10 text-[#1C1C1C] ml-7">
+          {[
+            { key: "overtime", label: "Overtime Form" },
+            { key: "approval", label: "Approval Manager" },
+            { key: "history", label: "History" },
+          ].map((tab) => (
+            <p
+              key={tab.key}
+              className={`cursor-pointer py-6 border-b-2 transition-all ${
+                selectedTab === tab.key
+                  ? "font-bold border-black"
+                  : "border-transparent text-gray-500 hover:text-black"
+              }`}
+              onClick={() => setSelectedTab(tab.key)}
+            >
+              {tab.label}
+            </p>
+          ))}
         </div>
       </div>
       {selectedTab === "overtime" && (
@@ -164,35 +151,39 @@ const Overtime = () => {
 
       {selectedTab === "approval" && (
         <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-[77%] ml-[3%] rounded-[15px] mt-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
-          <div className="flex w-full items-center ml-[1%] mt-[2%]">
+          <div className="flex flex-wrap w-full items-center gap-x-4 px-4 py-6">
+            {/* Overtime Request Title */}
             <div>
               <p className="text-[#252C58] text-[20px] font-light">
-                Overtime Requrest
+                Overtime Request
               </p>
             </div>
+
             {/* Search */}
-            <div className="relative ml-[10%] flex items-center">
+            <div className="relative flex items-center flex-1 min-w-[200px] sm:min-w-[300px] md:min-w-[350px] lg:min-w-[400px] ml-14">
               <CiSearch className="absolute left-4 w-[20px] h-[20px]" />
               <input
                 type="text"
                 placeholder="Quick Search"
-                className="h-[50px] w-[424px] pl-12 rounded-[10px] border-[1px] bg-[#FFFFFF] border-gray-300 focus:outline-none text-[13px] focus:border-[#2EB67D] hover:border-[#2EB67D] placeholder:text-[#252C58] placeholder:font-light placeholder:opacity-100"
+                className="h-[50px] w-full pl-12 rounded-[10px] border border-gray-300 bg-white text-[13px] focus:outline-none focus:border-[#2EB67D] hover:border-[#2EB67D] placeholder:text-[#252C58] placeholder:opacity-100"
               />
             </div>
+
             {/* Calendar */}
-            <div className="relative mr-[20px] flex items-center caret-transparent cursor-default ml-[2%]">
+            <div className="relative flex items-center min-w-[140px] sm:min-w-[160px] md:min-w-[180px]">
               <CiCalendarDate className="absolute left-4 w-[20px] h-[20px]" />
-              <div className="h-[50px] w-[169px] pl-12 rounded-[12px] border-2 bg-[#D5D9DD] border-gray-300 focus:outline-none text-[15px] text-black flex items-center font-light">
+              <div className="h-[50px] w-full pl-12 rounded-[12px] border-2 bg-gray-200 border-gray-300 text-[#252C5880] text-[15px] flex items-center font-light">
                 {currentDate}
               </div>
             </div>
-            {/* Button View */}
 
-            <div className="flex space-x-4 items-center mr-[15px] text-white font-normal h-[50px] p-3 w-[10%] rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 focus:outline-none hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]">
+            {/* Filter Button */}
+            <div className="flex items-center justify-center min-w-[120px] sm:min-w-[140px] h-[50px] px-4 text-white font-normal rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]">
               <VscSettings className="text-white w-[25px] h-[25px]" />
-              <p>Filter</p>
+              <p className="ml-2">Filter</p>
             </div>
           </div>
+
           {/* list */}
           <div className="overflow-x-auto mt-[20px] text-[14px] ml-[15px]">
             <table className="border-collapse bg-white overflow-hidden w-[calc(100vw-400px)] ">
@@ -280,31 +271,34 @@ const Overtime = () => {
       )}
       {selectedTab === "history" && (
         <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-[77%] ml-[3%] rounded-[15px] mt-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
-          <div className="flex w-full items-center ml-[1%] mt-[2%]">
+          <div className="flex flex-wrap w-full items-center gap-x-4 px-4 py-6">
+            {/* History Title */}
             <div>
               <p className="text-[#252C58] text-[20px] font-light">History</p>
             </div>
+
             {/* Search */}
-            <div className="relative ml-[10%] flex items-center">
+            <div className="relative flex items-center flex-1 min-w-[200px] sm:min-w-[300px] md:min-w-[350px] lg:min-w-[400px] ml-14">
               <CiSearch className="absolute left-4 w-[20px] h-[20px]" />
               <input
                 type="text"
                 placeholder="Quick Search"
-                className="h-[50px] w-[424px] pl-12 rounded-[10px] border-[1px] bg-[#FFFFFF] border-gray-300 focus:outline-none text-[13px] focus:border-[#2EB67D] hover:border-[#2EB67D] placeholder:text-[#252C58] placeholder:font-light placeholder:opacity-100"
+                className="h-[50px] w-full pl-12 rounded-[10px] border border-gray-300 bg-white text-[13px] focus:outline-none focus:border-[#2EB67D] hover:border-[#2EB67D] placeholder:text-[#252C58] placeholder:opacity-100"
               />
             </div>
+
             {/* Calendar */}
-            <div className="relative mr-[20px] flex items-center caret-transparent cursor-default ml-[2%]">
+            <div className="relative flex items-center min-w-[140px] sm:min-w-[160px] md:min-w-[180px]">
               <CiCalendarDate className="absolute left-4 w-[20px] h-[20px]" />
-              <div className="h-[50px] w-[169px] pl-12 rounded-[12px] border-2 bg-[#D5D9DD] border-gray-300 focus:outline-none text-[15px] text-black flex items-center font-light">
+              <div className="h-[50px] w-full pl-12 rounded-[12px] border-2 bg-gray-200 border-gray-300 text-[#252C5880] text-[15px] flex items-center font-light">
                 {currentDate}
               </div>
             </div>
-            {/* Button View */}
 
-            <div className="flex space-x-4 items-center mr-[15px] text-white font-normal h-[50px] p-3 w-[10%] rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 focus:outline-none hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]">
+            {/* Filter Button */}
+            <div className="flex items-center justify-center min-w-[120px] sm:min-w-[140px] h-[50px] px-4 text-white font-normal rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]">
               <VscSettings className="text-white w-[25px] h-[25px]" />
-              <p>Filter</p>
+              <p className="ml-2">Filter</p>
             </div>
           </div>
           {/* list */}

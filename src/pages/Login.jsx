@@ -65,15 +65,14 @@ const Login = () => {
         password,
       });
 
-      const { success, message } = response.data;
+      const { success, message, user, token } = response.data;
 
       if (success) {
         Swal.fire({
           text: message,
           icon: "success",
         });
-        localStorage.setItem("token", response.data.token);
-
+        localStorage.setItem("token", token);
         navigate("/dashboard");
       } else {
         Swal.fire({

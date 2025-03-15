@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 // icon
 import { PiClock } from "react-icons/pi";
 import { IoBulbOutline } from "react-icons/io5";
@@ -6,8 +7,10 @@ import { MdWifiTetheringOff } from "react-icons/md";
 import { FaArrowTrendUp } from "react-icons/fa6";
 import { CiSearch } from "react-icons/ci";
 import { CiCalendarDate } from "react-icons/ci";
+import { VscSettings } from "react-icons/vsc";
 
 const Attendance = () => {
+  const navigate = useNavigate();
   // Get date
   const currentDate = format(new Date(), "dd MMM, yyyy");
 
@@ -65,35 +68,44 @@ const Attendance = () => {
       </div>
       {/* Table */}
       <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-[77%] ml-[3%] rounded-[15px] mt-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
-        <div className="flex w-full items-center ml-[1%] mt-[2%]">
+        <div className="flex w-full flex-wrap items-center gap-4 px-4 py-6">
+          {/* Total Employee */}
           <div>
             <p className="text-[#252C58] text-[20px] font-light">
               Total Employee
             </p>
           </div>
+
           {/* Search */}
-          <div className="relative ml-[10%] flex items-center">
+          <div className="relative flex items-center flex-1 min-w-[200px] sm:min-w-[300px] md:min-w-[350px] lg:min-w-[400px] ml-14">
             <CiSearch className="absolute left-4 w-[20px] h-[20px]" />
             <input
               type="text"
               placeholder="Quick Search"
-              className="h-[50px] w-[424px] pl-12 rounded-[10px] border-[1px] bg-[#FFFFFF] border-gray-300 focus:outline-none text-[13px] focus:border-[#2EB67D] hover:border-[#2EB67D] placeholder:text-[#252C58] placeholder:font-light placeholder:opacity-100"
+              className="h-[50px] w-full pl-12 rounded-[10px] border border-gray-300 bg-white text-[13px] focus:outline-none focus:border-[#2EB67D] hover:border-[#2EB67D] placeholder:text-[#252C58] placeholder:opacity-100"
             />
           </div>
+
           {/* Calendar */}
-          <div className="relative mr-[20px] flex items-center caret-transparent cursor-default ml-[2%]">
+          <div className="relative flex items-center caret-transparent cursor-default min-w-[140px] sm:min-w-[160px] md:min-w-[180px]">
             <CiCalendarDate className="absolute left-4 w-[20px] h-[20px]" />
-            <div className="h-[50px] w-[169px] pl-12 rounded-[12px] border-2 bg-[#D5D9DD] border-gray-300 focus:outline-none text-[15px] text-black flex items-center font-light">
+            <div className="h-[50px] w-full pl-12 rounded-[12px] border-2 bg-gray-200 border-gray-300 text-[#252C5880] text-[15px] flex items-center font-light">
               {currentDate}
             </div>
           </div>
+
           {/* Button View */}
-          <div className="mr-[15px]">
-            <button className="text-white font-normal h-[50px] w-[180px] rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 focus:outline-none hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]">
+          <div className="flex items-center justify-center h-[50px] px-4 text-white font-normal rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]">
+            <VscSettings className="w-[25px] h-[25px]" />
+            <p
+              className="ml-2 caret-transparent"
+              onClick={() => navigate("/qrscanner")}
+            >
               View Attendance
-            </button>
+            </p>
           </div>
         </div>
+
         {/* list */}
         <div className="overflow-x-auto mt-[20px] text-[14px] ml-[15px]">
           <table className="border-collapse bg-white overflow-hidden w-[calc(100vw-400px)] ">

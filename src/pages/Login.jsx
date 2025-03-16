@@ -33,6 +33,9 @@ const Login = () => {
     setPassword(value);
   };
 
+  const expiresIn = 3600 * 1000;
+  const expiryTime = Date.now() + expiresIn;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -65,14 +68,19 @@ const Login = () => {
         password,
       });
 
-      const { success, message, user, token } = response.data;
+      const { success, message, token } = response.data;
 
       if (success) {
         Swal.fire({
           text: message,
           icon: "success",
+          timer: 2000,
         });
+
+        //Store token and expiryTime (1h)
         localStorage.setItem("token", token);
+        localStorage.setItem("expiryTime", expiryTime);
+
         navigate("/dashboard");
       } else {
         Swal.fire({
@@ -98,6 +106,14 @@ const Login = () => {
         setPasswordError("Incorrect Password");
         isValid = false;
         setPassWordBorder(true);
+      } else if (
+        error.response?.data?.message == "Account does not exist or is inactive"
+      ) {
+        Swal.fire({
+          text: "Account does not exist or is inactive",
+          icon: "error",
+          timer: 2000,
+        });
       }
     }
   };

@@ -2305,15 +2305,15 @@ const Employee = () => {
                 </table>
               </div>
             ) : (
-              <div className="flex flex-col justify-center items-center text-gray-500 text-lg">
+              <div className="flex flex-col justify-center items-center text-gray-500 text-lg flex-grow mx-auto">
                 <img
                   alt="logo"
-                  src="src\assets\Image.png"
+                  src="src/assets/Image.png"
                   className="w-[380px] h-[280px]"
                 />
-                <div className="mt-[10%]">
+                <div className="mt-[10%] text-center">
                   <p className="font-bold">Empty Employee</p>
-                  <p className="">Add your first Employee manually</p>
+                  <p>Add your first Employee manually</p>
                 </div>
                 <button
                   className="text-white font-normal mt-[10%] h-[50px] w-[180px] rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 focus:outline-none hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]"

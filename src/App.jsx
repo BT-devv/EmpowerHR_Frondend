@@ -20,9 +20,11 @@ function App() {
       <Routes>
         {/* Auth Routes */}
         <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/forgotpass" element={<ForgotPass />} />
         <Route path="/recieveotp" element={<RecieveOTP />} />
         <Route path="/resetpass" element={<ResetPass />} />
+        <Route path="/qrscanner" element={<QRScanner />} />
 
         {/* Protected Routes */}
 
@@ -36,7 +38,7 @@ function App() {
           <Route path="employee" element={<Employee />} />
           <Route path="payroll" element={<Payroll />} />
           <Route path="attendance" element={<Attendance />} />
-          <Route path="qrscanner" element={<QRScanner />} />
+          {/* <Route path="qrscanner" element={<QRScanner />} /> */}
 
           <Route path="settings" element={<Comingsoon />} />
 

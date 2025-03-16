@@ -13,7 +13,6 @@ import Swal from "sweetalert2";
 // icon
 import { CiSearch } from "react-icons/ci";
 import { IoIosArrowDown } from "react-icons/io";
-import { CiCalendarDate } from "react-icons/ci";
 import { HiOutlinePhoto } from "react-icons/hi2";
 import { IoIosArrowForward } from "react-icons/io";
 import { IoChevronBack } from "react-icons/io5";
@@ -27,6 +26,7 @@ import { FaRegAddressCard } from "react-icons/fa";
 import { IoTrashBinOutline } from "react-icons/io5";
 import { IoBookmarkOutline } from "react-icons/io5";
 import { IoCloseCircleOutline } from "react-icons/io5";
+import { BiFilterAlt } from "react-icons/bi";
 
 Modal.setAppElement("#root");
 const Employee = () => {
@@ -454,9 +454,6 @@ const Employee = () => {
     setPosition(option);
     setIsPositionOpen(false);
   };
-
-  // Get date
-  const currentDate = format(new Date(), "dd MMM, yyyy");
 
   // Format date of birth
   const formatDate = (dateString) => {
@@ -1481,33 +1478,37 @@ const Employee = () => {
             {/* overtime */}
           </div>
           <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] shadow-[0px_1px_3px_rgba(0,0,0,0.2)] h-auto ml-[3%] rounded-[15px] mt-[2%] mb-[2%] items-start p-[10px]">
-            <div className="flex w-full items-center ml-[1%] mt-[2%]">
+            <div className="flex flex-wrap w-full items-center gap-x-4 px-4 py-6">
+              {/* Total Employee */}
               <div>
                 <p className="text-[#252C58] text-[20px] font-light">
                   Total Employee
                 </p>
               </div>
+
               {/* Search */}
-              <div className="relative ml-[10%] flex items-center">
+              <div className="relative flex items-center flex-1 min-w-[200px] sm:min-w-[300px] md:min-w-[350px] lg:min-w-[400px] ml-14">
                 <CiSearch className="absolute left-4 w-[20px] h-[20px]" />
                 <input
                   type="text"
                   placeholder="Quick Search"
                   onChange={handleSearch}
-                  className="h-[50px] w-[424px] pl-12 rounded-[10px] border-[1px] bg-[#FFFFFF]   border-gray-300 focus:outline-none text-[13px] focus:border-[#2EB67D] hover:border-[#2EB67D] placeholder:text-[#252C58] placeholder:font-light placeholder:opacity-100"
+                  className="h-[50px] w-full pl-12 rounded-[10px] border border-gray-300 bg-white text-[13px] focus:outline-none focus:border-[#2EB67D] hover:border-[#2EB67D] placeholder:text-[#252C58] placeholder:opacity-100"
                 />
               </div>
-              {/* Filter */}
-              <div className="relative mr-[20px] flex items-center caret-transparent cursor-default ml-[2%]">
-                <CiCalendarDate className="absolute left-4 w-[20px] h-[20px]" />
-                <div className="h-[50px] w-[169px] pl-12 rounded-[12px] border-2 bg-[#D5D9DD] border-gray-300 focus:outline-none text-[15px] text-black flex items-center font-light">
-                  {currentDate}
+
+              {/* Filter Button */}
+              <div className="relative flex items-center min-w-[120px] sm:min-w-[140px]">
+                <BiFilterAlt className="absolute left-4 w-[20px] h-[20px] text-[#2EB67D]" />
+                <div className="h-[50px] w-full pl-12 rounded-[12px] border-2 bg-gray-200 border-gray-300 text-[#252C5880] text-[15px] flex items-center font-light">
+                  Filter
                 </div>
               </div>
-              {/* Button create new employee*/}
-              <div className="mr-[15px]">
+
+              {/* Create Employee Button */}
+              <div>
                 <button
-                  className="text-white font-normal h-[50px] w-[180px] rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 focus:outline-none hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]"
+                  className="text-white font-normal h-[50px] px-6 rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]"
                   onClick={() => setModalIsOpen(true)}
                 >
                   Create Employee
@@ -2324,19 +2325,20 @@ const Employee = () => {
             )}
 
             {/* infor bottom */}
-            <div className=" ml-[15px] w-full flex items-center space-x-[20%] text-[#9A9A9A] caret-transparent mt-[5%]">
-              <div>
-                <p>
-                  Showing {startIndex} to {endIndex} of {data.length} entries
-                </p>
-              </div>
+            <div className="flex flex-wrap items-center w-full justify-between text-[#9A9A9A] caret-transparent p-4 gap-4 md:gap-6 mt-2">
+              <p className="text-sm sm:text-base">
+                Showing {startIndex} to {endIndex} of {data.length} entries
+              </p>
+
               {/* Pagination */}
-              <div className="flex items-center space-x-2 text-black">
+              <div className="flex items-center gap-2 text-black">
                 <button
                   onClick={handlePreviousPage}
                   disabled={currentPage === 1}
-                  className={`w-[50px] h-[50px] rounded-[12px] flex items-center justify-center border border-[#B0BAC3] ${
-                    currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+                  className={`min-w-[50px] h-[50px] rounded-[12px] flex items-center justify-center border border-[#B0BAC3] ${
+                    currentPage === 1
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-gray-100"
                   }`}
                 >
                   <IoChevronBack />
@@ -2347,34 +2349,32 @@ const Employee = () => {
                 <button
                   onClick={handleNextPage}
                   disabled={currentPage === totalPages}
-                  className={`w-[50px] h-[50px] rounded-[12px] flex items-center justify-center border border-[#B0BAC3] ${
+                  className={`min-w-[50px] h-[50px] rounded-[12px] flex items-center justify-center border border-[#B0BAC3] ${
                     currentPage === totalPages
                       ? "opacity-50 cursor-not-allowed"
-                      : ""
+                      : "hover:bg-gray-100"
                   }`}
                 >
                   <IoIosArrowForward />
                 </button>
               </div>
 
-              <div>
-                <p className="text-black flex items-center gap-2">
-                  Show
-                  <select
-                    value={itemsPerPage}
-                    onChange={(e) => setItemsPerPage(e.target.value)}
-                    className="w-[70px] h-[50px] border border-gray-300 rounded-[8px]  text-center"
-                  >
-                    {Array.from({ length: data.length }, (_, i) => i + 1).map(
-                      (num) => (
-                        <option key={num} value={num}>
-                          {num}
-                        </option>
-                      )
-                    )}
-                  </select>
-                  entries
-                </p>
+              <div className="flex items-center gap-2 text-black">
+                <p>Show</p>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                  className="w-[80px] h-[50px] border border-gray-300 rounded-[8px] text-center bg-white cursor-pointer"
+                >
+                  {Array.from({ length: data.length }, (_, i) => i + 1).map(
+                    (num) => (
+                      <option key={num} value={num}>
+                        {num}
+                      </option>
+                    )
+                  )}
+                </select>
+                <p>entries</p>
               </div>
             </div>
           </div>

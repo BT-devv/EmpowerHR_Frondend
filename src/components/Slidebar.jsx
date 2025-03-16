@@ -10,7 +10,7 @@ import { IoCloseCircleOutline } from "react-icons/io5";
 import { HiOutlineUserGroup } from "react-icons/hi2";
 import { HiOutlineDocumentCheck } from "react-icons/hi2";
 import { IoSettingsOutline } from "react-icons/io5";
-import { HiQrCode } from "react-icons/hi2";
+
 const Slidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,7 +28,6 @@ const Slidebar = () => {
       "/overtime": "overtime",
       "/absense": "absense",
       "/settings": "settings",
-      "/qrscanner": "qrscanner",
     };
     setSelectedItem(pathToItem[location.pathname] || "");
   }, [location.pathname]);
@@ -164,19 +163,6 @@ const Slidebar = () => {
             >
               <HiOutlineDocumentCheck className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />
               Attendance
-            </li>
-          </div>
-          <div className="flex">
-            <li
-              className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer transition-transform duration-300 ${
-                selectedItem === "qrscanner"
-                  ? "bg-[#2EB67D] text-white translate-x-2"
-                  : "bg-white text-[#979797]"
-              }`}
-              onClick={() => toggleMenu("qrscanner", "/qrscanner")}
-            >
-              <HiQrCode className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />
-              QR Scanner
             </li>
           </div>
 

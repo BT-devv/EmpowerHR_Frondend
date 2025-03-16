@@ -1,6 +1,6 @@
 const Comingsoon = () => {
   return (
-    <div className="flex flex-col items-center justify-center bg-[#CCE0D8] w-auto h-full relative overflow-hidden">
+    <div className="flex flex-col items-center justify-center bg-[#CCE0D8] w-full h-full relative overflow-hidden">
       {/* Shapes */}
       <div className="absolute top-[73%] left-[75%] z-[5] h-[50%] w-[36%] opacity-[70%] bg-white rounded-[32px] rotate-45"></div>
       <div className="absolute top-[-15%] left-[25%] z-[1] h-[40%] w-[10%] opacity-[40%] bg-[#73FFC4] rounded-[48px] rotate-45"></div>

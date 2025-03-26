@@ -19,9 +19,13 @@ const apiRoutes = {
   },
   attendance: {
     scannerQR: `${API_BASE_URL}/user/scan-qr`,
+    getAll: `${API_BASE_URL}/attendance`,
   },
   overtime: {
     request: `${API_BASE_URL}/overtime/request`,
+  },
+  absence: {
+    request: `${API_BASE_URL}/absence/request`,
   },
 };
 

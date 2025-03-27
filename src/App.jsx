@@ -10,7 +10,6 @@ import ForgotPass from "./pages/ForgotPass";
 import RecieveOTP from "./pages/RecieveOTP";
 import ResetPass from "./pages/ResetPass";
 import Absence from "./pages/Absence";
-import Payroll from "./pages/Payroll";
 import QRScanner from "./pages/QRScanner";
 import Comingsoon from "./components/Comingsoon";
 
@@ -20,7 +19,6 @@ function App() {
       <Routes>
         {/* Auth Routes */}
         <Route path="/" element={<Login />} />
-        <Route path="/login" element={<Login />} />
         <Route path="/forgotpass" element={<ForgotPass />} />
         <Route path="/recieveotp" element={<RecieveOTP />} />
         <Route path="/resetpass" element={<ResetPass />} />
@@ -36,10 +34,8 @@ function App() {
           <Route path="absense" element={<Absence />} />
 
           <Route path="employee" element={<Employee />} />
-          <Route path="payroll" element={<Payroll />} />
+          <Route path="payroll" element={<Comingsoon />} />
           <Route path="attendance" element={<Attendance />} />
-          {/* <Route path="qrscanner" element={<QRScanner />} /> */}
-
           <Route path="settings" element={<Comingsoon />} />
 
           {/* <Route path="*" element={<NotPermission />} /> */}

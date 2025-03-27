@@ -8,7 +8,7 @@ import dayjs from "dayjs";
 import "react-datepicker/dist/react-datepicker.css";
 import axios from "axios";
 import Modal from "react-modal";
-import { format } from "date-fns";
+// import { format } from "date-fns";
 import Swal from "sweetalert2";
 // icon
 import { CiSearch } from "react-icons/ci";
@@ -367,6 +367,7 @@ const Employee = () => {
   const handleNextPage = () => {
     if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
   };
+
   const renderPagination = () => {
     const pages = [];
     const totalPages = Math.ceil(data.length / itemsPerPage);
@@ -484,6 +485,7 @@ const Employee = () => {
       .get(apiRoutes.user.getAll)
       .then((response) => {
         setData(response.data);
+        console.log(JSON.stringify(data));
       })
       .catch((error) => {
         console.error("Error fetching data from API", error);
@@ -677,20 +679,6 @@ const Employee = () => {
     setPhoneNumber("");
     setModalIsOpen(false);
   };
-
-  // Get user by click
-  // const handleRowClick = async (item) => {
-  //   setSelectedEmployee(item);
-  // };
-
-  // Format date of birth
-  // const formatDate = (dateString) => {
-  //   const date = new Date(dateString);
-  //   const day = String(date.getDate()).padStart(2, "0");
-  //   const month = String(date.getMonth() + 1).padStart(2, "0");
-  //   const year = date.getFullYear();
-  //   return `${day}/${month}/${year}`;
-  // };
 
   return (
     <div className="">
@@ -1443,7 +1431,7 @@ const Employee = () => {
         </div>
       ) : (
         <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">
-          <div className="flex ml-[3%] space-x-13 mt-[2%]">
+          <div className="flex ml-[3%] space-x-13 mt-[2%] caret-transparent">
             {/* active */}
             <div className="bg-white w-[calc(100vw-340px)] h-[160px] rounded-[40px] flex justify-around items-center shadow-md p-6 relative">
               {/* Total Customers */}
@@ -1453,20 +1441,20 @@ const Employee = () => {
                   <HiOutlineUsers className="text-green-400 w-10 h-10 relative" />
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm">Total Customers</p>
-                  <p className="font-bold text-3xl">{data.length} </p>
+                  <p className="text-gray-400 text-[16px]">Total Customers</p>
+                  <p className="font-bold text-3xl text-left">{data.length} </p>
                 </div>
               </div>
-
+              <div className="bg-gray-100 w-[2px] h-[100px] " />
               {/* Active Now */}
-              <div className="flex items-center space-x-4 relative">
+              <div className="flex items-center space-x-4 relative mr-[5%]">
                 <div className="relative w-[80px] h-[80px] flex items-center justify-center">
                   <div className="bg-[#FF527D] w-full h-full rounded-full opacity-20 absolute"></div>
                   <TbDeviceDesktop className="text-[#FF527D] w-10 h-10 relative" />
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm">Active Now</p>
-                  <p className="font-bold text-3xl">
+                  <p className="text-gray-400 text-[16px]">Active Now</p>
+                  <p className="font-bold text-3xl text-left">
                     {
                       data.filter((employee) => employee.status === "Active")
                         .length
@@ -1478,10 +1466,10 @@ const Employee = () => {
             {/* overtime */}
           </div>
           <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] shadow-[0px_1px_3px_rgba(0,0,0,0.2)] h-auto ml-[3%] rounded-[15px] mt-[2%] mb-[2%] items-start p-[10px]">
-            <div className="flex flex-wrap w-full items-center gap-x-4 px-4 py-6">
+            <div className="flex flex-wrap w-full items-center gap-x-4 px-4 py-6 ">
               {/* Total Employee */}
               <div>
-                <p className="text-[#252C58] text-[20px] font-light">
+                <p className="text-[#252C58] text-[20px] font-light caret-transparent">
                   Total Employee
                 </p>
               </div>
@@ -1498,7 +1486,7 @@ const Employee = () => {
               </div>
 
               {/* Filter Button */}
-              <div className="relative flex items-center min-w-[120px] sm:min-w-[140px]">
+              <div className="relative flex items-center min-w-[100px] sm:min-w-[120px]">
                 <BiFilterAlt className="absolute left-4 w-[20px] h-[20px] text-[#2EB67D]" />
                 <div className="h-[50px] w-full pl-12 rounded-[12px] border-2 bg-gray-200 border-gray-300 text-[#252C5880] text-[15px] flex items-center font-light">
                   Filter
@@ -2205,38 +2193,37 @@ const Employee = () => {
                   <tbody>
                     {currentItems.map((item) => (
                       <tr
-                        key={item.employee}
-                        className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer"
-                        // onClick={() => handleRowClick(item)}
+                        key={item._id}
+                        className="hover:bg-[rgba(0,84,232,0.03)] text-[15px]"
                       >
-                        <td className="px-2 py-6 border-b border-gray-200 text-[16px] text-[#252C58]">
+                        <td className="px-2 py-6 border-b border-gray-200 text-[#252C58]">
                           <div className="truncate text-left w-[60px]">
                             {item.employeeID}
                           </div>
                         </td>
-                        <td className="px-6 py-6 border-b border-gray-200 text-[16px] text-[#252C58]">
-                          <div className="truncate text-left w-[130px] ">
+                        <td className="px-6 py-6 border-b border-gray-200 text-[#252C58]">
+                          <div className="truncate text-left w-[150px] ">
                             {`${item.firstName} ${item.lastName}`}
                           </div>
                         </td>
-                        <td className="px-4 py-6 border-b border-gray-200 text-[16px] text-[#252C58] opacity-[50%]">
+                        <td className="px-4 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%]">
                           <div className="truncate text-left w-[170px]">
-                            {item.department}
+                            {item.jobTitle}
                           </div>
                         </td>
-                        <td className="px-3 py-6 border-b border-gray-200 text-[16px] text-[#252C58] opacity-[50%]">
+                        <td className="px-3 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%]">
                           <div className="truncate text-left w-[170px] ">
                             {item.department}
                           </div>
                         </td>
-                        <td className="px-3 py-6 border-b border-gray-200 text-[16px] text-[#252C58] opacity-[50%]">
+                        <td className="px-3 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%]">
                           <div className="text-left w-[260px]">
-                            {item.email}
+                            {item.emailPersonal}
                           </div>
                         </td>
                         <td className="px-4 py-6 border-b border-gray-200 ">
                           <div
-                            className={`text-center p-1 rounded-[6px] text-[16px] font-light w-[80px] h-[40px] flex items-center justify-center ${
+                            className={`text-center p-1 rounded-[6px] font-light w-[80px] h-[40px] flex items-center justify-center ${
                               item.status === "Active"
                                 ? "text-[#D5B500] bg-[#FFF8E7]"
                                 : ""
@@ -2249,7 +2236,7 @@ const Employee = () => {
                             {item.status}
                           </div>
                         </td>
-                        <td className="px-5 py-6 border-b border-gray-200 relative">
+                        <td className="px-5 py-6 border-b border-gray-200 relative cursor-pointer">
                           <HiOutlineDotsHorizontal
                             className="text-[23px]"
                             onClick={() => {
@@ -2305,15 +2292,15 @@ const Employee = () => {
                 </table>
               </div>
             ) : (
-              <div className="flex flex-col justify-center items-center text-gray-500 text-lg">
+              <div className="flex flex-col justify-center items-center text-gray-500 text-lg flex-grow mx-auto">
                 <img
                   alt="logo"
-                  src="src\assets\Image.png"
+                  src="src/assets/Image.png"
                   className="w-[380px] h-[280px]"
                 />
-                <div className="mt-[10%]">
+                <div className="mt-[10%] text-center">
                   <p className="font-bold">Empty Employee</p>
-                  <p className="">Add your first Employee manually</p>
+                  <p>Add your first Employee manually</p>
                 </div>
                 <button
                   className="text-white font-normal mt-[10%] h-[50px] w-[180px] rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 focus:outline-none hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]"
@@ -2366,13 +2353,11 @@ const Employee = () => {
                   onChange={(e) => setItemsPerPage(Number(e.target.value))}
                   className="w-[80px] h-[50px] border border-gray-300 rounded-[8px] text-center bg-white cursor-pointer"
                 >
-                  {Array.from({ length: data.length }, (_, i) => i + 1).map(
-                    (num) => (
-                      <option key={num} value={num}>
-                        {num}
-                      </option>
-                    )
-                  )}
+                  {[10, 20, 50, 100].map((num) => (
+                    <option key={num} value={num}>
+                      {num}
+                    </option>
+                  ))}
                 </select>
                 <p>entries</p>
               </div>

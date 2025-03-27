@@ -1,21 +1,124 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import apiRoutes from "../../apiRoutes";
 import RichTextEditor from "../components/RichTextEditor";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import TextField from "@mui/material/TextField";
-import dayjs from "dayjs";
+// import dayjs from "dayjs";
 import { format } from "date-fns";
+import Swal from "sweetalert2";
 // icon
 import { CiSearch } from "react-icons/ci";
 import { CiCalendarDate } from "react-icons/ci";
 import { VscSettings } from "react-icons/vsc";
+import { IoIosArrowDown } from "react-icons/io";
 
 const Absence = () => {
   const currentDate = format(new Date(), "dd MMM, yyyy");
   const [selectedTab, setSelectedTab] = useState("absence");
   const [reason, setReason] = useState("");
-  const [from, setFrom] = useState(null);
-  const [to, setTo] = useState(null);
+  const [dateFrom, setDateFrom] = useState(null);
+  const [dateTo, setDateTo] = useState(null);
+
+  const [isTypeOpen, setIsTypeOpen] = useState(false);
+  const [type, setType] = useState("Select Type");
+  const typeData = ["Full Day", "Half Day", "Leave Desk"];
+
+  const [data, setData] = useState([]);
+  const [isManagerOpen, setIsManagerOpen] = useState(false);
+  const [lineManagers, setLineManagers] = useState("");
+  const [managerName, setManagerName] = useState("Select Manager");
+
+  const dropdownRef = useRef(null);
+
+  // Dropdown selection of type
+  const toggleTypeDropdown = () => setIsTypeOpen(!isTypeOpen);
+  const handleOptionClick2 = (option) => {
+    setType(option);
+    setIsTypeOpen(false);
+  };
+
+  // Dropdown selection of manager name
+  const toggleManagerDropdown = () => setIsManagerOpen(!isManagerOpen);
+  const handleOptionClick1 = (option, id) => {
+    setManagerName(option);
+    setLineManagers(id);
+    setIsManagerOpen(false);
+  };
+
+  // Get all users
+  useEffect(() => {
+    axios
+      .get(apiRoutes.user.getAll)
+      .then((response) => {
+        setData(response.data);
+        console.log(JSON.stringify(data));
+      })
+      .catch((error) => {
+        console.error("Error fetching data from API", error);
+      });
+  }, []);
+
+  // Prevent click outside
+  const handleClickOutside = (event) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      setIsManagerOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const token = localStorage.getItem("token");
+
+  const handleSubmit = async () => {
+    if (!lineManagers || !dateTo || !dateFrom || !reason || !type) {
+      Swal.fire({ text: "Vui lòng nhập đầy đủ thông tin", icon: "warning" });
+      return;
+    }
+    const formData = {
+      lineManagers,
+      dateTo,
+      dateFrom,
+      type,
+      reason,
+    };
+    try {
+      const response = await axios.post(apiRoutes.absence.request, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      const { success, message } = response.data;
+      if (success) {
+        Swal.fire({
+          text: message,
+          icon: "success",
+        });
+        window.location.reload();
+      } else {
+        Swal.fire({
+          text: message,
+          icon: "error",
+          timer: 2000,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      Swal.fire({
+        text:
+          error.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại!",
+        icon: "error",
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">
       <div className="bg-white ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-[70px] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] flex items-center">
@@ -45,27 +148,74 @@ const Absence = () => {
           <div className="flex flex-grow ml-[5%]">
             <div className="mt-[3%] w-full">
               <p>Absence Type</p>
-              <input
-                type="text"
-                className="border-gray-200 rounded-[5px] border-[2px] w-[91%] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
-                // value={firstName}
-                placeholder="Select Type"
-                // onChange={(e) => {
-                //   setFirstName(e.target.value);
-                // }}
-              />
+              <div
+                className="relative inline-block text-left w-full "
+                ref={dropdownRef}
+              >
+                <div className="relative">
+                  <div
+                    className="inline-flex w-[91%] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                    onClick={toggleTypeDropdown}
+                  >
+                    <span className="text-[15px]">{type}</span>
+                    <IoIosArrowDown />
+                  </div>
+                </div>
+                {isTypeOpen && (
+                  <div className="absolute z-10 mt-2 w-[91%] bg-white rounded-md shadow-lg border border-gray-200">
+                    <ul className="py-1">
+                      {typeData.map((option, index) => (
+                        <li
+                          key={index}
+                          onClick={() => handleOptionClick2(option)}
+                          className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                        >
+                          {option}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="mt-[3%] w-full">
               <p>Manager Approval</p>
-              <input
-                type="text"
-                className="border-gray-200 rounded-[5px] border-[2px] w-[91%] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
-                // value={firstName}
-                placeholder="Select Manager"
-                // onChange={(e) => {
-                //   setFirstName(e.target.value);
-                // }}
-              />
+              <div className="space-x-5">
+                <div
+                  className="relative inline-block text-left w-full"
+                  ref={dropdownRef}
+                >
+                  <div className="relative">
+                    <div
+                      className="inline-flex w-[91%] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[5px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                      onClick={toggleManagerDropdown}
+                    >
+                      <span className="text-[15px]">{managerName}</span>
+                      <IoIosArrowDown />
+                    </div>
+                  </div>
+                  {isManagerOpen && (
+                    <div className="absolute z-10 mt-2 w-[91%] bg-white rounded-md shadow-lg border border-gray-200">
+                      <ul className="py-1">
+                        {data.map((option, index) => (
+                          <li
+                            key={index}
+                            onClick={() =>
+                              handleOptionClick1(
+                                `${option.firstName} ${option.lastName}`,
+                                option.employeeID
+                              )
+                            }
+                            className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                          >
+                            {`${option.firstName} ${option.lastName}`}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
           <div className="flex ml-[5%] mt-[3%]">
@@ -73,8 +223,8 @@ const Absence = () => {
               <div className="w-full">
                 <p className="mb-2">From</p>
                 <DatePicker
-                  value={from}
-                  onChange={setFrom}
+                  value={dateFrom}
+                  onChange={setDateFrom}
                   format="DD/MM/YYYY"
                   className="border-gray-200 rounded-[5px] border-[1px] w-[91%] h-[40px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
                   renderInput={(params) => <TextField {...params} fullWidth />}
@@ -83,8 +233,8 @@ const Absence = () => {
               <div className="w-full">
                 <p className="mb-2">To</p>
                 <DatePicker
-                  value={to}
-                  onChange={setTo}
+                  value={dateTo}
+                  onChange={setDateTo}
                   format="DD/MM/YYYY"
                   className="border-gray-200 rounded-[5px] border-[1px] w-[91%] h-[40px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
                   renderInput={(params) => <TextField {...params} fullWidth />}
@@ -117,7 +267,7 @@ const Absence = () => {
               <button
                 type="submit"
                 className="mt-[3%] bg-[#2EB67D] text-white outline-none w-[15%] text-[18px] focus:outline-none"
-                // onClick={handleSubmit}
+                onClick={handleSubmit}
               >
                 SUBMIT
               </button>

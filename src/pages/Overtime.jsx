@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import apiRoutes from "../../apiRoutes";
 import RichTextEditor from "../components/RichTextEditor";
@@ -10,49 +10,120 @@ import {
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import TextField from "@mui/material/TextField";
 import Swal from "sweetalert2";
-import dayjs from "dayjs";
+// import dayjs from "dayjs";
 import { format } from "date-fns";
-//logo
+//icon
 import { CiSearch } from "react-icons/ci";
 import { CiCalendarDate } from "react-icons/ci";
 import { VscSettings } from "react-icons/vsc";
+import { IoIosArrowDown } from "react-icons/io";
 
 const Overtime = () => {
+  const [data, setData] = useState([]);
+  const [isManagerOpen, setIsManagerOpen] = useState(false);
   const currentDate = format(new Date(), "dd MMM, yyyy");
   const [selectedTab, setSelectedTab] = useState("overtime");
-  const [managerID, setManagerID] = useState("");
+
+  const [projectManager, setprojectManager] = useState("");
+  const [managerName, setManagerName] = useState("Select Manager");
   const [date, setDate] = useState(null);
   const [startTime, setStartTime] = useState(null);
   const [endTime, setEndTime] = useState(null);
   const [reason, setReason] = useState("");
+  const dropdownRef = useRef(null);
 
   const token = localStorage.getItem("token");
 
   const handleSubmit = async () => {
-    if (!managerID || !date || !startTime || !endTime || !reason) {
+    if (!projectManager || !date || !startTime || !endTime || !reason) {
       Swal.fire({ text: "Vui lòng nhập đầy đủ thông tin", icon: "warning" });
       return;
     }
-    const formData = { managerID, date, startTime, endTime, reason };
-    alert(JSON.stringify(formData));
+    const formattedStartTime = new Date(startTime).toLocaleTimeString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    const formattedEndTime = new Date(endTime).toLocaleTimeString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
 
+    const formData = {
+      projectManager,
+      date,
+      startTime: formattedStartTime,
+      endTime: formattedEndTime,
+      reason,
+    };
+    // alert(JSON.stringify(formData));
     try {
       const response = await axios.post(apiRoutes.overtime.request, formData, {
         headers: {
-          Authorization: token,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
-
-      Swal.fire({
-        text: response.data.message,
-        icon: response.data.success ? "success" : "error",
-      });
+      const { success, message } = response.data;
+      if (success) {
+        Swal.fire({
+          text: message,
+          icon: "success",
+        });
+        window.location.reload();
+      } else {
+        Swal.fire({
+          text: message,
+          icon: "error",
+          timer: 2000,
+        });
+      }
     } catch (error) {
-      console.error("Lỗi gửi yêu cầu:", error);
-      Swal.fire({ text: "Có lỗi xảy ra, vui lòng thử lại sau", icon: "error" });
+      console.log(error);
+      Swal.fire({
+        text:
+          error.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại!",
+        icon: "error",
+      });
     }
   };
+
+  // Dropdown selection of manager name
+  const toggleManagerDropdown = () => setIsManagerOpen(!isManagerOpen);
+
+  const handleOptionClick1 = (option, id) => {
+    setManagerName(option);
+    setprojectManager(id);
+    setIsManagerOpen(false);
+  };
+
+  // Get all users
+  useEffect(() => {
+    axios
+      .get(apiRoutes.user.getAll)
+      .then((response) => {
+        setData(response.data);
+        console.log(JSON.stringify(data));
+      })
+      .catch((error) => {
+        console.error("Error fetching data from API", error);
+      });
+  }, []);
+
+  // Prevent click outside
+  const handleClickOutside = (event) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      setIsManagerOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">
@@ -81,15 +152,42 @@ const Overtime = () => {
         <div className="bg-white ml-[3%] mt-[2%] rounded-[10px] w-[calc(100vw-340px)] text-left shadow-md p-6">
           <div className="mt-[1%] ml-[3%]">
             <p>Manager Approval</p>
-            <input
-              type="text"
-              className="border-gray-200 rounded-[5px] border-[2px] w-[97%] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
-              value={managerID}
-              placeholder="Select Manager"
-              onChange={(e) => {
-                setManagerID(e.target.value);
-              }}
-            />
+            <div className="space-x-5">
+              <div
+                className="relative inline-block text-left w-full"
+                ref={dropdownRef}
+              >
+                <div className="relative">
+                  <div
+                    className="inline-flex w-[97%] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[5px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                    onClick={toggleManagerDropdown}
+                  >
+                    <span className="text-[15px]">{managerName}</span>
+                    <IoIosArrowDown />
+                  </div>
+                </div>
+                {isManagerOpen && (
+                  <div className="absolute z-10 mt-2 w-[97%] bg-white rounded-md shadow-lg border border-gray-200">
+                    <ul className="py-1">
+                      {data.map((option, index) => (
+                        <li
+                          key={index}
+                          onClick={() =>
+                            handleOptionClick1(
+                              `${option.firstName} ${option.lastName}`,
+                              option.employeeID
+                            )
+                          }
+                          className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                        >
+                          {`${option.firstName} ${option.lastName}`}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
           <div className="mt-[2%] ml-[3%]">
             <LocalizationProvider dateAdapter={AdapterDayjs}>

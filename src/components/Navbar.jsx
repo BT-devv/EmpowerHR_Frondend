@@ -3,19 +3,24 @@ import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import avatar from "../assets/avatar.png";
 import apiRoutes from "../../apiRoutes";
+import { useNavigate } from "react-router-dom";
 
 // Icon
 import { CiSearch } from "react-icons/ci";
 import { IoIosArrowDown } from "react-icons/io";
 import { IoNotifications } from "react-icons/io5";
+import { IoLogOutOutline } from "react-icons/io5";
 
 const countries = [
   { name: "Vietnam", flag: "https://flagcdn.com/w320/vn.png" },
   { name: "English", flag: "https://flagcdn.com/w320/gb.png" },
 ];
 const Navbar = () => {
+  const navigate = useNavigate();
+
   const [isOpen, setIsOpen] = useState(false);
   const [dataUser, setUserData] = useState([]);
+  const [logout, setLogout] = useState(false);
 
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
 
@@ -24,6 +29,14 @@ const Navbar = () => {
   const handleSelect = (country) => {
     setSelectedCountry(country);
     setIsOpen(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("expiryTime");
+
+    setLogout(false);
+    navigate("/", { replace: true });
   };
 
   const token = localStorage.getItem("token");
@@ -118,8 +131,31 @@ const Navbar = () => {
 
           {/* Dropdown Icon */}
           <div className="text-gray-600 cursor-pointer text-xl border-2 rounded-[50%]">
-            <IoIosArrowDown />
+            <IoIosArrowDown
+              onClick={() => {
+                setLogout(!logout);
+              }}
+            />
           </div>
+
+          {logout && (
+            <div
+              className="absolute bg-white right-5 z-10 mt-2 w-[200%] origin-top-right rounded-[20px] focus:outline-none "
+              role="menu"
+              aria-orientation="vertical"
+              aria-labelledby="menu-button"
+            >
+              <div className="absolute right-3 z-10 t-[-20px] w-auto origin-top-right rounded-lg shadow-lg bg-white">
+                <div className="flex flex-col divide-y divide-gray-200">
+                  {/* View Detail */}
+                  <div className="flex items-center px-4 py-3 text-[15px] text-gray-700 hover:bg-gray-100 cursor-pointer">
+                    <IoLogOutOutline className="w-[20px] h-[20px] text-[#2EB67D] mr-3" />
+                    <span onClick={handleLogout}>Log out</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

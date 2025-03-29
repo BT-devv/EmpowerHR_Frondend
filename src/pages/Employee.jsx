@@ -60,8 +60,8 @@ const Employee = () => {
   const [accountName, setAccountName] = useState("");
   const [joiningDate, setJoiningDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-  const [isActive, setIsActive] = useState(false);
   const [moreOptions, setMoreOptions] = useState(null);
+  const [status, setStatus] = useState(false);
 
   const [gender, setGender] = useState("Gender");
   const [type, setType] = useState("Employee Type");
@@ -75,13 +75,14 @@ const Employee = () => {
   const positionData = ["Manual QA", "Front-End", "Backend"];
   const roleData = ["Admin", "Project Manager", "Staff"];
 
-  // edit employee 1
+  // Edit employee 1
   const [isEditing1, setIsEditing1] = useState(false);
 
   const [formData1, setFormData1] = useState(() => ({
     firstName: selectedEmployee?.firstName || "",
     lastName: selectedEmployee?.lastName || "",
-    // alias: selectedEmployee?.alias || "",
+    alias: selectedEmployee?.alias || "",
+    status: selectedEmployee?.status || "",
     dateOfBirth: selectedEmployee?.dateOfBirth || "",
     idCardNumber: selectedEmployee?.idCardNumber || "",
     gender: selectedEmployee?.gender || "Male",
@@ -92,6 +93,8 @@ const Employee = () => {
       setFormData1({
         firstName: selectedEmployee.firstName || "",
         lastName: selectedEmployee.lastName || "",
+        alias: selectedEmployee?.alias || "",
+        status: selectedEmployee?.status || "",
         idCardNumber: selectedEmployee.idCardNumber || "",
         dateOfBirth: selectedEmployee.dateOfBirth || "",
         gender: selectedEmployee.gender || "Male",
@@ -108,7 +111,8 @@ const Employee = () => {
     setFormData1({
       firstName: selectedEmployee.firstName,
       lastName: selectedEmployee.lastName,
-      // alias: selectedEmployee.alias,
+      alias: selectedEmployee.alias,
+      status: selectedEmployee.status,
       idEmployee: selectedEmployee.idEmployee,
       idCardNumber: selectedEmployee.idCardNumber,
       dateOfBirth: selectedEmployee.dateOfBirth,
@@ -116,11 +120,19 @@ const Employee = () => {
     });
   };
 
+  const handleToggleStatus = () => {
+    setFormData1((prev) => ({
+      ...prev,
+      status: prev.status === "Active" ? "Inactive" : "Active",
+    }));
+  };
+
   const handleSaveClick1 = async () => {
     if (!selectedEmployee?._id) {
       alert("Không tìm thấy ID nhân viên!");
       return;
     }
+
     try {
       const response = await axios.put(
         apiRoutes.posts.updateUser(selectedEmployee._id),
@@ -131,10 +143,14 @@ const Employee = () => {
         Swal.fire({
           text: response.data.message,
           icon: response.data.success ? "success" : "error",
-        }).then(() => {
-          setIsEditing1(false);
-          window.location.reload();
+          showConfirmButton: false,
+          timer: 2000,
         });
+        setTimeout(() => {
+          setIsEditing1(false);
+
+          window.location.reload();
+        }, 2000);
       } else {
         alert("Cập nhật thất bại: " + response.data.message);
       }
@@ -471,7 +487,6 @@ const Employee = () => {
       setIsGenderOpen(false);
     }
   };
-
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
@@ -546,7 +561,7 @@ const Employee = () => {
       jobTitle: "Front end",
       joiningDate: joiningDate,
       endDate: endDate,
-      // status: "Active",
+      status: status ? "Active" : "Inactive",
       city: city,
     };
 
@@ -560,9 +575,13 @@ const Employee = () => {
         Swal.fire({
           text: message,
           icon: "success",
+          showConfirmButton: false,
+          timer: 2000,
         });
-        setModalIsOpen(false);
-        window.location.reload();
+        setTimeout(() => {
+          setModalIsOpen(false);
+          window.location.reload();
+        }, 1000);
       } else {
         Swal.fire({
           text: message,
@@ -614,7 +633,6 @@ const Employee = () => {
           }
         });
       } else {
-        alert(error.response?.data?.error);
         Swal.fire({
           text: "An error occurred while sending data. Please try again later.",
           icon: "error",
@@ -644,21 +662,32 @@ const Employee = () => {
   };
 
   // Delete user
-  // const verifyDelete = async () => {
-  //   try {
-  //     const response = await axios.delete(
-  //       apiRoutes.user.profile(selectedEmployee._id)
-  //     );
-  //     if (response.status === 200) {
-  //       closeCheckModal();
-  //       openSuccessModal();
-  //     } else {
-  //       setError("Error deleting the profile");
-  //     }
-  //   } catch (error) {
-  //     setError("Failed to delete the profile: " + error.message);
-  //   }
-  // };
+  const verifyDelete = async (id) => {
+    try {
+      const response = await axios.delete(apiRoutes.user.profile(id));
+
+      const { success, message } = response.data;
+      if (success) {
+        Swal.fire({
+          text: message,
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        Swal.fire({
+          text: message,
+          icon: "error",
+          timer: 2000,
+        });
+      }
+    } catch (error) {
+      console.log("Failed to delete the profile: " + error.message);
+    }
+  };
 
   // Close model add user
   const closeModal = () => {
@@ -684,7 +713,7 @@ const Employee = () => {
     <div className="">
       {selectedEmployee ? (
         <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">
-          <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-[70px] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
+          <div className="bg-white ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-[70px] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] flex items-center">
             <div className="flex space-x-8 items-center mt-[2%] ml-[2%] text-[#1C1C1C] font-medium">
               <IoIosArrowRoundBack
                 className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
@@ -700,7 +729,7 @@ const Employee = () => {
               <p>Dependents</p>
             </div>
           </div>
-          <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-auto text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
+          <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-full text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
             <div className="flex ml-[2%] mt-[2%]">
               {/* <img
                         alt="logo"
@@ -708,16 +737,16 @@ const Employee = () => {
                         className="w-[220px] h-[220px] mb-4"
                       /> */}
               {isEditing1 ? (
-                <div className="bg-red-200 w-[290px] h-[230px]"></div>
+                <div className="bg-red-200 w-[290px] h-[240px]"></div>
               ) : (
-                <div className="bg-red-200 w-[230px] h-[230px]"></div>
+                <div className="bg-red-200 w-[290px] h-[240px]"></div>
               )}
 
-              <div className="ml-[3%]">
-                <div className="flex items-center justify-between">
+              <div className="ml-[3%] w-full mr-[2%] mt-[-1%]">
+                <div className="flex items-center">
                   <p className="text-[20px] font-bold">Personal Information</p>
                   {isEditing1 ? (
-                    <div className="flex space-x-2 mr-[4%]">
+                    <div className="flex space-x-2 ml-[70%]">
                       <IoBookmarkOutline
                         onClick={handleSaveClick1}
                         className="w-[25px] h-[25px] cursor-pointer hover:text-[#069855]"
@@ -729,39 +758,75 @@ const Employee = () => {
                     </div>
                   ) : (
                     <BiEdit
-                      className="w-[25px] h-[25px] mr-[-28%] text-[#069855] cursor-pointer"
+                      className="w-[25px] h-[25px] ml-[73%] text-[#069855] cursor-pointer"
                       onClick={handleEditClick1}
                     />
                   )}
                 </div>
-                <div className="flex items-center space-x-3 mt-[1%]">
-                  <p>
-                    {selectedEmployee.status === "Active"
-                      ? "Active"
-                      : "Inactive"}
-                  </p>
-                  <div
-                    className={`w-14 h-7 flex items-center rounded-[4px] p-1 transition-all ${
-                      selectedEmployee.status === "Active"
-                        ? "bg-[#00FF94]"
-                        : "bg-gray-300"
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 bg-gray-800 rounded-[4px] transition-all ${
-                        selectedEmployee.status === "Active"
-                          ? "translate-x-6"
-                          : "translate-x-0"
-                      }`}
-                    />
-                  </div>
+                <div className="flex items-center space-x-3 mt-2">
+                  {isEditing1 ? (
+                    <>
+                      <p>
+                        {formData1.status === "Active" ? "Active" : "Inactive"}
+                      </p>
+                      <div
+                        className={`w-14 h-7 flex items-center rounded-[4px] border border-gray-400 p-1 cursor-pointer transition-all ${
+                          formData1.status === "Active"
+                            ? "bg-[#00FF94]"
+                            : "bg-gray-300"
+                        }`}
+                        onClick={handleToggleStatus}
+                      >
+                        <div
+                          className={`w-5 h-5 bg-gray-800 rounded-[4px] transition-all ${
+                            formData1.status === "Active"
+                              ? "translate-x-6"
+                              : "translate-x-0"
+                          }`}
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p>
+                        {selectedEmployee.status === "Active"
+                          ? "Active"
+                          : "Inactive"}
+                      </p>
+                      <div
+                        className={`w-14 h-7 flex items-center rounded-[4px] p-1 transition-all ${
+                          selectedEmployee.status === "Active"
+                            ? "bg-[#00FF94]"
+                            : "bg-gray-300"
+                        }`}
+                      >
+                        <div
+                          className={`w-5 h-5 bg-gray-800 rounded-[4px] transition-all ${
+                            selectedEmployee.status === "Active"
+                              ? "translate-x-6"
+                              : "translate-x-0"
+                          }`}
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
-                <div className="grid grid-cols-4 gap-x-10 mt-4">
+                <div className="grid grid-cols-4 gap-2 mt-4">
                   <div>
                     <p className="w-fit text-[#828282]">ID Employee</p>
-                    <p className="mt-[10%] font-bold whitespace-nowrap">
-                      {selectedEmployee.employeeID}
-                    </p>
+                    {isEditing1 ? (
+                      <input
+                        readOnly
+                        type="text"
+                        value={selectedEmployee.employeeID}
+                        disabled
+                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[6%] whitespace-nowrap"
+                      ></input>
+                    ) : (
+                      <p className="mt-[5%] font-bold ">
+                        {selectedEmployee.employeeID}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <p className="text-[#828282]">First Name</p>
@@ -771,10 +836,10 @@ const Employee = () => {
                         name="firstName"
                         value={formData1.firstName}
                         onChange={handleChange1}
-                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[6%]"
+                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[6%] "
                       />
                     ) : (
-                      <p className="w-fit font-bold mt-[10%]">
+                      <p className="w-fit font-bold mt-[5%]">
                         {selectedEmployee.firstName}
                       </p>
                     )}
@@ -791,7 +856,7 @@ const Employee = () => {
                         className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[6%]"
                       />
                     ) : (
-                      <p className="w-fit font-bold mt-[10%]">
+                      <p className="w-fit font-bold mt-[5%]">
                         {selectedEmployee.lastName}
                       </p>
                     )}
@@ -800,12 +865,22 @@ const Employee = () => {
                     <p className="w-fit text-[#828282] whitespace-nowrap">
                       Alias
                     </p>
-                    <p className="w-fit mt-[8%] font-bold whitespace-nowrap">
-                      {selectedEmployee.alias}
-                    </p>
+                    {isEditing1 ? (
+                      <input
+                        type="text"
+                        name="alias"
+                        value={formData1.alias}
+                        onChange={handleChange1}
+                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[5%]"
+                      />
+                    ) : (
+                      <p className=" w-fit font-bold mt-[5%]">
+                        {selectedEmployee.alias}
+                      </p>
+                    )}
                   </div>
                 </div>
-                <div className="grid grid-cols-4 gap-x-10 mt-6 mb-4">
+                <div className="grid grid-cols-4 gap-x-3 mt-6">
                   <div>
                     <p className="w-fit text-[#828282] ">ID Card</p>
                     {isEditing1 ? (
@@ -817,7 +892,7 @@ const Employee = () => {
                         className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[5%]"
                       />
                     ) : (
-                      <p className=" w-fit font-bold mt-[10%]">
+                      <p className=" w-fit font-bold mt-[5%]">
                         {selectedEmployee.idCardNumber}
                       </p>
                     )}
@@ -860,7 +935,7 @@ const Employee = () => {
                       >
                         <div className="relative">
                           <div
-                            className="inline-flex w-[240%] border-gray-200 border-1 h-[42px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
+                            className="inline-flex w-[215%] border-gray-200 border-1 h-[42px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
                             onClick={toggleGenderDropdown}
                           >
                             <span className="text-[15px]">
@@ -891,7 +966,7 @@ const Employee = () => {
                         )}
                       </div>
                     ) : (
-                      <p className="w-fit font-bold">
+                      <p className="w-fit font-bold mt-[5%]">
                         {selectedEmployee.gender}
                       </p>
                     )}
@@ -1182,7 +1257,7 @@ const Employee = () => {
                       >
                         <div className="relative">
                           <div
-                            className="inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
+                            className="inline-flex w-[260px] border-gray-200 border-1 h-[42px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
                             onClick={toggleTypeDropdown}
                           >
                             <span className="text-[15px]">
@@ -1227,7 +1302,7 @@ const Employee = () => {
                       >
                         <div className="relative">
                           <div
-                            className="inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
+                            className="inline-flex w-[260px] border-gray-200 border-1 h-[42px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
                             onClick={toggleDepartDropdown}
                           >
                             <span className="text-[15px]">
@@ -1272,7 +1347,7 @@ const Employee = () => {
                       >
                         <div className="relative">
                           <div
-                            className="inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
+                            className="inline-flex w-[260px] border-gray-200 border-1 h-[42px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
                             onClick={togglePossitionDropdown}
                           >
                             <span className="text-[15px]">
@@ -1317,7 +1392,7 @@ const Employee = () => {
                       >
                         <div className="relative">
                           <div
-                            className="inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
+                            className="inline-flex w-[260px] border-gray-200 border-1 h-[42px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
                             onClick={toggleRoleDropdown}
                           >
                             <span className="text-[15px]">
@@ -1509,15 +1584,15 @@ const Employee = () => {
                   className="bg-white rounded-[20px] shadow-lg w-auto max-w-[80%] p-12 transition-all duration-500 max-h-[95%] overflow-y-auto no-scrollbar"
                   overlayClassName="fixed inset-0 bg-[#A8C1B7] bg-opacity-50 flex justify-center items-center"
                 >
-                  <div className="flex flex-col">
+                  <div className="flex flex-col mt-[-2%]">
                     <div className="flex items-center">
                       <IoIosArrowRoundBack
                         className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
                         onClick={closeModal}
                       />
-                      <p className="text-[20px] font-bold">Create Employee</p>
+                      <p className="text-[20px] font-bold ">Create Employee</p>
                     </div>
-                    <div className="bg-gray-300 min-w-[110%] h-0.5 mt-[1%] mb-[1%] ml-[-2%]"></div>
+                    <div className="bg-gray-300 w-[110%] h-0.5 mt-[1%] mb-[1%] ml-[-5%]"></div>
                   </div>
                   <div className="border-gray-200 border-2 rounded-[5px] w-[104%] ml-[-2%]">
                     <div className="flex mt-[2%]">
@@ -1538,16 +1613,16 @@ const Employee = () => {
                             Personal Information
                           </p>
                           <div className="flex items-center space-x-3 ">
-                            <p>{isActive ? "Active" : "Inactive"}</p>
+                            <p>{status ? "Active" : "Inactive"}</p>
                             <div
                               className={`w-14 h-7 flex items-center rounded-[4px] border border-gray-400 p-1 cursor-pointer transition-all ${
-                                isActive ? "bg-[#B2CCC1]" : "bg-gray-300"
+                                status ? "bg-[#B2CCC1]" : "bg-gray-300"
                               }`}
-                              onClick={() => setIsActive(!isActive)}
+                              onClick={() => setStatus(!status)}
                             >
                               <div
                                 className={`w-5 h-5 bg-gray-800 rounded-[4px] transition-all ${
-                                  isActive ? "translate-x-6" : "translate-x-0"
+                                  status ? "translate-x-6" : "translate-x-0"
                                 }`}
                               />
                             </div>
@@ -1616,6 +1691,7 @@ const Employee = () => {
                                   onChange={(newDate) =>
                                     setDateOfBirth(newDate)
                                   }
+                                  format="DD/MM/YYYY"
                                   renderInput={(params) => (
                                     <TextField {...params} />
                                   )}
@@ -2020,6 +2096,7 @@ const Employee = () => {
                               <DatePicker
                                 value={joiningDate}
                                 onChange={(newDate) => setJoiningDate(newDate)}
+                                format="DD/MM/YYYY"
                                 className="border-gray-200 rounded-[5px] border-[1px] w-[540px] h-[40px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
                                 renderInput={(params) => (
                                   <TextField {...params} />
@@ -2032,6 +2109,7 @@ const Employee = () => {
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
                               <DatePicker
                                 value={endDate}
+                                format="DD/MM/YYYY"
                                 onChange={(newDate) => setEndDate(newDate)}
                                 className="border-gray-200 rounded-[5px] border-[1px] w-[540px] h-[40px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
                                 renderInput={(params) => (
@@ -2044,11 +2122,11 @@ const Employee = () => {
                       </div>
                     </div>
                     {/* Text 5 */}
-                    <div className="mt-[2%] ml-[3%]">
+                    <div className="mt-[3%] ml-[3%]">
                       <p className="text-[20px] font-bold">Credential</p>
                       {/* table*/}
-                      <div className="text-[14px] ml-[15px] border-l border-b border-r w-fit mb-5">
-                        <table className="rounded-[5px] mt-[2%] bg-white overflow-hidden w-[calc(100vw-400px)] caret-transparent border-gray-200 border">
+                      <div className="text-[14px] ml-[15px] border-l border-b border-r w-[95%] mb-5">
+                        <table className="rounded-[5px] mt-[2%] bg-white overflow-hidden caret-transparent border-gray-200 border">
                           <thead>
                             <tr className="bg-[#010101] text-left">
                               <th className="px-5 py-3 caret-transparent text-white font-normal">
@@ -2142,8 +2220,8 @@ const Employee = () => {
                     </div>
                   </div>
                   <div className="flex flex-col">
-                    <div className="bg-gray-300 min-w-[110%] h-0.5 mt-[1%] mb-[1%] ml-[-2%]"></div>
-                    <div className="flex justify-end mr-[10px]">
+                    <div className="bg-gray-300 w-[110%] h-0.5 mt-[2%] mb-[1%] ml-[-5%]"></div>
+                    <div className="flex justify-end mr-[10px] mb-[-2%]">
                       <button
                         onClick={closeModal}
                         className="mt-1 bg-white text-[#FF6262] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] "
@@ -2216,7 +2294,7 @@ const Employee = () => {
                             {item.department}
                           </div>
                         </td>
-                        <td className="px-3 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%]">
+                        <td className="px-3 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%] truncate">
                           <div className="text-left w-[260px]">
                             {item.emailPersonal}
                           </div>
@@ -2271,11 +2349,11 @@ const Employee = () => {
 
                                   {/* Delete */}
                                   <div
-                                    // onClick={(e) => {
-                                    //   e.stopPropagation();
-                                    //   setMoreOptions(null);
-                                    //   handleDeleteEmployee(item.employeeID);
-                                    // }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setMoreOptions(null);
+                                      verifyDelete(item._id);
+                                    }}
                                     className="flex items-center px-4 py-3 text-[15px] text-gray-700 hover:bg-gray-100 cursor-pointer"
                                   >
                                     <IoTrashBinOutline className="w-[20px] h-[20px] text-[#2EB67D] mr-3" />

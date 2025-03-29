@@ -23,9 +23,15 @@ const apiRoutes = {
   },
   overtime: {
     request: `${API_BASE_URL}/overtime/request`,
+    listPending: `${API_BASE_URL}/overtime/pending`,
+    history: `${API_BASE_URL}/overtime/history`,
+    updateStatus: `${API_BASE_URL}/overtime/update-status`,
   },
   absence: {
     request: `${API_BASE_URL}/absence/request`,
+    listPending: `${API_BASE_URL}/absence/pending`,
+    history: `${API_BASE_URL}/absence/history`,
+    updateStatus: `${API_BASE_URL}/absence/approve`,
   },
 };
 

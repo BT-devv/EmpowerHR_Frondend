@@ -45,31 +45,44 @@ const ResetPass = () => {
       return;
     }
     let emailVerify = localStorage.getItem("emailVerify");
-    // try {
-    //   const response = await axios.post(apiRoutes.user.resetPass, {
-    //     emailVerify, newPassword
-    //   });
+    try {
+      const response = await axios.post(apiRoutes.user.resetPass, {
+        emailCompany: emailVerify,
+        newPassword,
+      });
 
-    //   const { success, message } = response.data;
-    //   alert(response.data);
-
-    //   if (success) {
-    //     Swal.fire({
-    //       text: message,
-    //       icon: "success",
-    //     });
-    //     localStorage.removeItem("emailVerify");
-    //     navigate("/login");
-    //   } else {
-    //     Swal.fire({
-    //       text: message,
-    //       icon: "error",
-    //       timer: 2000,
-    //     });
-    //   }
-    // } catch (error) {
-    //   console.error("Error fetching data from API", error);
-    // }
+      const { success, message } = response.data;
+      if (success) {
+        Swal.fire({
+          text: message,
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        localStorage.removeItem("emailVerify");
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
+      } else {
+        Swal.fire({
+          text: message,
+          icon: "error",
+          timer: 2000,
+        });
+      }
+    } catch (error) {
+      if (error.response?.status === 500) {
+        Swal.fire({
+          text: error.response?.data?.message,
+          icon: "error",
+        });
+      } else {
+        Swal.fire({
+          text: "An unexpected error occurred. Please try again later.",
+          icon: "error",
+        });
+      }
+    }
   };
 
   return (
@@ -141,27 +154,27 @@ const ResetPass = () => {
         </div>
       </div>
       {/* Background */}
-      <div className="bg-gray-600 relative z-[1] w-[40%] ">
+      <div className="bg-gray-600 relative z-[1] w-[40%] flex justify-center items-center">
         <div>
           <img
             alt="logo"
             src="src\assets\BlobsVector.png"
-            className="absolute w-[400px] h-[480px] top-[60px] left-[100px] z-[1]"
+            className="absolute w-[60%] h-auto top-[12%] left-[20%] scale-x-[-1] z-[1]"
           />
           <img
             alt="logo"
             src="src\assets\BlobsVector-1.png"
-            className="absolute w-[520px] h-[500px] top-[40px] z-[2] scale-x-[-1]"
+            className="absolute w-[65%] h-auto top-[10%] left-[-3%] z-[2] scale-x-[-1]"
           />
           <img
             alt="logo"
             src="src\assets\BlobsVector-2.png"
-            className="absolute w-[480px] h-[400px] top-[280px] left-[90px] z-[3]"
+            className="absolute w-[70%] h-auto top-[45%] left-[10%] scale-x-[-1] z-[3]"
           />
           <img
             alt="logo"
             src="src\assets\MainImage.png"
-            className="absolute w-[350px] h-[500px] top-[80px] left-[110px] z-[4]"
+            className="absolute w-[50%] h-auto top-[15%] left-[25%] scale-x-[-1] z-[4]"
           />
         </div>
       </div>

@@ -25,7 +25,7 @@ const ForgotPass = () => {
 
     let isValid = true;
     if (!email) {
-      setEmailError("Email is required.");
+      setEmailError("EmailCompany is required.");
       isValid = false;
       setEmailBorder(true);
     } else {
@@ -35,36 +35,46 @@ const ForgotPass = () => {
     if (!isValid) {
       return;
     }
-    navigate("/recieveotp");
+
     localStorage.setItem("emailVerify", email);
-    // try {
-    //   const response = await axios.post(apiRoutes.user.forgotPass, {
-    //     email,
-    //   });
 
-    //   const { success, message } = response.data;
-    //   alert(response.data);
+    try {
+      const response = await axios.post(apiRoutes.user.forgotPass, {
+        emailCompany: email,
+      });
 
-    //   if (success) {
-    //     Swal.fire({
-    //       text: message,
-    //       icon: "success",
-    //     });
-    //     navigate("/recieveotp");
-    //   } else {
-    //     Swal.fire({
-    //       text: message,
-    //       icon: "error",
-    //       timer: 2000,
-    //     });
-    //   }
-    // } catch (error) {
-    //   if (error.response?.data?.message == "Email không tồn tại") {
-    //     setEmailError("Email does not exist.");
-    //     isValid = false;
-    //     setEmailBorder(true);
-    //   }
-    // }
+      const { success, message } = response.data;
+
+      if (success) {
+        Swal.fire({
+          text: message,
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        setTimeout(() => {
+          navigate("/recieveotp");
+        }, 2000);
+      } else {
+        Swal.fire({
+          text: message,
+          icon: "error",
+          timer: 2000,
+        });
+      }
+    } catch (error) {
+      if (error.response?.data?.message == "Email không tồn tại") {
+        setEmailError("Email does not exist.");
+        isValid = false;
+        setEmailBorder(true);
+      } else {
+        Swal.fire({
+          text: error.response?.data?.message,
+          icon: "error",
+          timer: 2000,
+        });
+      }
+    }
   };
 
   return (
@@ -79,10 +89,10 @@ const ForgotPass = () => {
         />
         {/* Logo */}
         <div className="flex items-center justify-center caret-transparent">
-          <img alt="logo" src={logo} className="h-[80px]" />
+          <img alt="logo" src={logo} className="h-auto w-[25%] left-[15%]" />
         </div>
         {/* Welcome Back */}
-        <h2 className="mt-[5%] text-[36px] font-bold flex items-center justify-center caret-transparent">
+        <h2 className="mt-[8%] text-[36px] font-bold flex items-center justify-center caret-transparent">
           Forgot your password ?
         </h2>
         <div className="mt-[3%]">
@@ -118,27 +128,27 @@ const ForgotPass = () => {
         </div>
       </div>
       {/* Background */}
-      <div className="bg-gray-600 relative z-[1] w-[40%] ">
+      <div className="bg-gray-600 relative z-[1] w-[40%] flex justify-center items-center">
         <div>
           <img
             alt="logo"
             src="src\assets\BlobsVector.png"
-            className="absolute w-[400px] h-[480px] top-[60px] left-[100px] z-[1]"
+            className="absolute w-[60%] h-auto top-[12%] left-[20%] scale-x-[-1] z-[1]"
           />
           <img
             alt="logo"
             src="src\assets\BlobsVector-1.png"
-            className="absolute w-[520px] h-[500px] top-[40px] z-[2] scale-x-[-1]"
+            className="absolute w-[65%] h-auto top-[10%] left-[-3%] z-[2] scale-x-[-1]"
           />
           <img
             alt="logo"
             src="src\assets\BlobsVector-2.png"
-            className="absolute w-[480px] h-[400px] top-[280px] left-[90px] z-[3]"
+            className="absolute w-[70%] h-auto top-[45%] left-[10%] scale-x-[-1] z-[3]"
           />
           <img
             alt="logo"
             src="src\assets\MainImage.png"
-            className="absolute w-[350px] h-[500px] top-[80px] left-[110px] z-[4]"
+            className="absolute w-[50%] h-auto top-[15%] left-[25%] scale-x-[-1] z-[4]"
           />
         </div>
       </div>

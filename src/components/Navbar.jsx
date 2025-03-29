@@ -4,6 +4,7 @@ import axios from "axios";
 import avatar from "../assets/avatar.png";
 import apiRoutes from "../../apiRoutes";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 // Icon
 import { CiSearch } from "react-icons/ci";
@@ -36,7 +37,17 @@ const Navbar = () => {
     localStorage.removeItem("expiryTime");
 
     setLogout(false);
-    navigate("/", { replace: true });
+
+    Swal.fire({
+      text: "Logged out successfully",
+      icon: "success",
+      timer: 2000,
+      showConfirmButton: false,
+    });
+
+    setTimeout(() => {
+      navigate("/", { replace: true });
+    }, 2000);
   };
 
   const token = localStorage.getItem("token");

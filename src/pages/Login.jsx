@@ -75,13 +75,16 @@ const Login = () => {
           text: message,
           icon: "success",
           timer: 2000,
+          showConfirmButton: false,
         });
 
         //Store token and expiryTime (1h)
         localStorage.setItem("token", token);
         localStorage.setItem("expiryTime", expiryTime);
 
-        navigate("/dashboard");
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 2000);
       } else {
         Swal.fire({
           text: message,
@@ -119,38 +122,40 @@ const Login = () => {
   };
 
   return (
-    <div className="flex bg-gray-600 w-screen h-screen overflow-hidden ">
-      <div className="bg-gray-600 relative z-[1] w-[40%]">
-        <div>
-          <img
-            alt="logo"
-            src="src\assets\BlobsVector.png"
-            className="absolute w-[400px] h-[480px] top-[60px] left-[50px] z-[1]"
-          />
-          <img
-            alt="logo"
-            src="src\assets\BlobsVector-1.png"
-            className="absolute w-[520px] h-[500px] top-[40px] left-[150px] z-[2]"
-          />
-          <img
-            alt="logo"
-            src="src\assets\BlobsVector-2.png"
-            className="absolute w-[480px] h-[400px] top-[280px] left-[30px] z-[3]"
-          />
-          <img
-            alt="logo"
-            src="src\assets\MainImage.png"
-            className="absolute w-[350px] h-[500px] top-[80px] left-[120px] z-[4]"
-          />
-        </div>
+    <div className="flex md:flex-row bg-gray-600 w-screen h-screen">
+      <div className="relative w-1/2 flex justify-center items-center">
+        <img
+          alt="logo"
+          src="src/assets/BlobsVector.png"
+          className="absolute w-[60%] h-auto top-[6%] left-[15%] z-[1]"
+        />
+        <img
+          alt="logo"
+          src="src/assets/BlobsVector-1.png"
+          className="absolute w-[65%] h-auto top-[7%] left-[35%] z-[2]"
+        />
+        <img
+          alt="logo"
+          src="src/assets/BlobsVector-2.png"
+          className="absolute w-[70%] h-auto top-[38%] left-[10%] z-[3]"
+        />
+        <img
+          alt="logo"
+          src="src/assets/MainImage.png"
+          className="relative w-[50%] h-auto top-[-3%] left-[-5%] z-[4]"
+        />
       </div>
       <div className="bg-white rounded-tl-[25px] rounded-bl-[25px] z-[2] w-[60%]">
         {/* Logo */}
         <div className="flex items-center justify-center caret-transparent">
-          <img alt="logo" src={logo} className="h-[70px] mt-[4%]" />
+          <img
+            alt="logo"
+            src={logo}
+            className="h-auto w-[25%] mt-[4%] left-[15%]"
+          />
         </div>
         {/* Welcome Back */}
-        <h2 className="mt-[65px] text-[36px] font-poppins font-bold flex items-center justify-center caret-transparent">
+        <h2 className="mt-[10%] text-[36px] font-poppins font-bold flex items-center justify-center caret-transparent">
           Welcome Back!
         </h2>
         {/* Form Fields */}
@@ -218,13 +223,13 @@ const Login = () => {
           <div className="flex items-center justify-center">
             <button
               type="submit"
-              className="mt-[3%] bg-[#2EB67D] text-white outline-none w-[15%] text-[18px] focus:outline-none"
+              className="mt-[3%] bg-[#2EB67D] text-white outline-none w-fit text-[18px] focus:outline-none"
               onClick={handleSubmit}
             >
               LOGIN
             </button>
           </div>
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center ">
             <span
               className="text-customGreen text-[15px] w-fit mt-[2%] caret-transparent cursor-pointer"
               onClick={() => {

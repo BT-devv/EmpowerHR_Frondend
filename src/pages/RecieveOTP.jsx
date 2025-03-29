@@ -10,7 +10,7 @@ import { IoIosArrowRoundBack } from "react-icons/io";
 const RecieveOPT = () => {
   const navigate = useNavigate();
 
-  const [otp, setOtp] = useState(Array(7).fill(""));
+  const [otp, setOtp] = useState(Array(6).fill(""));
   const [otpError, setOtpError] = useState("");
   const [otpBorder, setOtpBorder] = useState(false);
 
@@ -21,7 +21,7 @@ const RecieveOPT = () => {
     newOtp[index] = value;
     setOtp(newOtp);
 
-    if (value !== "" && index < 6) {
+    if (value !== "" && index < 5) {
       document.getElementById(`otp-${index + 1}`).focus();
     }
   };
@@ -34,7 +34,7 @@ const RecieveOPT = () => {
     let otpFinal = otp.join("");
 
     if (otp.includes("")) {
-      setOtpError("OTP is required. Please enter all 7 digits.");
+      setOtpError("OTP is required. Please enter all 6 digits.");
       isValid = false;
       setOtpBorder(true);
     } else {
@@ -45,29 +45,38 @@ const RecieveOPT = () => {
       return;
     }
 
-    // try {
-    //   const response = await axios.post(apiRoutes.user.verify, {
-    //     emailVerify,
-    //     otpFinal,
-    //   });
-    //   const { success, message } = response.data;
-    //   alert(response.data);
-    //   if (success) {
-    //     Swal.fire({
-    //       text: message,
-    //       icon: "success",
-    //     });
-    //     navigate("/resetpass");
-    //   } else {
-    //     Swal.fire({
-    //       text: message,
-    //       icon: "error",
-    //       timer: 2000,
-    //     });
-    //   }
-    // } catch (error) {
-    //   console.error("Error fetching data from API", error);
-    // }
+    try {
+      const response = await axios.post(apiRoutes.user.verify, {
+        emailCompany: emailVerify,
+        otp: otpFinal,
+      });
+      const { success, message } = response.data;
+      if (success) {
+        Swal.fire({
+          text: message,
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        setTimeout(() => {
+          navigate("/resetpass");
+        }, 2000);
+      } else {
+        Swal.fire({
+          text: message,
+          icon: "error",
+          timer: 2000,
+        });
+      }
+    } catch (error) {
+      if (error.response) {
+        Swal.fire({
+          text: error.response.data.message,
+          icon: "error",
+          timer: 2000,
+        });
+      }
+    }
   };
 
   return (
@@ -131,27 +140,27 @@ const RecieveOPT = () => {
         </div>
       </div>
       {/* Background */}
-      <div className="bg-gray-600 relative z-[1] w-[40%] ">
+      <div className="bg-gray-600 relative z-[1] w-[40%] flex justify-center items-center">
         <div>
           <img
             alt="logo"
             src="src\assets\BlobsVector.png"
-            className="absolute w-[400px] h-[480px] top-[60px] left-[100px] z-[1]"
+            className="absolute w-[60%] h-auto top-[12%] left-[20%] scale-x-[-1] z-[1]"
           />
           <img
             alt="logo"
             src="src\assets\BlobsVector-1.png"
-            className="absolute w-[520px] h-[500px] top-[40px] z-[2] scale-x-[-1]"
+            className="absolute w-[65%] h-auto top-[10%] left-[-3%] z-[2] scale-x-[-1]"
           />
           <img
             alt="logo"
             src="src\assets\BlobsVector-2.png"
-            className="absolute w-[480px] h-[400px] top-[280px] left-[90px] z-[3]"
+            className="absolute w-[70%] h-auto top-[45%] left-[10%] scale-x-[-1] z-[3]"
           />
           <img
             alt="logo"
             src="src\assets\MainImage.png"
-            className="absolute w-[350px] h-[500px] top-[80px] left-[110px] z-[4]"
+            className="absolute w-[50%] h-auto top-[15%] left-[25%] scale-x-[-1] z-[4]"
           />
         </div>
       </div>

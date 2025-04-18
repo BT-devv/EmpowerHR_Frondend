@@ -8,8 +8,9 @@ import dayjs from "dayjs";
 import "react-datepicker/dist/react-datepicker.css";
 import axios from "axios";
 import Modal from "react-modal";
-// import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+
 // icon
 import { CiSearch } from "react-icons/ci";
 import { IoIosArrowDown } from "react-icons/io";
@@ -30,6 +31,8 @@ import { BiFilterAlt } from "react-icons/bi";
 
 Modal.setAppElement("#root");
 const Employee = () => {
+  const navigate = useNavigate();
+
   const [data, setData] = useState([]);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -38,6 +41,9 @@ const Employee = () => {
   const [isTypeOpen, setIsTypeOpen] = useState(false);
   const [isPositionOpen, setIsPositionOpen] = useState(false);
   const [isDepartOpen, setIsDepartOpen] = useState(false);
+  const [selectedTab, setSelectedTab] = useState("general");
+
+  const [errors, setErrors] = useState({});
 
   const dropdownRef = useRef(null);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -56,12 +62,21 @@ const Employee = () => {
   const [postcode, setPostcode] = useState("");
   const [idCard, setIdCard] = useState("");
   const [bankName, setBankName] = useState("");
+  const [iDNext, setIDNext] = useState("");
   const [bankAccountNumber, setbankAccountNumber] = useState("");
   const [accountName, setAccountName] = useState("");
   const [joiningDate, setJoiningDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [moreOptions, setMoreOptions] = useState(null);
-  const [status, setStatus] = useState(false);
+  const [status, setStatus] = useState(true);
+  const [fileInfos, setFileInfos] = useState({});
+  const fileInputRef = useRef(null);
+
+  const [avatar, setAvatar] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [photoIDFile, setPhotoIDFile] = useState(null);
+  const [certificateFile, setCertificateFile] = useState(null);
+  const [graduationCertificate, setGraduationCertificate] = useState(null);
 
   const [gender, setGender] = useState("Gender");
   const [type, setType] = useState("Employee Type");
@@ -79,6 +94,7 @@ const Employee = () => {
   const [isEditing1, setIsEditing1] = useState(false);
 
   const [formData1, setFormData1] = useState(() => ({
+    avatar: selectedEmployee?.avatar || "",
     firstName: selectedEmployee?.firstName || "",
     lastName: selectedEmployee?.lastName || "",
     alias: selectedEmployee?.alias || "",
@@ -91,6 +107,7 @@ const Employee = () => {
   useEffect(() => {
     if (selectedEmployee) {
       setFormData1({
+        avatar: selectedEmployee.avatar || "",
         firstName: selectedEmployee.firstName || "",
         lastName: selectedEmployee.lastName || "",
         alias: selectedEmployee?.alias || "",
@@ -109,6 +126,7 @@ const Employee = () => {
   const handleCancelClick1 = () => {
     setIsEditing1(false);
     setFormData1({
+      avatar: selectedEmployee.avatar,
       firstName: selectedEmployee.firstName,
       lastName: selectedEmployee.lastName,
       alias: selectedEmployee.alias,
@@ -496,45 +514,141 @@ const Employee = () => {
 
   // Get all users
   useEffect(() => {
+    const token = localStorage.getItem("token");
     axios
-      .get(apiRoutes.user.getAll)
+      .get(apiRoutes.user.getAll, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
       .then((response) => {
         setData(response.data);
-        console.log(JSON.stringify(data));
       })
       .catch((error) => {
-        console.error("Error fetching data from API", error);
+        if (error.response?.status === 403) {
+          navigate("/notpermission");
+        }
       });
   }, []);
 
+  const fieldsToValidate = {
+    firstName: {
+      value: firstName,
+      message: "First Name is required.",
+    },
+    lastName: {
+      value: lastName,
+      message: "Last Name is required.",
+    },
+    alias: {
+      value: alias,
+      message: "Alias is required.",
+    },
+    idCard: {
+      value: idCard,
+      message: "ID Card is required.",
+    },
+    dateOfBirth: {
+      value: dateOfBirth,
+      message: "Date of Birth is required.",
+      isOptional: false,
+    },
+    gender: {
+      value: gender,
+      message: "Gender is required.",
+      isInvalid: (val) => val === "Gender",
+    },
+    phoneNumber: {
+      value: phoneNumber,
+      message: "Phone Number is required.",
+    },
+    emailCompany: {
+      value: emailCompany,
+      message: "Company Email is required.",
+    },
+    address: {
+      value: address,
+      message: "Address is required.",
+    },
+    emailPersonal: {
+      value: emailPersonal,
+      message: "Personal Email is required.",
+    },
+    province: {
+      value: province,
+      message: "Province is required.",
+    },
+    postcode: {
+      value: postcode,
+      message: "Postcode is required.",
+    },
+    city: {
+      value: city,
+      message: "City is required.",
+    },
+    accountName: {
+      value: accountName,
+      message: "Account Name is required.",
+    },
+    bankAccountNumber: {
+      value: bankAccountNumber,
+      message: "Bank Account Number is required.",
+    },
+    department: {
+      value: department,
+      message: "Department is required.",
+      isInvalid: (val) => val === "Department",
+    },
+    role: {
+      value: role,
+      message: "Role is required.",
+      isInvalid: (val) => val === "Role",
+    },
+    position: {
+      value: position,
+      message: "Position is required.",
+      isInvalid: (val) => val === "Position",
+    },
+    type: {
+      value: type,
+      message: "Type is required.",
+      isInvalid: (val) => val === "Employee Type",
+    },
+    joiningDate: {
+      value: joiningDate,
+      message: "Joining Date is required.",
+    },
+  };
+
+  const validateFields = () => {
+    let isValid = true;
+    const newErrors = {};
+
+    Object.entries(fieldsToValidate).forEach(([key, config]) => {
+      const { value, message, isInvalid } = config;
+
+      const isEmpty =
+        value === null ||
+        value === undefined ||
+        (typeof value === "string" && value.trim() === "") ||
+        (typeof isInvalid === "function" && isInvalid(value));
+
+      if (isEmpty) {
+        newErrors[key] = message;
+        isValid = false;
+      } else {
+        newErrors[key] = "";
+      }
+    });
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
   const handleCreate = async () => {
     // Form validation
-    if (
-      firstName.trim() === "" ||
-      lastName.trim() === "" ||
-      alias.trim() === "" ||
-      idCard.trim() === "" ||
-      !dateOfBirth ||
-      gender === "Gender" ||
-      phoneNumber.trim() === "" ||
-      emailCompany.trim() === "" ||
-      address.trim() === "" ||
-      emailPersonal.trim() === "" ||
-      province.trim() === "" ||
-      postcode.trim() === "" ||
-      city.trim() === "" ||
-      accountName.trim() === "" ||
-      bankAccountNumber.trim() === "" ||
-      department === "Department" ||
-      role === "Role" ||
-      position === "Position" ||
-      type === "Type" ||
-      !joiningDate
-    ) {
-      Swal.fire({
-        text: "Please fill out all required fields.",
-        icon: "error",
-      });
+    if (!validateFields()) {
       return;
     }
 
@@ -546,8 +660,8 @@ const Employee = () => {
       idCardNumber: idCard,
       dateOfBirth: dateOfBirth,
       gender: gender,
-      employeeType: "Fulltime",
-      phoneNumber: phoneNumber,
+      employeeType: type,
+      phoneNumber: "(+84)" + " " + phoneNumber,
       emailCompany: emailCompany,
       address: address,
       emailPersonal: emailPersonal,
@@ -556,9 +670,9 @@ const Employee = () => {
       bankName: bankName,
       bankAccountName: accountName,
       bankAccountNumber: bankAccountNumber,
-      department: "Quality Assuarance",
-      role: "Employee",
-      jobTitle: "Front end",
+      department: department,
+      role: role,
+      jobTitle: position,
       joiningDate: joiningDate,
       endDate: endDate,
       status: status ? "Active" : "Inactive",
@@ -691,8 +805,9 @@ const Employee = () => {
 
   // Close model add user
   const closeModal = () => {
-    // setEmail("");
+    setErrors({});
     setFirstName("");
+    setAlias("");
     setLastName("");
     setAddress("");
     setProvince("");
@@ -707,43 +822,179 @@ const Employee = () => {
     setIdCard("");
     setPhoneNumber("");
     setModalIsOpen(false);
+    setStatus(true);
+    setSelectedFile(null);
+  };
+
+  useEffect(() => {
+    const fetchFileInfos = async () => {
+      const fields = ["graduationCertificate", "photoID", "certification"];
+      const fileData = {};
+
+      for (const field of fields) {
+        const fileId = selectedEmployee?.[field];
+        if (fileId) {
+          try {
+            const res = await axios.get(apiRoutes.file(fileId));
+            fileData[field] = res.data;
+          } catch (error) {
+            console.error(`❌ Error fetching ${field}:`, error);
+          }
+        }
+      }
+
+      setFileInfos(fileData);
+    };
+
+    if (selectedEmployee) {
+      fetchFileInfos();
+    }
+  }, [selectedEmployee]);
+
+  // Upload file
+  const [files, setFiles] = useState({
+    avatar: null,
+    photoID: null,
+    certificate: null,
+    graduationCertificate: null,
+    order: null,
+  });
+
+  const handleChooseFile = () => {
+    fileInputRef.current.click();
+  };
+
+  const validateFile = (file, type) => {
+    const imageTypes = ["image/png", "image/jpeg"];
+    const docTypes = [
+      "application/pdf",
+      "application/msword", // .doc
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+    ];
+
+    if (["avatar", "photoID"].includes(type)) {
+      if (!imageTypes.includes(file.type)) {
+        alert("Chỉ chấp nhận ảnh PNG hoặc JPG cho loại này");
+        return false;
+      }
+      if (file.size > 1024 * 1024) {
+        alert("Ảnh không được vượt quá 1MB");
+        return false;
+      }
+    } else {
+      const allowedTypes = [...imageTypes, ...docTypes];
+      if (!allowedTypes.includes(file.type)) {
+        alert("Chỉ chấp nhận ảnh, PDF hoặc file Word (doc, docx)");
+        return false;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Tệp không được vượt quá 5MB");
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleFileChange = (e, type) => {
+    const file = e.target.files[0];
+    if (file && validateFile(file, type)) {
+      setFiles((prev) => ({
+        ...prev,
+        [type]: file,
+      }));
+    }
+  };
+
+  // Get employeeID next
+  useEffect(() => {
+    axios
+      .get(apiRoutes.user.getNextEmployeeID)
+      .then((response) => {
+        setIDNext(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data from API", error);
+      });
+  }, []);
+
+  const handleUploadFile = async () => {
+    const formData = new FormData();
+    formData.append("employeeID", iDNext);
+
+    Object.entries(files).forEach(([type, file]) => {
+      if (file) formData.append(type, file);
+    });
+
+    try {
+      await axios.post(apiRoutes.file.uploadfile, formData);
+      alert("Upload thành công");
+    } catch (err) {
+      console.error(err);
+      alert("Upload thất bại");
+    }
   };
 
   return (
-    <div className="">
+    <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">
       {selectedEmployee ? (
         <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">
           <div className="bg-white ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-[70px] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] flex items-center">
-            <div className="flex space-x-8 items-center mt-[2%] ml-[2%] text-[#1C1C1C] font-medium">
-              <IoIosArrowRoundBack
-                className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
-                onClick={() => {
-                  setSelectedEmployee(null);
-                }}
-              />
-              <p>General</p>
-              <p>Job</p>
-              <p>Payroll</p>
-              <p>Performance</p>
-              <p>Documents</p>
-              <p>Dependents</p>
+            <IoIosArrowRoundBack
+              className="w-[30px] h-[30px] ml-[1%] cursor-pointer "
+              onClick={() => {
+                setSelectedEmployee(null);
+                handleCancelClick1();
+                handleCancelClick2();
+                handleCancelClick3();
+                handleCancelClick4();
+              }}
+            />
+            <div className="flex gap-10 md:gap-10 text-[#1C1C1C] ml-7">
+              {[
+                { key: "general", label: "General" },
+                { key: "job", label: "Job" },
+                { key: "payroll", label: "Payroll" },
+                { key: "performance", label: "Performance" },
+                { key: "documents", label: "Documents" },
+                { key: "dependents", label: "Dependents" },
+              ].map((tab) => (
+                <p
+                  key={tab.key}
+                  className={`cursor-pointer py-6 border-b-2 transition-all ${
+                    selectedTab === tab.key
+                      ? "font-bold border-black"
+                      : "border-transparent text-gray-500 hover:text-black"
+                  }`}
+                  onClick={() => setSelectedTab(tab.key)}
+                >
+                  {tab.label}
+                </p>
+              ))}
             </div>
           </div>
+
           <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-full text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
-            <div className="flex ml-[2%] mt-[2%]">
-              {/* <img
-                        alt="logo"
-                        src="src/assets/star.png"
-                        className="w-[220px] h-[220px] mb-4"
-                      /> */}
+            <div className="flex ml-[2%] mt-[2%] mb-[2%]">
               {isEditing1 ? (
-                <div className="bg-red-200 w-[290px] h-[240px]"></div>
+                <div>
+                  <button className="flex flex-col rounded-none border-[1px] w-[230px] h-[230px] bg-[#EAEAEA] border-gray-400 text-[#C5C5C5] text-[10px] justify-center items-center  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2">
+                    <HiOutlinePhoto className="w-[30px] h-[30px]" />
+                    <p className="w-[150px] mt-[5px] text-[12px]">
+                      Image: png, jpg, jpeg. Size Maximum: 1mb. Resolution:
+                      500x500px.
+                    </p>
+                  </button>
+                </div>
               ) : (
-                <div className="bg-red-200 w-[290px] h-[240px]"></div>
+                <img
+                  alt="logo"
+                  src={apiRoutes.file.avatar(selectedEmployee.avatar)}
+                  className="w-[230px] h-[230px]"
+                />
               )}
 
               <div className="ml-[3%] w-full mr-[2%] mt-[-1%]">
-                <div className="flex items-center">
+                <div className="flex flex-end items-center">
                   <p className="text-[20px] font-bold">Personal Information</p>
                   {isEditing1 ? (
                     <div className="flex space-x-2 ml-[70%]">
@@ -1224,7 +1475,7 @@ const Employee = () => {
               </div>
             </div>
           </div>
-          <div className="bg-[#FFFFFF]  ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-auto text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
+          <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-auto text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
             <div className="ml-[2%]">
               <div className="flex items-center justify-between mt-[2%]">
                 <p className="text-[20px] font-bold">Employee Access</p>
@@ -1441,7 +1692,7 @@ const Employee = () => {
               </div>
             </div>
           </div>
-          <div className="bg-[#FFFFFF]  ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-auto text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] mb-[2%]">
+          <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-auto text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] mb-[2%]">
             <div className="mt-[2%] ml-[2%]">
               <div className="flex items-center justify-between">
                 <p className="text-[20px] font-bold">Credential</p>
@@ -1479,25 +1730,46 @@ const Employee = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="cursor-pointer">
-                      <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                        <div className="text-left w-[200px]  ">Photo ID</div>
-                      </td>
-                      <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                        <div className="text-left w-[240px]  ">10-10-2025</div>
-                      </td>
-                      <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                        <div className="w-[200px]">
-                          <div className="bg-red-200 w-[40px] h-[40px] ml-[6%]"></div>
-                        </div>
-                      </td>
-                      <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                        <div className="text-left w-[200px]  ">--</div>
-                      </td>
-                      <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                        <div className="text-left w-[90px]  ">--</div>
-                      </td>
-                    </tr>
+                    {[
+                      { key: "photoID", label: "Photo ID" },
+                      { key: "certification", label: "Certification" },
+                      {
+                        key: "graduationCertificate",
+                        label: "Graduation Certificate",
+                      },
+                      { key: "oder", label: "Oder" },
+                    ]
+                      .filter((field) => selectedEmployee[field.key])
+                      .map((field) => (
+                        <tr key={field.key} className="cursor-pointer">
+                          <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
+                            <div className="text-left w-[200px]">
+                              {field.label}
+                            </div>
+                          </td>
+
+                          <td className="px-1 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
+                            <div className="text-left w-[240px]">
+                              {fileInfos.graduationCertificate?.filename ||
+                                "--"}
+                            </div>
+                          </td>
+
+                          <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
+                            <div className="w-[200px]">
+                              <div className="bg-red-200 w-[40px] h-[40px] ml-[6%]"></div>
+                            </div>
+                          </td>
+
+                          <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
+                            <div className="text-left w-[200px]">--</div>
+                          </td>
+
+                          <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
+                            <div className="text-left w-[90px]">--</div>
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>
@@ -1508,7 +1780,7 @@ const Employee = () => {
         <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">
           <div className="flex ml-[3%] space-x-13 mt-[2%] caret-transparent">
             {/* active */}
-            <div className="bg-white w-[calc(100vw-340px)] h-[160px] rounded-[40px] flex justify-around items-center shadow-md p-6 relative">
+            <div className="bg-white w-[calc(100vw-340px)] h-[150px] rounded-[40px] flex justify-around items-center shadow-md p-6 relative">
               {/* Total Customers */}
               <div className="flex items-center space-x-4 relative">
                 <div className="relative w-[80px] h-[80px] flex items-center justify-center">
@@ -1585,7 +1857,7 @@ const Employee = () => {
                   overlayClassName="fixed inset-0 bg-[#A8C1B7] bg-opacity-50 flex justify-center items-center"
                 >
                   <div className="flex flex-col mt-[-2%]">
-                    <div className="flex items-center">
+                    <div className="flex items-center mb-2">
                       <IoIosArrowRoundBack
                         className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
                         onClick={closeModal}
@@ -1598,13 +1870,31 @@ const Employee = () => {
                     <div className="flex mt-[2%]">
                       {/* avatar */}
                       <div className="ml-[10px] ">
-                        <button className="flex flex-col rounded-none ml-[20px] border-[1px] mr-[15px] w-[240px] h-[240px] bg-[#EAEAEA] border-gray-400 text-[#C5C5C5] text-[10px] justify-center items-center  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2">
-                          <HiOutlinePhoto className="w-[30px] h-[30px]" />
-                          <p className="w-[150px] mt-[5px] text-[12px]">
-                            Image: png, jpg, jpeg. Size Maximum: 1mb.
-                            Resolution: 500x500px.
-                          </p>
-                        </button>
+                        {selectedFile ? (
+                          <img
+                            src={URL.createObjectURL(selectedFile)}
+                            alt="preview"
+                            className="w-[240px] h-[240px] object-cover border ml-[20px] mr-[15px]"
+                          />
+                        ) : (
+                          <button
+                            onClick={handleChooseFile}
+                            className="flex flex-col rounded-none ml-[20px] border-[1px] mr-[15px] w-[240px] h-[240px] bg-[#EAEAEA] border-gray-400 text-[#C5C5C5] text-[10px] justify-center items-center  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                          >
+                            <HiOutlinePhoto className="w-[30px] h-[30px]" />
+                            <p className="w-[150px] mt-[5px] text-[12px]">
+                              Image: png, jpg, jpeg. Size Maximum: 1mb.
+                              Resolution: 500x500px.
+                            </p>
+                          </button>
+                        )}
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          className="hidden"
+                          accept=".png,.jpg,.jpeg"
+                          onChange={(e) => handleFileChange(e, "avatar")}
+                        />
                       </div>
                       {/* text 1*/}
                       <div className="ml-[2%]">
@@ -1639,28 +1929,48 @@ const Employee = () => {
                               </div>
                               <input
                                 type="text"
-                                className="border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
+                                className={`border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                  errors.firstName
+                                    ? "border-[2px] border-red-500"
+                                    : ""
+                                }`}
                                 value={firstName}
                                 placeholder="Input First Name"
                                 onChange={(e) => {
                                   setFirstName(e.target.value);
+                                  setErrors({});
                                 }}
                               />
+                              {errors.firstName && (
+                                <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                  {errors.firstName}
+                                </p>
+                              )}
                             </div>
-                            <div className="mt-5">
+                            <div className="mt-7">
                               <div className="flex">
                                 <p>ID Card</p>
                                 <p className="text-[#E03137] ml-1">*</p>
                               </div>
                               <input
                                 type="text"
-                                className="border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
+                                className={`border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                  errors.idCard
+                                    ? "border-[2px] border-red-500"
+                                    : ""
+                                }`}
                                 value={idCard}
                                 placeholder="Input ID Card"
                                 onChange={(e) => {
                                   setIdCard(e.target.value);
+                                  setErrors({});
                                 }}
                               />
+                              {errors.idCard && (
+                                <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                  {errors.idCard}
+                                </p>
+                              )}
                             </div>
                           </div>
                           <div>
@@ -1672,15 +1982,25 @@ const Employee = () => {
                               </div>
                               <input
                                 type="text"
-                                className="border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
+                                className={`border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                  errors.lastName
+                                    ? "border-[2px] border-red-500"
+                                    : ""
+                                }`}
                                 value={lastName}
                                 placeholder="Input Last Name"
                                 onChange={(e) => {
                                   setLastName(e.target.value);
+                                  setErrors({});
                                 }}
                               />
+                              {errors.lastName && (
+                                <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                  {errors.lastName}
+                                </p>
+                              )}
                             </div>
-                            <div className="mt-5">
+                            <div className="mt-7">
                               <div className="flex">
                                 <p>Date of Birth</p>
                                 <p className="text-[#E03137] ml-1">*</p>
@@ -1688,15 +2008,23 @@ const Employee = () => {
                               <LocalizationProvider dateAdapter={AdapterDayjs}>
                                 <DatePicker
                                   value={dateOfBirth}
-                                  onChange={(newDate) =>
-                                    setDateOfBirth(newDate)
-                                  }
+                                  onChange={(newDate) => {
+                                    setDateOfBirth(newDate);
+                                    setErrors({});
+                                  }}
                                   format="DD/MM/YYYY"
-                                  renderInput={(params) => (
-                                    <TextField {...params} />
-                                  )}
+                                  slotProps={{
+                                    textField: {
+                                      error: Boolean(errors.dateOfBirth),
+                                    },
+                                  }}
                                 />
                               </LocalizationProvider>
+                              {errors.dateOfBirth && (
+                                <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                  {errors.dateOfBirth}
+                                </p>
+                              )}
                             </div>
                           </div>
                           <div className=" mr-[10%]">
@@ -1708,15 +2036,25 @@ const Employee = () => {
                               </div>
                               <input
                                 type="text"
-                                className="border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
+                                className={`border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                  errors.alias
+                                    ? "border-[2px] border-red-500"
+                                    : ""
+                                }`}
                                 value={alias}
                                 placeholder="Input Alias"
                                 onChange={(e) => {
                                   setAlias(e.target.value);
+                                  setErrors({});
                                 }}
                               />
+                              {errors.alias && (
+                                <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                  {errors.alias}
+                                </p>
+                              )}
                             </div>
-                            <div className="mt-5 space-x-5">
+                            <div className="mt-7 space-x-5">
                               <div
                                 className="relative inline-block text-left "
                                 ref={dropdownRef}
@@ -1727,7 +2065,11 @@ const Employee = () => {
                                 </div>
                                 <div className="relative">
                                   <div
-                                    className="inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                                    className={`inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 ${
+                                      errors.gender
+                                        ? "border-[2px] border-red-500"
+                                        : ""
+                                    }`}
                                     onClick={toggleGenderDropdown}
                                   >
                                     <span className="text-[15px]">
@@ -1742,9 +2084,10 @@ const Employee = () => {
                                       {genderData.map((option, index) => (
                                         <li
                                           key={index}
-                                          onClick={() =>
-                                            handleOptionClick1(option)
-                                          }
+                                          onClick={() => {
+                                            handleOptionClick1(option);
+                                            setErrors({});
+                                          }}
                                           className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
                                         >
                                           {option}
@@ -1752,6 +2095,11 @@ const Employee = () => {
                                       ))}
                                     </ul>
                                   </div>
+                                )}
+                                {errors.gender && (
+                                  <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                    {errors.gender}
+                                  </p>
                                 )}
                               </div>
                             </div>
@@ -1771,45 +2119,80 @@ const Employee = () => {
                               <p>Phone Number</p>
                               <p className="text-[#E03137] ml-1">*</p>
                             </div>
-                            <input
-                              type="text"
-                              className="border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
-                              value={phoneNumber}
-                              placeholder="Input Phone Number"
-                              onChange={(e) => {
-                                setPhoneNumber(e.target.value);
-                              }}
-                            />
+                            <div className="relative w-[530px]">
+                              <span className="absolute left-[10px] mt-5 text-[15px]">
+                                (+84)
+                              </span>
+                              <input
+                                type="text"
+                                className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[60px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                  errors.phoneNumber
+                                    ? "border-[2px] border-red-500"
+                                    : ""
+                                }`}
+                                value={phoneNumber}
+                                // placeholder="Input Phone Number"
+                                onChange={(e) => {
+                                  setPhoneNumber(e.target.value);
+                                  setErrors({});
+                                }}
+                              />
+                            </div>
+                            {errors.phoneNumber && (
+                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                {errors.phoneNumber}
+                              </p>
+                            )}
                           </div>
-                          <div className="mt-5">
+                          <div className="mt-7">
                             <div className="flex">
                               <p>Address</p>
                               <p className="text-[#E03137] ml-1">*</p>
                             </div>
                             <input
                               type="text"
-                              className="border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
+                              className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                errors.address
+                                  ? "border-[2px] border-red-500"
+                                  : ""
+                              }`}
                               value={address}
                               placeholder="Input Address"
                               onChange={(e) => {
                                 setAddress(e.target.value);
+                                setErrors({});
                               }}
                             />
+                            {errors.address && (
+                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                {errors.address}
+                              </p>
+                            )}
                           </div>
-                          <div className="mt-5">
+                          <div className="mt-7">
                             <div className="flex">
                               <p>Province</p>
                               <p className="text-[#E03137] ml-1">*</p>
                             </div>
                             <input
                               type="text"
-                              className="border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
+                              className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                errors.province
+                                  ? "border-[2px] border-red-500"
+                                  : ""
+                              }`}
                               value={province}
                               placeholder="Input Province"
                               onChange={(e) => {
                                 setProvince(e.target.value);
+                                setErrors({});
                               }}
                             />
+                            {errors.province && (
+                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                {errors.province}
+                              </p>
+                            )}
                           </div>
                         </div>
                         <div>
@@ -1821,59 +2204,99 @@ const Employee = () => {
                             </div>
                             <input
                               type="text"
-                              className="border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
+                              className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                errors.emailCompany
+                                  ? "border-[2px] border-red-500"
+                                  : ""
+                              }`}
                               value={emailCompany}
                               placeholder="Input Email Company"
                               onChange={(e) => {
                                 setEmailCompany(e.target.value);
+                                setErrors({});
                               }}
                             />
+                            {errors.emailCompany && (
+                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                {errors.emailCompany}
+                              </p>
+                            )}
                           </div>
-                          <div className="mt-5">
+                          <div className="mt-7">
                             <div className="flex">
                               <p>Email Personal </p>
                               <p className="text-[#E03137] ml-1">*</p>
                             </div>
                             <input
                               type="text"
-                              className="border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
+                              className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                errors.emailPersonal
+                                  ? "border-[2px] border-red-500"
+                                  : ""
+                              }`}
                               value={emailPersonal}
                               placeholder="Input Email Personal"
                               onChange={(e) => {
                                 setEmailPersonal(e.target.value);
+                                setErrors({});
                               }}
                             />
+                            {errors.emailPersonal && (
+                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                {errors.emailPersonal}
+                              </p>
+                            )}
                           </div>
                           <div className="flex space-x-5">
-                            <div className="mt-5">
+                            <div className="mt-7">
                               <div className="flex">
                                 <p>Postcode</p>
                                 <p className="text-[#E03137] ml-1">*</p>
                               </div>
                               <input
                                 type="text"
-                                className="border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
+                                className={`border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                  errors.postcode
+                                    ? "border-[2px] border-red-500"
+                                    : ""
+                                }`}
                                 value={postcode}
                                 placeholder="Input Postcode"
                                 onChange={(e) => {
                                   setPostcode(e.target.value);
+                                  setErrors({});
                                 }}
                               />
+                              {errors.postcode && (
+                                <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                  {errors.postcode}
+                                </p>
+                              )}
                             </div>
-                            <div className="mt-5">
+                            <div className="mt-7">
                               <div className="flex">
                                 <p>City</p>
                                 <p className="text-[#E03137] ml-1">*</p>
                               </div>
                               <input
                                 type="text"
-                                className="border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
+                                className={`border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                  errors.city
+                                    ? "border-[2px] border-red-500"
+                                    : ""
+                                }`}
                                 value={city}
                                 placeholder="Input City"
                                 onChange={(e) => {
                                   setCity(e.target.value);
+                                  setErrors({});
                                 }}
                               />
+                              {errors.city && (
+                                <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                  {errors.city}
+                                </p>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1895,23 +2318,34 @@ const Employee = () => {
                               placeholder="Input Bank Name"
                               onChange={(e) => {
                                 setBankName(e.target.value);
+                                setErrors({});
                               }}
                             />
                           </div>
-                          <div className="mt-5">
+                          <div className="mt-7">
                             <div className="flex">
                               <p>Account Number</p>
                               <p className="text-[#E03137] ml-1">*</p>
                             </div>
                             <input
                               type="text"
-                              className="border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
+                              className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                errors.bankAccountNumber
+                                  ? "border-[2px] border-red-500"
+                                  : ""
+                              }`}
                               value={bankAccountNumber}
                               placeholder="Input Account Number"
                               onChange={(e) => {
                                 setbankAccountNumber(e.target.value);
+                                setErrors({});
                               }}
                             />
+                            {errors.bankAccountNumber && (
+                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                {errors.bankAccountNumber}
+                              </p>
+                            )}
                           </div>
                         </div>
                         <div>
@@ -1923,13 +2357,23 @@ const Employee = () => {
                             </div>
                             <input
                               type="text"
-                              className="border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
+                              className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                errors.accountName
+                                  ? "border-[2px] border-red-500"
+                                  : ""
+                              }`}
                               value={accountName}
                               placeholder="Input Account Name"
                               onChange={(e) => {
                                 setAccountName(e.target.value);
+                                setErrors({});
                               }}
                             />
+                            {errors.accountName && (
+                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                {errors.accountName}
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1940,7 +2384,7 @@ const Employee = () => {
                       {/* fields 4*/}
                       <div className="flex space-x-5">
                         {/* Col 1 */}
-                        <div className="mt-5">
+                        <div className="mt-7">
                           <div
                             className="relative inline-block text-left "
                             // ref={dropdownRef}
@@ -1951,7 +2395,11 @@ const Employee = () => {
                             </div>
                             <div className="relative">
                               <div
-                                className="inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                                className={`inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 ${
+                                  errors.type
+                                    ? "border-[2px] border-red-500"
+                                    : ""
+                                }`}
                                 onClick={toggleTypeDropdown}
                               >
                                 <span className="text-[15px]">{type}</span>
@@ -1964,7 +2412,10 @@ const Employee = () => {
                                   {typeData.map((option, index) => (
                                     <li
                                       key={index}
-                                      onClick={() => handleOptionClick3(option)}
+                                      onClick={() => {
+                                        handleOptionClick3(option);
+                                        setErrors({});
+                                      }}
                                       className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
                                     >
                                       {option}
@@ -1974,8 +2425,13 @@ const Employee = () => {
                               </div>
                             )}
                           </div>
+                          {errors.type && (
+                            <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                              {errors.type}
+                            </p>
+                          )}
                         </div>
-                        <div className="mt-5">
+                        <div className="mt-7">
                           <div
                             className="relative inline-block text-left "
                             // ref={dropdownRef}
@@ -1986,7 +2442,11 @@ const Employee = () => {
                             </div>
                             <div className="relative">
                               <div
-                                className="inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                                className={`inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 ${
+                                  errors.department
+                                    ? "border-[2px] border-red-500"
+                                    : ""
+                                }`}
                                 onClick={toggleDepartDropdown}
                               >
                                 <span className="text-[15px]">
@@ -2001,7 +2461,10 @@ const Employee = () => {
                                   {departData.map((option, index) => (
                                     <li
                                       key={index}
-                                      onClick={() => handleOptionClick4(option)}
+                                      onClick={() => {
+                                        handleOptionClick4(option);
+                                        setErrors({});
+                                      }}
                                       className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
                                     >
                                       {option}
@@ -2011,8 +2474,13 @@ const Employee = () => {
                               </div>
                             )}
                           </div>
+                          {errors.department && (
+                            <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                              {errors.department}
+                            </p>
+                          )}
                         </div>
-                        <div className="mt-5">
+                        <div className="mt-7">
                           <div
                             className="relative inline-block text-left "
                             // ref={dropdownRef}
@@ -2023,7 +2491,11 @@ const Employee = () => {
                             </div>
                             <div className="relative">
                               <div
-                                className="inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                                className={`inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 ${
+                                  errors.position
+                                    ? "border-[2px] border-red-500"
+                                    : ""
+                                }`}
                                 onClick={togglePossitionDropdown}
                               >
                                 <span className="text-[15px]">{position}</span>
@@ -2036,7 +2508,10 @@ const Employee = () => {
                                   {positionData.map((option, index) => (
                                     <li
                                       key={index}
-                                      onClick={() => handleOptionClick5(option)}
+                                      onClick={() => {
+                                        handleOptionClick5(option);
+                                        setErrors({});
+                                      }}
                                       className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
                                     >
                                       {option}
@@ -2046,8 +2521,13 @@ const Employee = () => {
                               </div>
                             )}
                           </div>
+                          {errors.position && (
+                            <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                              {errors.position}
+                            </p>
+                          )}
                         </div>
-                        <div className="mt-5">
+                        <div className="mt-7">
                           <div
                             className="relative inline-block text-left "
                             // ref={dropdownRef}
@@ -2058,7 +2538,11 @@ const Employee = () => {
                             </div>
                             <div className="relative">
                               <div
-                                className="inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                                className={`inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 ${
+                                  errors.role
+                                    ? "border-[2px] border-red-500"
+                                    : ""
+                                }`}
                                 onClick={toggleRoleDropdown}
                               >
                                 <span className="text-[15px]">{role}</span>
@@ -2071,7 +2555,10 @@ const Employee = () => {
                                   {roleData.map((option, index) => (
                                     <li
                                       key={index}
-                                      onClick={() => handleOptionClick2(option)}
+                                      onClick={() => {
+                                        handleOptionClick2(option);
+                                        setErrors({});
+                                      }}
                                       className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
                                     >
                                       {option}
@@ -2081,13 +2568,18 @@ const Employee = () => {
                               </div>
                             )}
                           </div>
+                          {errors.role && (
+                            <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                              {errors.role}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div>
                         {/* Col 2 */}
                         <div className="flex space-x-6">
                           {/* Col 1 */}
-                          <div className="mt-5">
+                          <div className="mt-7">
                             <div className="flex">
                               <p>Joining Date</p>
                               <p className="text-[#E03137] ml-1">*</p>
@@ -2095,22 +2587,35 @@ const Employee = () => {
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
                               <DatePicker
                                 value={joiningDate}
-                                onChange={(newDate) => setJoiningDate(newDate)}
+                                onChange={(newDate) => {
+                                  setJoiningDate(newDate);
+                                  setErrors({});
+                                }}
                                 format="DD/MM/YYYY"
                                 className="border-gray-200 rounded-[5px] border-[1px] w-[540px] h-[40px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
-                                renderInput={(params) => (
-                                  <TextField {...params} />
-                                )}
+                                slotProps={{
+                                  textField: {
+                                    error: Boolean(errors.joiningDate),
+                                  },
+                                }}
                               />
                             </LocalizationProvider>
+                            {errors.joiningDate && (
+                              <p className="text-red-500 text-[12px] mt-6 mb-[-25px] caret-transparent">
+                                {errors.joiningDate}
+                              </p>
+                            )}
                           </div>
-                          <div className="mt-5">
+                          <div className="mt-7">
                             <p>End Date</p>
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
                               <DatePicker
                                 value={endDate}
                                 format="DD/MM/YYYY"
-                                onChange={(newDate) => setEndDate(newDate)}
+                                onChange={(newDate) => {
+                                  setEndDate(newDate);
+                                  setErrors({});
+                                }}
                                 className="border-gray-200 rounded-[5px] border-[1px] w-[540px] h-[40px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
                                 renderInput={(params) => (
                                   <TextField {...params} />
@@ -2149,9 +2654,21 @@ const Employee = () => {
                                 </div>
                               </td>
                               <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
-                                <div className="border-[#000000] text-center p-1 border rounded-md w-fit h-fit flex items-center justify-center">
+                                <button
+                                  onClick={handleChooseFile}
+                                  className="border-[#000000] text-center p-1 border rounded-md w-fit h-fit flex items-center justify-center"
+                                >
                                   upload
-                                </div>
+                                </button>
+                                <input
+                                  type="file"
+                                  ref={fileInputRef}
+                                  className="hidden"
+                                  accept=".png,.jpg,.jpeg"
+                                  onChange={(e) =>
+                                    handleFileChange(e, "photoID")
+                                  }
+                                />
                               </td>
                               <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
                                 <div className="text-left w-[240px]  "></div>
@@ -2229,7 +2746,10 @@ const Employee = () => {
                         Cancel
                       </button>
                       <button
-                        onClick={handleCreate}
+                        onClick={() => {
+                          handleCreate();
+                          handleUploadFile();
+                        }}
                         className="mt-1 bg-[#E7F7EF] text-[#097C44] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] ml-[10px]"
                       >
                         Create
@@ -2241,7 +2761,7 @@ const Employee = () => {
             </div>
 
             {data.length > 0 ? (
-              <div className="mt-[10px] text-[14px] ml-[15px] z-0">
+              <div className="mt-[10px] text-[14px] ml-[15px]">
                 <table className="border-collapse mt-[2%] bg-white w-[calc(100vw-400px)] caret-transparent ">
                   <thead>
                     <tr className="border-gray-300 border-t border-b-2 text-left">
@@ -2274,28 +2794,20 @@ const Employee = () => {
                         key={item._id}
                         className="hover:bg-[rgba(0,84,232,0.03)] text-[15px]"
                       >
-                        <td className="px-2 py-6 border-b border-gray-200 text-[#252C58]">
-                          <div className="truncate text-left w-[60px]">
-                            {item.employeeID}
-                          </div>
+                        <td className="truncate px-1 py-6 border-b border-gray-200 text-[#252C58]">
+                          {item.employeeID}
                         </td>
-                        <td className="px-6 py-6 border-b border-gray-200 text-[#252C58]">
-                          <div className="truncate text-left w-[150px] ">
-                            {`${item.firstName} ${item.lastName}`}
-                          </div>
+                        <td className="px-6 py-6 border-b border-gray-200 text-[#252C58] truncate text-left">
+                          {`${item.firstName} ${item.lastName}`}
                         </td>
-                        <td className="px-4 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%]">
-                          <div className="truncate text-left w-[170px]">
-                            {item.jobTitle}
-                          </div>
+                        <td className="px-4 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%] truncate text-left">
+                          {item.jobTitle}
                         </td>
-                        <td className="px-3 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%]">
-                          <div className="truncate text-left w-[170px] ">
-                            {item.department}
-                          </div>
+                        <td className="px-3 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%] truncate text-left">
+                          {item.department}
                         </td>
                         <td className="px-3 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%] truncate">
-                          <div className="text-left w-[260px]">
+                          <div className="truncate text-left w-[260px]">
                             {item.emailPersonal}
                           </div>
                         </td>
@@ -2421,6 +2933,7 @@ const Employee = () => {
                   }`}
                 >
                   <IoIosArrowForward />
+                  onClick={handleCreate}
                 </button>
               </div>
 

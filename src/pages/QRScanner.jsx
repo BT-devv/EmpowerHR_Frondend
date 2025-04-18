@@ -57,13 +57,13 @@ const QRScanner = () => {
       } catch (error) {
         console.error("Error parsing scanned data:", error);
       }
-
       if (employeeID === null) {
         setError(true);
         setData();
         return;
       }
       sendToAPI(employeeID);
+      alert(employeeID);
     }
   };
 

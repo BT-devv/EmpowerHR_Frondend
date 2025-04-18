@@ -33,6 +33,24 @@ const apiRoutes = {
     history: `${API_BASE_URL}/absence/history`,
     updateStatus: `${API_BASE_URL}/absence/approve`,
   },
+  role: {
+    createRole: `${API_BASE_URL}/role/`,
+    // deleteRole:,
+    getRole: `${API_BASE_URL}/role/`,
+    // updateRole:,
+    assignRole: `${API_BASE_URL}/role/assign-role`,
+  },
+  permission: {
+    createPermission: `${API_BASE_URL}/permission/`,
+    // deleteRole:,
+    getPermission: `${API_BASE_URL}/permission/`,
+    assignPermission: `${API_BASE_URL}/permission/assign-permission`,
+  },
+  file: {
+    avatar: (avatar) => `${API_BASE_URL}/file/${avatar}`,
+    file: (file) => `${API_BASE_URL}/file/${file}`,
+    uploadfile: `${API_BASE_URL}/upload/`,
+  },
 };
 
 export default apiRoutes;

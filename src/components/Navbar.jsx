@@ -58,7 +58,12 @@ const Navbar = () => {
 
     if (userId) {
       axios
-        .get(apiRoutes.user.profile(userId))
+        .get(apiRoutes.user.profile(userId), {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        })
         .then((response) => {
           setUserData(response.data);
         })

@@ -11,7 +11,10 @@ import RecieveOTP from "./pages/RecieveOTP";
 import ResetPass from "./pages/ResetPass";
 import Absence from "./pages/Absence";
 import QRScanner from "./pages/QRScanner";
+import Setting from "./pages/Setting";
+import NotPermission from "./components/NotPermission";
 import Comingsoon from "./components/Comingsoon";
+import Payroll from "./pages/Payroll";
 
 function App() {
   return (
@@ -23,6 +26,7 @@ function App() {
         <Route path="/recieveotp" element={<RecieveOTP />} />
         <Route path="/resetpass" element={<ResetPass />} />
         <Route path="/qrscanner" element={<QRScanner />} />
+        <Route path="/notpermission" element={<NotPermission />} />
 
         {/* Protected Routes */}
 
@@ -34,11 +38,11 @@ function App() {
           <Route path="absense" element={<Absence />} />
 
           <Route path="employee" element={<Employee />} />
-          <Route path="payroll" element={<Comingsoon />} />
+          <Route path="payroll" element={<Payroll />} />
           <Route path="attendance" element={<Attendance />} />
-          <Route path="settings" element={<Comingsoon />} />
+          <Route path="settings" element={<Setting />} />
 
-          {/* <Route path="*" element={<NotPermission />} /> */}
+          <Route path="*" element={<NotPermission />} />
         </Route>
       </Routes>
     </BrowserRouter>

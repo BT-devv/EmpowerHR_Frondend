@@ -159,7 +159,12 @@ const Overtime = () => {
   // Get all pending
   useEffect(() => {
     axios
-      .get(apiRoutes.overtime.listPending)
+      .get(apiRoutes.overtime.listPending, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
       .then((response) => {
         setDataPending(response.data.data);
       })
@@ -182,7 +187,12 @@ const Overtime = () => {
   // Get all history
   useEffect(() => {
     axios
-      .get(apiRoutes.overtime.history)
+      .get(apiRoutes.overtime.history, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
       .then((response) => {
         setDataHistory(response.data.data);
       })
@@ -320,7 +330,7 @@ const Overtime = () => {
         </div>
       </div>
       {selectedTab === "overtime" && (
-        <div className="bg-white ml-[3%] mt-[2%] rounded-[10px] w-[calc(100vw-340px)] text-left shadow-md p-6">
+        <div className="bg-white ml-[3%] mt-[2%] rounded-[10px] w-[calc(100vw-340px)] text-left shadow-md mb-[1%] p-6">
           <div className="mt-[1%] ml-[3%]">
             <p>Manager Approval</p>
             <div className="space-x-5">
@@ -407,9 +417,9 @@ const Overtime = () => {
             <RichTextEditor value={reason} onChange={setReason} />
           </div>
 
-          <div className="flex justify-center mt-[8%]">
+          <div className="flex justify-center mb-[3%]">
             <button
-              className="bg-[#2EB67D] text-white rounded-md px-6 py-2 text-lg hover:bg-[#249966]"
+              className="mt-[3%] bg-[#2EB67D] text-white outline-none w-[15%] text-[18px] focus:outline-none"
               onClick={handleSubmit}
             >
               SUBMIT
@@ -419,7 +429,7 @@ const Overtime = () => {
       )}
 
       {selectedTab === "approval" && (
-        <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-[77%] ml-[3%] rounded-[15px] mt-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
+        <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-auto ml-[3%] rounded-[15px] mt-[2%] mb-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)] ">
           <div className="flex flex-wrap w-full items-center gap-x-4 px-4 py-6">
             {/* Overtime Request Title */}
             <div>
@@ -454,7 +464,7 @@ const Overtime = () => {
           </div>
           {/* List */}
           {dataPending.length > 0 ? (
-            <div className="overflow-x-auto mt-[20px] text-[14px] ml-[15px]">
+            <div className="mt-[20px] text-[14px] ml-[15px]">
               <table className="border-collapse bg-white overflow-hidden w-[calc(100vw-400px)] ">
                 <thead>
                   <tr className="border-gray-300 border-t border-b-2 text-left">
@@ -738,7 +748,7 @@ const Overtime = () => {
         </div>
       )}
       {selectedTab === "history" && (
-        <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-[77%] ml-[3%] rounded-[15px] mt-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
+        <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-auto ml-[3%] rounded-[15px] mt-[2%] mb-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
           <div className="flex flex-wrap w-full items-center gap-x-4 px-4 py-6">
             {/* History Title */}
             <div>
@@ -771,7 +781,7 @@ const Overtime = () => {
           </div>
           {/* List */}
           {dataHistory.length > 0 ? (
-            <div className="overflow-x-auto mt-[20px] text-[14px] ml-[15px]">
+            <div className="mt-[20px] text-[14px] ml-[15px]">
               <table className="border-collapse bg-white overflow-hidden w-[calc(100vw-400px)] ">
                 <thead>
                   <tr className="border-gray-300 border-t border-b-2 text-left">

@@ -49,7 +49,7 @@ const apiRoutes = {
   file: {
     avatar: (avatar) => `${API_BASE_URL}/file/${avatar}`,
     file: (file) => `${API_BASE_URL}/file/${file}`,
-    uploadfile: `${API_BASE_URL}/upload/`,
+    uploadfile: `${API_BASE_URL}/upload`,
   },
 };
 

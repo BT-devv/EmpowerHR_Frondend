@@ -70,13 +70,10 @@ const Employee = () => {
   const [moreOptions, setMoreOptions] = useState(null);
   const [status, setStatus] = useState(true);
   const [fileInfos, setFileInfos] = useState({});
-  const fileInputRef = useRef(null);
 
-  const [avatar, setAvatar] = useState("");
+  const fileInputRef = useRef(null);
+  const [preview, setPreview] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [photoIDFile, setPhotoIDFile] = useState(null);
-  const [certificateFile, setCertificateFile] = useState(null);
-  const [graduationCertificate, setGraduationCertificate] = useState(null);
 
   const [gender, setGender] = useState("Gender");
   const [type, setType] = useState("Employee Type");
@@ -103,7 +100,17 @@ const Employee = () => {
     idCardNumber: selectedEmployee?.idCardNumber || "",
     gender: selectedEmployee?.gender || "Male",
   }));
-
+  const isFormChanged1 = () => {
+    return (
+      formData1.firstName !== selectedEmployee.firstName ||
+      formData1.lastName !== selectedEmployee.lastName ||
+      formData1.alias !== selectedEmployee.alias ||
+      formData1.status !== selectedEmployee.status ||
+      formData1.dateOfBirth !== selectedEmployee.dateOfBirth ||
+      formData1.idCardNumber !== selectedEmployee.idCardNumber ||
+      formData1.gender !== selectedEmployee.gender
+    );
+  };
   useEffect(() => {
     if (selectedEmployee) {
       setFormData1({
@@ -125,6 +132,7 @@ const Employee = () => {
 
   const handleCancelClick1 = () => {
     setIsEditing1(false);
+    setPreview(null);
     setFormData1({
       avatar: selectedEmployee.avatar,
       firstName: selectedEmployee.firstName,
@@ -150,31 +158,87 @@ const Employee = () => {
       alert("Không tìm thấy ID nhân viên!");
       return;
     }
+    if (!selectedFile && !isFormChanged1()) {
+      Swal.fire({
+        text: "Không có thay đổi nào để cập nhật.",
+        icon: "info",
+        showConfirmButton: false,
+        timer: 2000,
+      }).then(() => {
+        setIsEditing1(false);
+      });
+      return;
+    }
 
     try {
-      const response = await axios.put(
-        apiRoutes.posts.updateUser(selectedEmployee._id),
-        formData1
-      );
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append("employeeID", selectedEmployee.employeeID);
+        formData.append("avatar", selectedFile);
 
-      if (response.data.success) {
-        Swal.fire({
-          text: response.data.message,
-          icon: response.data.success ? "success" : "error",
-          showConfirmButton: false,
-          timer: 2000,
-        });
-        setTimeout(() => {
-          setIsEditing1(false);
+        const uploadRes = await axios.post(
+          apiRoutes.file.uploadfile,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
 
-          window.location.reload();
-        }, 2000);
+        if (uploadRes.data.updatedFields?.avatar) {
+          setFormData1((prev) => ({
+            ...prev,
+            avatar: uploadRes.data.updatedFields.avatar,
+          }));
+        }
+        console.log(uploadRes.data);
+      }
+
+      if (isFormChanged1()) {
+        const token = localStorage.getItem("token");
+        const response = await axios.put(
+          apiRoutes.posts.updateUser(selectedEmployee._id),
+          formData1,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (response.data.success) {
+          Swal.fire({
+            text: response.data.message,
+            icon: "success",
+            showConfirmButton: false,
+            timer: 2000,
+          });
+          setTimeout(() => {
+            setIsEditing1(false);
+            // window.location.reload();
+          }, 2000);
+        } else {
+          alert("Cập nhật thất bại: " + response.data.message);
+        }
       } else {
-        alert("Cập nhật thất bại: " + response.data.message);
+        if (selectedFile) {
+          Swal.fire({
+            text: "Ảnh đại diện đã được cập nhật.",
+            icon: "success",
+            showConfirmButton: false,
+            timer: 2000,
+          });
+          setTimeout(() => {
+            setIsEditing1(false);
+            window.location.reload();
+          }, 2000);
+        }
       }
     } catch (error) {
       console.error("Lỗi cập nhật:", error);
-      alert("Có lỗi xảy ra khi cập nhật.");
+      alert("Có lỗi xảy ra khi cập nhật: " + error);
     }
   };
 
@@ -194,6 +258,18 @@ const Employee = () => {
     emailCompany: selectedEmployee?.emailCompany || "",
     emailPersonal: selectedEmployee?.emailPersonal || "",
   }));
+
+  const isFormChanged2 = () => {
+    return (
+      formData2.phoneNumber !== selectedEmployee.phoneNumber ||
+      formData2.address !== selectedEmployee.address ||
+      formData2.postcode !== selectedEmployee.postcode ||
+      formData2.city !== selectedEmployee.city ||
+      formData2.province !== selectedEmployee.province ||
+      formData2.emailCompany !== selectedEmployee.emailCompany ||
+      formData2.emailPersonal !== selectedEmployee.emailPersonal
+    );
+  };
 
   useEffect(() => {
     if (selectedEmployee) {
@@ -229,6 +305,17 @@ const Employee = () => {
   const handleSaveClick2 = async () => {
     if (!selectedEmployee?._id) {
       alert("Không tìm thấy ID nhân viên!");
+      return;
+    }
+    if (!isFormChanged2()) {
+      Swal.fire({
+        text: "Không có thay đổi nào cần lưu.",
+        icon: "info",
+        showConfirmButton: false,
+        timer: 1500,
+      }).then(() => {
+        setIsEditing2(false);
+      });
       return;
     }
     try {
@@ -653,7 +740,7 @@ const Employee = () => {
     }
 
     const newUserData = {
-      avatar: "https://example.com/avatar.jpg",
+      avatar: "dfdbf",
       firstName: firstName,
       lastName: lastName,
       alias: alias,
@@ -678,81 +765,81 @@ const Employee = () => {
       status: status ? "Active" : "Inactive",
       city: city,
     };
+    alert(JSON.stringify(newUserData));
+    // try {
+    //   const response = await axios.post(
+    //     apiRoutes.posts.createUser,
+    //     newUserData
+    //   );
+    //   const { success, message } = response.data;
+    //   if (success) {
+    //     Swal.fire({
+    //       text: message,
+    //       icon: "success",
+    //       showConfirmButton: false,
+    //       timer: 2000,
+    //     });
+    //     setTimeout(() => {
+    //       setModalIsOpen(false);
+    //       window.location.reload();
+    //     }, 1000);
+    //   } else {
+    //     Swal.fire({
+    //       text: message,
+    //       icon: "error",
+    //       timer: 2000,
+    //     });
+    //   }
+    // } catch (error) {
+    //   // Split error
+    //   const serverErrorMessage = error.response?.data?.error;
+    //   if (serverErrorMessage) {
+    //     const errors = serverErrorMessage
+    //       .replace("User validation failed:", "")
+    //       .split(".,")
+    //       .map((err) => err.trim())
+    //       .filter((err) => err);
 
-    try {
-      const response = await axios.post(
-        apiRoutes.posts.createUser,
-        newUserData
-      );
-      const { success, message } = response.data;
-      if (success) {
-        Swal.fire({
-          text: message,
-          icon: "success",
-          showConfirmButton: false,
-          timer: 2000,
-        });
-        setTimeout(() => {
-          setModalIsOpen(false);
-          window.location.reload();
-        }, 1000);
-      } else {
-        Swal.fire({
-          text: message,
-          icon: "error",
-          timer: 2000,
-        });
-      }
-    } catch (error) {
-      // Split error
-      const serverErrorMessage = error.response?.data?.error;
-      if (serverErrorMessage) {
-        const errors = serverErrorMessage
-          .replace("User validation failed:", "")
-          .split(".,")
-          .map((err) => err.trim())
-          .filter((err) => err);
-
-        errors.forEach((err) => {
-          if (err.includes("dateOfBirth")) {
-            Swal.fire({
-              text: "Employee must be at least 18 years old.",
-              icon: "error",
-            });
-          } else if (err.includes("idCardNumber")) {
-            Swal.fire({
-              text: "Invalid ID Card Number. Please check your input.",
-              icon: "error",
-            });
-          } else if (err.includes("phoneNumber")) {
-            Swal.fire({
-              text: "Invalid phone number format.",
-              icon: "error",
-            });
-          } else if (err.includes("role")) {
-            Swal.fire({
-              text: "Invalid role selected.",
-              icon: "error",
-            });
-          } else if (err.includes("employeeType")) {
-            Swal.fire({
-              text: "Invalid employee type provided.",
-              icon: "error",
-            });
-          } else {
-            Swal.fire({
-              text: err,
-              icon: "error",
-            });
-          }
-        });
-      } else {
-        Swal.fire({
-          text: "An error occurred while sending data. Please try again later.",
-          icon: "error",
-        });
-      }
-    }
+    //     errors.forEach((err) => {
+    //       if (err.includes("dateOfBirth")) {
+    //         Swal.fire({
+    //           text: "Employee must be at least 18 years old.",
+    //           icon: "error",
+    //         });
+    //       } else if (err.includes("idCardNumber")) {
+    //         Swal.fire({
+    //           text: "Invalid ID Card Number. Please check your input.",
+    //           icon: "error",
+    //         });
+    //       } else if (err.includes("phoneNumber")) {
+    //         Swal.fire({
+    //           text: "Invalid phone number format.",
+    //           icon: "error",
+    //         });
+    //       } else if (err.includes("role")) {
+    //         Swal.fire({
+    //           text: "Invalid role selected.",
+    //           icon: "error",
+    //         });
+    //       } else if (err.includes("employeeType")) {
+    //         Swal.fire({
+    //           text: "Invalid employee type provided.",
+    //           icon: "error",
+    //         });
+    //       } else {
+    //         Swal.fire({
+    //           text: err,
+    //           icon: "error",
+    //         });
+    //       }
+    //     });
+    //   } else {
+    //     Swal.fire({
+    //       text: "An error occurred while sending data. Please try again later.",
+    //       icon: "error",
+    //     });
+    //   }
+    // }
   };
 
   const handleSearch = async (e) => {
@@ -823,94 +910,62 @@ const Employee = () => {
     setPhoneNumber("");
     setModalIsOpen(false);
     setStatus(true);
-    setSelectedFile(null);
+    setPreview(null);
   };
 
   useEffect(() => {
     const fetchFileInfos = async () => {
-      const fields = ["graduationCertificate", "photoID", "certification"];
+      const fields = [
+        "graduationCertificate",
+        "photoID",
+        "certificate",
+        "order",
+      ];
       const fileData = {};
 
       for (const field of fields) {
         const fileId = selectedEmployee?.[field];
         if (fileId) {
           try {
-            const res = await axios.get(apiRoutes.file(fileId));
-            fileData[field] = res.data;
+            const res = await axios.get(apiRoutes.file.file(fileId), {
+              responseType: "blob", // ⚠️ RẤT QUAN TRỌNG
+            });
+
+            const blobUrl = URL.createObjectURL(res.data);
+            fileData[field] = blobUrl; // hoặc lưu object { url, type, name } nếu cần
           } catch (error) {
             console.error(`❌ Error fetching ${field}:`, error);
           }
         }
       }
-
       setFileInfos(fileData);
     };
-
     if (selectedEmployee) {
       fetchFileInfos();
     }
   }, [selectedEmployee]);
 
-  // Upload file
-  const [files, setFiles] = useState({
-    avatar: null,
-    photoID: null,
-    certificate: null,
-    graduationCertificate: null,
-    order: null,
-  });
-
+  // Upload avatar
   const handleChooseFile = () => {
     fileInputRef.current.click();
   };
 
-  const validateFile = (file, type) => {
-    const imageTypes = ["image/png", "image/jpeg"];
-    const docTypes = [
-      "application/pdf",
-      "application/msword", // .doc
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
-    ];
-
-    if (["avatar", "photoID"].includes(type)) {
-      if (!imageTypes.includes(file.type)) {
-        alert("Chỉ chấp nhận ảnh PNG hoặc JPG cho loại này");
-        return false;
-      }
-      if (file.size > 1024 * 1024) {
-        alert("Ảnh không được vượt quá 1MB");
-        return false;
-      }
-    } else {
-      const allowedTypes = [...imageTypes, ...docTypes];
-      if (!allowedTypes.includes(file.type)) {
-        alert("Chỉ chấp nhận ảnh, PDF hoặc file Word (doc, docx)");
-        return false;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        alert("Tệp không được vượt quá 5MB");
-        return false;
-      }
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      alert("Không có file nào được chọn!");
+      return;
     }
-    return true;
-  };
-
-  const handleFileChange = (e, type) => {
-    const file = e.target.files[0];
-    if (file && validateFile(file, type)) {
-      setFiles((prev) => ({
-        ...prev,
-        [type]: file,
-      }));
-    }
+    setSelectedFile(file);
+    setPreview(URL.createObjectURL(file));
   };
 
   // Get employeeID next
   useEffect(() => {
     axios
-      .get(apiRoutes.user.getNextEmployeeID)
+      .post(apiRoutes.user.getNextEmployeeID)
       .then((response) => {
-        setIDNext(response.data);
+        setIDNext(response.data.employeeID);
       })
       .catch((error) => {
         console.error("Error fetching data from API", error);
@@ -921,17 +976,17 @@ const Employee = () => {
     const formData = new FormData();
     formData.append("employeeID", iDNext);
 
-    Object.entries(files).forEach(([type, file]) => {
-      if (file) formData.append(type, file);
-    });
+    // Object.entries(files).forEach(([type, file]) => {
+    //   if (file) formData.append(type, file);
+    // });
 
-    try {
-      await axios.post(apiRoutes.file.uploadfile, formData);
-      alert("Upload thành công");
-    } catch (err) {
-      console.error(err);
-      alert("Upload thất bại");
-    }
+    // try {
+    //   await axios.post(apiRoutes.file.uploadfile, formData);
+    //   alert("Upload thành công");
+    // } catch (err) {
+    //   console.error(err);
+    //   alert("Upload thất bại");
+    // }
   };
 
   return (
@@ -976,20 +1031,38 @@ const Employee = () => {
           <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-full text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
             <div className="flex ml-[2%] mt-[2%] mb-[2%]">
               {isEditing1 ? (
-                <div>
-                  <button className="flex flex-col rounded-none border-[1px] w-[230px] h-[230px] bg-[#EAEAEA] border-gray-400 text-[#C5C5C5] text-[10px] justify-center items-center  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2">
-                    <HiOutlinePhoto className="w-[30px] h-[30px]" />
-                    <p className="w-[150px] mt-[5px] text-[12px]">
-                      Image: png, jpg, jpeg. Size Maximum: 1mb. Resolution:
-                      500x500px.
-                    </p>
-                  </button>
+                <div className="relative">
+                  {preview ? (
+                    <img
+                      src={preview}
+                      alt="preview"
+                      className="w-[230px] h-[230px] object-cover border border-gray-300"
+                    />
+                  ) : (
+                    <button
+                      onClick={handleChooseFile}
+                      className="flex flex-col rounded-none border-[1px] w-[230px] h-[230px] bg-[#EAEAEA] border-gray-400 text-[#C5C5C5] text-[10px] justify-center items-center hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                    >
+                      <HiOutlinePhoto className="w-[30px] h-[30px]" />
+                      <p className="w-[150px] mt-[5px] text-[12px]">
+                        Image: png, jpg, jpeg. Size Maximum: 1mb. Resolution:
+                        500x500px.
+                      </p>
+                    </button>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    ref={fileInputRef}
+                    className="hidden"
+                  />
                 </div>
               ) : (
                 <img
-                  alt="logo"
+                  alt="avatar"
                   src={apiRoutes.file.avatar(selectedEmployee.avatar)}
-                  className="w-[230px] h-[230px]"
+                  className="w-[230px] h-[230px] object-cover border border-gray-300"
                 />
               )}
 
@@ -1647,7 +1720,9 @@ const Employee = () => {
                             onClick={toggleRoleDropdown}
                           >
                             <span className="text-[15px]">
-                              {formData4.role}
+                              {formData4.role === "67fc24eb88df30b9541815ec"
+                                ? "Admin"
+                                : "Employee"}
                             </span>
                             <IoIosArrowDown />
                           </div>
@@ -1674,7 +1749,11 @@ const Employee = () => {
                         )}
                       </div>
                     ) : (
-                      <p className="w-fit font-bold">{selectedEmployee.role}</p>
+                      <p className="w-fit font-bold">
+                        {selectedEmployee.role === "67fc24eb88df30b9541815ec"
+                          ? "Admin"
+                          : "Employee"}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -1699,7 +1778,7 @@ const Employee = () => {
                 <div className="flex items-center justify-center">
                   <button
                     type="submit"
-                    className="ml-[-70%] bg-[#2EB67D] text-white outline-none w-fit text-[18px] focus:outline-none flex items-center"
+                    className="ml-[-70%] bg-[#2EB67D] text-white outline-none w-fit text-[16px] caret-transparent focus:outline-none flex items-center"
                     // onClick={handleSubmit}
                   >
                     <GoPlus className="w-[25px] h-[25px] mr-2" />
@@ -1732,12 +1811,12 @@ const Employee = () => {
                   <tbody>
                     {[
                       { key: "photoID", label: "Photo ID" },
-                      { key: "certification", label: "Certification" },
+                      { key: "certificate", label: "Certificate" },
                       {
                         key: "graduationCertificate",
                         label: "Graduation Certificate",
                       },
-                      { key: "oder", label: "Oder" },
+                      { key: "order", label: "Order" },
                     ]
                       .filter((field) => selectedEmployee[field.key])
                       .map((field) => (
@@ -1749,15 +1828,21 @@ const Employee = () => {
                           </td>
 
                           <td className="px-1 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
-                            <div className="text-left w-[240px]">
-                              {fileInfos.graduationCertificate?.filename ||
-                                "--"}
-                            </div>
+                            <div className="text-left w-[240px]">--</div>
                           </td>
-
                           <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
                             <div className="w-[200px]">
-                              <div className="bg-red-200 w-[40px] h-[40px] ml-[6%]"></div>
+                              {fileInfos[field.key] && (
+                                <a
+                                  href={apiRoutes.file.file(
+                                    selectedEmployee[field.key]
+                                  )}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  Download {field.label}
+                                </a>
+                              )}
                             </div>
                           </td>
 
@@ -1770,6 +1855,21 @@ const Employee = () => {
                           </td>
                         </tr>
                       ))}
+                    {![
+                      "photoID",
+                      "certificate",
+                      "graduationCertificate",
+                      "order",
+                    ].some((key) => selectedEmployee[key]) && (
+                      <tr>
+                        <td
+                          colSpan={5}
+                          className="text-center text-gray-400 py-5 border-b border-gray-200 w-[calc(100vw-430px)] text-[15px]"
+                        >
+                          No file data available
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -1870,9 +1970,9 @@ const Employee = () => {
                     <div className="flex mt-[2%]">
                       {/* avatar */}
                       <div className="ml-[10px] ">
-                        {selectedFile ? (
+                        {preview ? (
                           <img
-                            src={URL.createObjectURL(selectedFile)}
+                            src={preview}
                             alt="preview"
                             className="w-[240px] h-[240px] object-cover border ml-[20px] mr-[15px]"
                           />
@@ -1891,9 +1991,9 @@ const Employee = () => {
                         <input
                           type="file"
                           ref={fileInputRef}
-                          className="hidden"
-                          accept=".png,.jpg,.jpeg"
-                          onChange={(e) => handleFileChange(e, "avatar")}
+                          style={{ display: "none" }}
+                          accept="image/*"
+                          onClick={handleImageChange}
                         />
                       </div>
                       {/* text 1*/}
@@ -2660,7 +2760,7 @@ const Employee = () => {
                                 >
                                   upload
                                 </button>
-                                <input
+                                {/* <input
                                   type="file"
                                   ref={fileInputRef}
                                   className="hidden"
@@ -2668,7 +2768,7 @@ const Employee = () => {
                                   onChange={(e) =>
                                     handleFileChange(e, "photoID")
                                   }
-                                />
+                                /> */}
                               </td>
                               <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
                                 <div className="text-left w-[240px]  "></div>
@@ -2933,7 +3033,6 @@ const Employee = () => {
                   }`}
                 >
                   <IoIosArrowForward />
-                  onClick={handleCreate}
                 </button>
               </div>
 

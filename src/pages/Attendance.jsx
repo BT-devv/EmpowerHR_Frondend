@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import apiRoutes from "../../apiRoutes";
 
 // icon
@@ -16,21 +16,31 @@ import { IoIosArrowForward } from "react-icons/io";
 import { IoChevronBack } from "react-icons/io5";
 
 const Attendance = () => {
+  const navigate = useNavigate();
   // Get date
   const currentDate = format(new Date(), "dd MMM, yyyy");
   const [data, setData] = useState([]);
 
   // Get all users
   useEffect(() => {
+    const token = localStorage.getItem("token");
+
     axios
-      .get(apiRoutes.attendance.getAll)
+      .get(apiRoutes.attendance.getAll, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
       .then((response) => {
         setData(response.data.data);
       })
       .catch((error) => {
-        console.error("Error fetching data from API", error);
+        if (error.response?.status === 403) {
+          navigate("/notpermission");
+        }
       });
-  }, [data]);
+  }, []);
 
   // Format date
   const formatDate = (dateString) => {
@@ -124,7 +134,7 @@ const Attendance = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     setData([]);
-  }, [currentPage]);
+  }, []);
 
   const startIndex = (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, data.length);
@@ -182,7 +192,7 @@ const Attendance = () => {
         </div>
       </div>
       {/* Table */}
-      <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-[77%] ml-[3%] rounded-[15px] mt-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
+      <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-auto ml-[3%] rounded-[15px] mt-[2%] mb-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
         <div className="flex w-full flex-wrap items-center gap-4 px-4 py-6">
           {/* Total Employee */}
           <div>
@@ -217,8 +227,8 @@ const Attendance = () => {
         </div>
         {/* list */}
         {data.length > 0 ? (
-          <div className="overflow-x-auto mt-[20px] text-[14px] ml-[15px]">
-            <table className="border-collapse bg-white overflow-hidden w-[calc(100vw-400px)] no-scrollbar">
+          <div className="mt-[20px] text-[14px] ml-[15px]">
+            <table className="border-collapse bg-white w-[calc(100vw-400px)]">
               <thead>
                 <tr className="border-gray-300 border-t border-b-2 text-left">
                   <th className="px-1 py-5 border-b border-gray-300 caret-transparent text-gray-500">
@@ -246,7 +256,7 @@ const Attendance = () => {
                   <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
                     Overtime
                   </th>
-                  <th className="px-3 py-5 border-b border-gray-300 caret-transparent text-gray-500">
+                  <th className="px-3 py-5 border-b border-gray-300 caret-transparent text-gray-500 truncate">
                     Work hours
                   </th>
                 </tr>
@@ -257,10 +267,8 @@ const Attendance = () => {
                     key={item._id}
                     className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer text-[15px]"
                   >
-                    <td className="px-1 py-6 border-b border-gray-200">
-                      <div className="truncate text-left w-[60px]">
-                        {item.employeeID}
-                      </div>
+                    <td className="px-1 py-6 border-b border-gray-200 truncate text-left">
+                      {item.employeeID}
                     </td>
                     <td className="px-5 py-6 border-b border-gray-200">
                       <div className="truncate text-left w-[130px] ">
@@ -268,9 +276,7 @@ const Attendance = () => {
                       </div>
                     </td>
                     <td className="px-3 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%]">
-                      <div className="truncate text-left w-[130px] ">
-                        IT Department
-                      </div>
+                      IT Department
                     </td>
                     <td className="px-3 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%]">
                       <div className="truncate text-left w-[100px] ">
@@ -368,15 +374,9 @@ const Attendance = () => {
               className="w-[380px] h-[280px]"
             />
             <div className="mt-[10%] text-center">
-              <p className="font-bold">Empty Employee</p>
-              <p>Add your first Employee manually</p>
+              <p className="font-bold">Empty Attendance</p>
+              <p>Add your first Attendance manually</p>
             </div>
-            <button
-              className="text-white font-normal mt-[10%] h-[50px] w-[180px] rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 focus:outline-none hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]"
-              // onClick={() => setModalIsOpen(true)}
-            >
-              + Employee
-            </button>
           </div>
         )}
 

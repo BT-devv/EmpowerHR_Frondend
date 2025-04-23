@@ -11,7 +11,7 @@ const Layout = () => {
   return isAuthenticated ? (
     <div className="flex">
       <Slidebar />
-      <div className="flex flex-col flex-grow w-screen">
+      <div className="flex flex-col flex-grow w-screen ">
         <Navbar />
         <Outlet />
       </div>

@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
-import axios from "axios";
 import avatar from "../assets/avatar.png";
-import apiRoutes from "../../apiRoutes";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
@@ -20,8 +18,10 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [dataUser, setUserData] = useState([]);
   const [logout, setLogout] = useState(false);
+
+  const [name, setName] = useState("");
+  const [role, setRole] = useState("");
 
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
 
@@ -53,23 +53,12 @@ const Navbar = () => {
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    const decodedToken = jwtDecode(token);
-    const userId = decodedToken.userId;
-
-    if (userId) {
-      axios
-        .get(apiRoutes.user.profile(userId))
-        .then((response) => {
-          setUserData(response.data);
-        })
-        .catch((error) => {
-          console.error(
-            "Lỗi khi lấy thông tin người dùng:",
-            error.response?.data || error.message
-          );
-        });
+    if (token) {
+      const decodedToken = jwtDecode(token);
+      setName(decodedToken.emailCompany);
+      setRole(decodedToken.role);
     } else {
-      console.error("Token không chứa employeeID, vui lòng kiểm tra lại.");
+      console.error("Token không tồn tại hoặc không hợp lệ.");
     }
   }, []);
 
@@ -133,10 +122,10 @@ const Navbar = () => {
           {/* User Info */}
           <div className="flex-grow ml-[25px] ">
             <p className="text-[14px] font-bold text-left truncate w-[70%]">
-              {dataUser.firstName + " " + dataUser.lastName}
+              {name}
             </p>
             <p className=" text-gray-500 text-[12px] mt-[5px] text-left w-[70%]">
-              {dataUser.role}
+              {role === "67fc24eb88df30b9541815ec" ? "Admin" : "Employee"}
             </p>
           </div>
 

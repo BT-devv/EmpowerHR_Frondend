@@ -141,7 +141,12 @@ const Absence = () => {
   // Get all pending
   useEffect(() => {
     axios
-      .get(apiRoutes.absence.listPending)
+      .get(apiRoutes.absence.listPending, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
       .then((response) => {
         setDataPending(response.data.absences);
       })
@@ -153,7 +158,12 @@ const Absence = () => {
   // Get all history
   useEffect(() => {
     axios
-      .get(apiRoutes.absence.history)
+      .get(apiRoutes.absence.history, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
       .then((response) => {
         setDataHistory(response.data.absences);
       })
@@ -283,7 +293,7 @@ const Absence = () => {
       <div className="bg-white ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-[70px] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] flex items-center">
         <div className="flex gap-10 md:gap-10 text-[#1C1C1C] ml-7">
           {[
-            { key: "absence", label: "Absent Form" },
+            { key: "absence", label: "Absence Form" },
             { key: "approval", label: "Approval Manager" },
             { key: "history", label: "History" },
           ].map((tab) => (
@@ -303,7 +313,7 @@ const Absence = () => {
       </div>
 
       {selectedTab === "absence" && (
-        <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[10px] w-[calc(100vw-340px)] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
+        <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[10px] w-[calc(100vw-340px)] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] mb-[2%]">
           <div className="flex flex-grow ml-[5%]">
             <div className="mt-[3%] w-full">
               <p>Absence Type</p>
@@ -422,6 +432,7 @@ const Absence = () => {
             <div className="mt-[1%]">
               <RichTextEditor value={reason} onChange={setReason} />
             </div>
+
             <div className="flex items-center justify-center mb-[3%]">
               <button
                 type="submit"
@@ -435,7 +446,7 @@ const Absence = () => {
         </div>
       )}
       {selectedTab === "approval" && (
-        <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-[77%] ml-[3%] rounded-[15px] mt-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
+        <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-auto ml-[3%] rounded-[15px] mt-[2%] mb-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
           <div className="flex flex-wrap w-full items-center gap-x-4 px-4 py-6">
             {/* Overtime Request Title */}
             <div>
@@ -470,7 +481,7 @@ const Absence = () => {
           </div>
           {/* List */}
           {dataPending.length > 0 ? (
-            <div className="overflow-x-auto mt-[20px] text-[14px] ml-[15px]">
+            <div className="mt-[20px] text-[14px] ml-[15px]">
               <table className="border-collapse bg-white overflow-hidden w-[calc(100vw-400px)] ">
                 <thead>
                   <tr className="border-gray-300 border-t border-b-2 text-left">
@@ -487,7 +498,7 @@ const Absence = () => {
                       Status
                     </th>
                     <th className="px-14 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                      Absent
+                      Absence
                     </th>
                     <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
                       Action
@@ -751,7 +762,7 @@ const Absence = () => {
         </div>
       )}
       {selectedTab === "history" && (
-        <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-[77%] ml-[3%] rounded-[15px] mt-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
+        <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-auto ml-[3%] rounded-[15px] mt-[2%] mb-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
           <div className="flex flex-wrap w-full items-center gap-x-4 px-4 py-6">
             {/* History Title */}
             <div>
@@ -801,7 +812,7 @@ const Absence = () => {
                       Status
                     </th>
                     <th className="px-14 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                      Absent
+                      Absence
                     </th>
                     <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
                       Action

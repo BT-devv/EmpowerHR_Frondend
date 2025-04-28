@@ -10,9 +10,10 @@ import {
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import TextField from "@mui/material/TextField";
 import Swal from "sweetalert2";
-// import dayjs from "dayjs";
+import TabSelector from "../components/TabSelector";
 import { format } from "date-fns";
 import Modal from "react-modal";
+import PaginationFooter from "../components/PaginationFooter";
 //icon
 import { CiSearch } from "react-icons/ci";
 import { CiCalendarDate } from "react-icons/ci";
@@ -306,28 +307,37 @@ const Overtime = () => {
     handleApprove();
   };
 
+  // Page navigation
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItemsPending = dataPending.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+  const currentItemsHistory = dataHistory.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentPage]);
+
   return (
     <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">
       <div className="bg-white ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-[70px] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] flex items-center">
-        <div className="flex gap-10 md:gap-10 text-[#1C1C1C] ml-7">
-          {[
+        <TabSelector
+          tabs={[
             { key: "overtime", label: "Overtime Form" },
             { key: "approval", label: "Approval Manager" },
             { key: "history", label: "History" },
-          ].map((tab) => (
-            <p
-              key={tab.key}
-              className={`cursor-pointer py-6 border-b-2 transition-all ${
-                selectedTab === tab.key
-                  ? "font-bold border-black"
-                  : "border-transparent text-gray-500 hover:text-black"
-              }`}
-              onClick={() => setSelectedTab(tab.key)}
-            >
-              {tab.label}
-            </p>
-          ))}
-        </div>
+          ]}
+          selectedTab={selectedTab}
+          onTabSelect={(key) => setSelectedTab(key)}
+          wrapperClassName="gap-10 md:gap-10 text-[#1C1C1C] ml-7"
+        />
       </div>
       {selectedTab === "overtime" && (
         <div className="bg-white ml-[3%] mt-[2%] rounded-[10px] w-[calc(100vw-340px)] text-left shadow-md mb-[1%] p-6">
@@ -489,7 +499,7 @@ const Overtime = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {dataPending.map((item) => (
+                  {currentItemsPending.map((item) => (
                     <tr
                       key={item._id}
                       className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer text-[15px]"
@@ -741,10 +751,14 @@ const Overtime = () => {
             </div>
           )}
 
-          {/* page */}
-          <div className="mt-auto font-light text-[#252C58] text-[14px] ml-[1%]">
-            Page 1 of 100
-          </div>
+          {/* infor bottom */}
+          <PaginationFooter
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+            totalItems={dataPending.length}
+            itemsPerPage={itemsPerPage}
+            setItemsPerPage={setItemsPerPage}
+          />
         </div>
       )}
       {selectedTab === "history" && (
@@ -806,7 +820,7 @@ const Overtime = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {dataHistory.map((item) => (
+                  {currentItemsHistory.map((item) => (
                     <tr
                       key={item._id}
                       className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer text-[15px]"
@@ -982,10 +996,14 @@ const Overtime = () => {
               </button>
             </div>
           )}
-          {/* page */}
-          <div className="mt-auto font-light text-[#252C58] text-[14px] ml-[1%]">
-            Page 1 of 100
-          </div>
+          {/* infor bottom */}
+          <PaginationFooter
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+            totalItems={dataHistory.length}
+            itemsPerPage={itemsPerPage}
+            setItemsPerPage={setItemsPerPage}
+          />
         </div>
       )}
     </div>

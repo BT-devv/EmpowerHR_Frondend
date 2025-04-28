@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
-import avatar from "../assets/avatar.png";
+import apiRoutes from "../../apiRoutes";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
@@ -16,12 +16,12 @@ const countries = [
 ];
 const Navbar = () => {
   const navigate = useNavigate();
-
   const [isOpen, setIsOpen] = useState(false);
   const [logout, setLogout] = useState(false);
 
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
+  const [avatar, setAvatar] = useState("");
 
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
 
@@ -55,15 +55,16 @@ const Navbar = () => {
   useEffect(() => {
     if (token) {
       const decodedToken = jwtDecode(token);
-      setName(decodedToken.emailCompany);
+      setName(`${decodedToken.firstName}  ${decodedToken.lastName}`);
       setRole(decodedToken.role);
+      setAvatar(decodedToken.avatar);
     } else {
       console.error("Token không tồn tại hoặc không hợp lệ.");
     }
   }, []);
 
   return (
-    <div className="h-[6%] w-[calc(100vw-270px)] flex justify-between items-center">
+    <div className="h-[8%] w-[calc(100vw-270px)] flex justify-between items-center">
       {/* Search */}
       <div className="relative ml-[5%]">
         <CiSearch className="absolute top-[50%] left-4 transform -translate-y-1/2 w-[20px] h-[20px] " />
@@ -117,7 +118,10 @@ const Navbar = () => {
         {/* dropdown user */}
         <div className="flex items-center p-4 rounded-lg h-[60px] bg-white ml-[10px] ">
           {/* Avatar */}
-          <img src={avatar} alt={avatar} className="w-12 h-12 rounded-full" />
+          <img
+            src={apiRoutes.file.avatar(avatar)}
+            className="w-12 h-12 rounded-full"
+          />
 
           {/* User Info */}
           <div className="flex-grow ml-[25px] ">

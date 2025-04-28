@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import apiRoutes from "../../apiRoutes";
+import PaginationFooter from "../components/PaginationFooter";
 
 // icon
 import { PiClock } from "react-icons/pi";
@@ -12,8 +13,6 @@ import { FaArrowTrendUp } from "react-icons/fa6";
 import { CiSearch } from "react-icons/ci";
 import { CiCalendarDate } from "react-icons/ci";
 import { VscSettings } from "react-icons/vsc";
-import { IoIosArrowForward } from "react-icons/io";
-import { IoChevronBack } from "react-icons/io5";
 
 const Attendance = () => {
   const navigate = useNavigate();
@@ -69,75 +68,13 @@ const Attendance = () => {
   // Page navigation
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-
-  const totalPages = Math.ceil(data.length / itemsPerPage);
-
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
 
-  const handlePreviousPage = () => {
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
-  };
-
-  const handleNextPage = () => {
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-  };
-
-  const renderPagination = () => {
-    const pages = [];
-    const totalPages = Math.ceil(data.length / itemsPerPage);
-
-    if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      pages.push(1);
-      if (currentPage > 3) {
-        pages.push("...");
-      }
-      if (currentPage > 2) {
-        pages.push(currentPage - 1);
-      }
-      if (currentPage !== 1 && currentPage !== totalPages) {
-        pages.push(currentPage);
-      }
-      if (currentPage < totalPages - 1) {
-        pages.push(currentPage + 1);
-      }
-      if (currentPage < totalPages - 2) {
-        pages.push("...");
-      }
-      pages.push(totalPages);
-    }
-
-    return pages.map((page, index) =>
-      page === "..." ? (
-        <span key={index} className="px-3 py-2 text-gray-500">
-          ...
-        </span>
-      ) : (
-        <button
-          key={index}
-          onClick={() => setCurrentPage(page)}
-          className={`w-[50px] h-[50px] rounded-[12px] flex items-center justify-center border caret-transparent ${
-            currentPage === page ? "bg-[#2EB67D] text-white" : "bg-white"
-          }`}
-        >
-          {page}
-        </button>
-      )
-    );
-  };
-
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-    setData([]);
-  }, []);
-
-  const startIndex = (currentPage - 1) * itemsPerPage + 1;
-  const endIndex = Math.min(currentPage * itemsPerPage, data.length);
+  }, [currentPage]);
 
   return (
     <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative ">
@@ -379,61 +316,14 @@ const Attendance = () => {
             </div>
           </div>
         )}
-
         {/* infor bottom */}
-        <div className="flex flex-wrap items-center w-full justify-between text-[#9A9A9A] caret-transparent p-4 gap-4 md:gap-6 mt-2">
-          <p className="text-sm sm:text-base">
-            Showing {startIndex} to {endIndex} of {data.length} entries
-          </p>
-
-          {/* Pagination */}
-          <div className="flex items-center gap-2 text-black">
-            <button
-              onClick={handlePreviousPage}
-              disabled={currentPage === 1}
-              className={`min-w-[50px] h-[50px] rounded-[12px] flex items-center justify-center border border-[#B0BAC3] ${
-                currentPage === 1
-                  ? "opacity-50 cursor-not-allowed"
-                  : "hover:bg-gray-100"
-              }`}
-            >
-              <IoChevronBack />
-            </button>
-
-            {renderPagination()}
-
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className={`min-w-[50px] h-[50px] rounded-[12px] flex items-center justify-center border border-[#B0BAC3] ${
-                currentPage === totalPages
-                  ? "opacity-50 cursor-not-allowed"
-                  : "hover:bg-gray-100"
-              }`}
-            >
-              <IoIosArrowForward />
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2 text-black">
-            <p>Show</p>
-            <select
-              value={itemsPerPage}
-              onChange={(e) => {
-                setItemsPerPage(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="w-[80px] h-[50px] border border-gray-300 rounded-[8px] text-center bg-white cursor-pointer"
-            >
-              {[10, 20, 50, 100].map((num) => (
-                <option key={num} value={num}>
-                  {num}
-                </option>
-              ))}
-            </select>
-            <p>entries</p>
-          </div>
-        </div>
+        <PaginationFooter
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+          totalItems={data.length}
+          itemsPerPage={itemsPerPage}
+          setItemsPerPage={setItemsPerPage}
+        />
       </div>
     </div>
   );

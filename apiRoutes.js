@@ -35,9 +35,9 @@ const apiRoutes = {
   },
   role: {
     createRole: `${API_BASE_URL}/role/`,
-    // deleteRole:,
+    deleteRole: (id) => `${API_BASE_URL}/role/${id}`,
     getRole: `${API_BASE_URL}/role/`,
-    // updateRole:,
+    updateRole: (id) => `${API_BASE_URL}/role/${id}`,
     assignRole: `${API_BASE_URL}/role/assign-role`,
   },
   permission: {
@@ -45,6 +45,19 @@ const apiRoutes = {
     // deleteRole:,
     getPermission: `${API_BASE_URL}/permission/`,
     assignPermission: `${API_BASE_URL}/permission/assign-permission`,
+  },
+  department: {
+    createDepartment: `${API_BASE_URL}/department/`,
+    deleteDepartment: (id) => `${API_BASE_URL}/department/${id}`,
+    getAllDepartment: `${API_BASE_URL}/department/`,
+    updatedDepartment: (id) => `${API_BASE_URL}/department/${id}`,
+  },
+  jobtitle: {
+    createJobtitle: `${API_BASE_URL}/jobtitle/`,
+    deleteJobtitle: (id) => `${API_BASE_URL}/jobtitle/${id}`,
+    getAllJobtitle: `${API_BASE_URL}/jobtitle/`,
+    updatedJobtitle: (id) => `${API_BASE_URL}/jobtitle/${id}`,
+    assignJobtitle: `${API_BASE_URL}/jobtitle/assign-jobtitle`,
   },
   file: {
     avatar: (avatar) => `${API_BASE_URL}/file/${avatar}`,

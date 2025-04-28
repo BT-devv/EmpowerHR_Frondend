@@ -11,13 +11,13 @@ import Modal from "react-modal";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import FileUpload from "../components/FileUpload";
+import TabSelector from "../components/TabSelector";
+import PaginationFooter from "../components/PaginationFooter";
 
 // icon
 import { CiSearch } from "react-icons/ci";
 import { IoIosArrowDown } from "react-icons/io";
 import { HiOutlinePhoto } from "react-icons/hi2";
-import { IoIosArrowForward } from "react-icons/io";
-import { IoChevronBack } from "react-icons/io5";
 import { IoIosArrowRoundBack } from "react-icons/io";
 import { BiEdit } from "react-icons/bi";
 import { GoPlus } from "react-icons/go";
@@ -481,74 +481,13 @@ const Employee = () => {
   // Page navigation
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-
-  const totalPages = Math.ceil(data.length / itemsPerPage);
-
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
 
-  const handlePreviousPage = () => {
-    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
-  };
-
-  const renderPagination = () => {
-    const pages = [];
-    const totalPages = Math.ceil(data.length / itemsPerPage);
-
-    if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      pages.push(1);
-      if (currentPage > 3) {
-        pages.push("...");
-      }
-      if (currentPage > 2) {
-        pages.push(currentPage - 1);
-      }
-      if (currentPage !== 1 && currentPage !== totalPages) {
-        pages.push(currentPage);
-      }
-      if (currentPage < totalPages - 1) {
-        pages.push(currentPage + 1);
-      }
-      if (currentPage < totalPages - 2) {
-        pages.push("...");
-      }
-      pages.push(totalPages);
-    }
-
-    return pages.map((page, index) =>
-      page === "..." ? (
-        <span key={index} className="px-3 py-2 text-gray-500">
-          ...
-        </span>
-      ) : (
-        <button
-          key={index}
-          onClick={() => setCurrentPage(page)}
-          className={`w-[50px] h-[50px] rounded-[12px] flex items-center justify-center border caret-transparent ${
-            currentPage === page ? "bg-[#2EB67D] text-white" : "bg-white"
-          }`}
-        >
-          {page}
-        </button>
-      )
-    );
-  };
-
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentPage, selectedEmployee]);
-
-  const startIndex = (currentPage - 1) * itemsPerPage + 1;
-  const endIndex = Math.min(currentPage * itemsPerPage, data.length);
 
   // Dropdown selection of gender
   const toggleGenderDropdown = () => setIsGenderOpen(!isGenderOpen);
@@ -1060,28 +999,19 @@ const Employee = () => {
                 handleCancelClick4();
               }}
             />
-            <div className="flex gap-10 md:gap-10 text-[#1C1C1C] ml-7">
-              {[
+            <TabSelector
+              tabs={[
                 { key: "general", label: "General" },
                 { key: "job", label: "Job" },
                 { key: "payroll", label: "Payroll" },
                 { key: "performance", label: "Performance" },
                 { key: "documents", label: "Documents" },
                 { key: "dependents", label: "Dependents" },
-              ].map((tab) => (
-                <p
-                  key={tab.key}
-                  className={`cursor-pointer py-6 border-b-2 transition-all ${
-                    selectedTab === tab.key
-                      ? "font-bold border-black"
-                      : "border-transparent text-gray-500 hover:text-black"
-                  }`}
-                  onClick={() => setSelectedTab(tab.key)}
-                >
-                  {tab.label}
-                </p>
-              ))}
-            </div>
+              ]}
+              selectedTab={selectedTab}
+              onTabSelect={(key) => setSelectedTab(key)}
+              wrapperClassName="gap-10 md:gap-10 text-[#1C1C1C] ml-7"
+            />
           </div>
 
           <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-full text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
@@ -3119,56 +3049,13 @@ const Employee = () => {
             )}
 
             {/* infor bottom */}
-            <div className="flex flex-wrap items-center w-full justify-between text-[#9A9A9A] caret-transparent p-4 gap-4 md:gap-6 mt-2">
-              <p className="text-sm sm:text-base">
-                Showing {startIndex} to {endIndex} of {data.length} entries
-              </p>
-
-              {/* Pagination */}
-              <div className="flex items-center gap-2 text-black">
-                <button
-                  onClick={handlePreviousPage}
-                  disabled={currentPage === 1}
-                  className={`min-w-[50px] h-[50px] rounded-[12px] flex items-center justify-center border border-[#B0BAC3] ${
-                    currentPage === 1
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:bg-gray-100"
-                  }`}
-                >
-                  <IoChevronBack />
-                </button>
-
-                {renderPagination()}
-
-                <button
-                  onClick={handleNextPage}
-                  disabled={currentPage === totalPages}
-                  className={`min-w-[50px] h-[50px] rounded-[12px] flex items-center justify-center border border-[#B0BAC3] ${
-                    currentPage === totalPages
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:bg-gray-100"
-                  }`}
-                >
-                  <IoIosArrowForward />
-                </button>
-              </div>
-
-              <div className="flex items-center gap-2 text-black">
-                <p>Show</p>
-                <select
-                  value={itemsPerPage}
-                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                  className="w-[80px] h-[50px] border border-gray-300 rounded-[8px] text-center bg-white cursor-pointer"
-                >
-                  {[10, 20, 50, 100].map((num) => (
-                    <option key={num} value={num}>
-                      {num}
-                    </option>
-                  ))}
-                </select>
-                <p>entries</p>
-              </div>
-            </div>
+            <PaginationFooter
+              currentPage={currentPage}
+              setCurrentPage={setCurrentPage}
+              totalItems={data.length}
+              itemsPerPage={itemsPerPage}
+              setItemsPerPage={setItemsPerPage}
+            />
           </div>
         </div>
       )}

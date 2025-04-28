@@ -10,6 +10,7 @@ import axios from "axios";
 import Modal from "react-modal";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import FileUpload from "../components/FileUpload";
 
 // icon
 import { CiSearch } from "react-icons/ci";
@@ -34,7 +35,6 @@ const Employee = () => {
   const navigate = useNavigate();
 
   const [data, setData] = useState([]);
-  const [searchKeyword, setSearchKeyword] = useState("");
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [isGenderOpen, setIsGenderOpen] = useState(false);
   const [isRoleOpen, setIsRoleOpen] = useState(false);
@@ -73,7 +73,14 @@ const Employee = () => {
 
   const fileInputRef = useRef(null);
   const [preview, setPreview] = useState(null);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState({
+    avatar: null,
+    photoID: null,
+    certificate: null,
+    graduationCertificate: null,
+    order: null,
+  });
+  const [selectedAva, setSelectedAva] = useState(null);
 
   const [gender, setGender] = useState("Gender");
   const [type, setType] = useState("Employee Type");
@@ -82,10 +89,10 @@ const Employee = () => {
   const [role, setRole] = useState("Role");
 
   const genderData = ["Male", "Female", "Other"];
-  const typeData = ["Full-time", "Fart-time", "Collabration", "Intern"];
+  const typeData = ["Fulltime", "Farttime", "Collabration", "Intern"];
   const departData = ["Quality Assuarance"];
   const positionData = ["Manual QA", "Front-End", "Backend"];
-  const roleData = ["Admin", "Project Manager", "Staff"];
+  const roleData = ["Admin", "Employee"];
 
   // Edit employee 1
   const [isEditing1, setIsEditing1] = useState(false);
@@ -158,7 +165,7 @@ const Employee = () => {
       alert("Không tìm thấy ID nhân viên!");
       return;
     }
-    if (!selectedFile && !isFormChanged1()) {
+    if (!selectedAva && !isFormChanged1()) {
       Swal.fire({
         text: "Không có thay đổi nào để cập nhật.",
         icon: "info",
@@ -171,10 +178,10 @@ const Employee = () => {
     }
 
     try {
-      if (selectedFile) {
+      if (selectedAva) {
         const formData = new FormData();
         formData.append("employeeID", selectedEmployee.employeeID);
-        formData.append("avatar", selectedFile);
+        formData.append("avatar", selectedAva);
 
         const uploadRes = await axios.post(
           apiRoutes.file.uploadfile,
@@ -223,7 +230,7 @@ const Employee = () => {
           alert("Cập nhật thất bại: " + response.data.message);
         }
       } else {
-        if (selectedFile) {
+        if (selectedAva) {
           Swal.fire({
             text: "Ảnh đại diện đã được cập nhật.",
             icon: "success",
@@ -619,6 +626,7 @@ const Employee = () => {
       });
   }, []);
 
+  // form validation
   const fieldsToValidate = {
     firstName: {
       value: firstName,
@@ -740,7 +748,6 @@ const Employee = () => {
     }
 
     const newUserData = {
-      avatar: "dfdbf",
       firstName: firstName,
       lastName: lastName,
       alias: alias,
@@ -758,102 +765,136 @@ const Employee = () => {
       bankAccountName: accountName,
       bankAccountNumber: bankAccountNumber,
       department: department,
-      role: role,
+      role: role === "Admin" ? "admin" : "employee",
       jobTitle: position,
       joiningDate: joiningDate,
       endDate: endDate,
       status: status ? "Active" : "Inactive",
       city: city,
     };
-    alert(JSON.stringify(newUserData));
-    // try {
-    //   const response = await axios.post(
-    //     apiRoutes.posts.createUser,
-    //     newUserData
-    //   );
-    //   const { success, message } = response.data;
-    //   if (success) {
-    //     Swal.fire({
-    //       text: message,
-    //       icon: "success",
-    //       showConfirmButton: false,
-    //       timer: 2000,
-    //     });
-    //     setTimeout(() => {
-    //       setModalIsOpen(false);
-    //       window.location.reload();
-    //     }, 1000);
-    //   } else {
-    //     Swal.fire({
-    //       text: message,
-    //       icon: "error",
-    //       timer: 2000,
-    //     });
-    //   }
-    // } catch (error) {
-    //   // Split error
-    //   const serverErrorMessage = error.response?.data?.error;
-    //   if (serverErrorMessage) {
-    //     const errors = serverErrorMessage
-    //       .replace("User validation failed:", "")
-    //       .split(".,")
-    //       .map((err) => err.trim())
-    //       .filter((err) => err);
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios.post(
+        apiRoutes.posts.createUser,
+        newUserData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const { success, message } = response.data;
+      if (success) {
+        if (selectedFiles.avatar) {
+          await handleUpload("avatar");
+        }
+        if (selectedFiles.photoID) {
+          await handleUpload("photoID");
+        }
+        if (selectedFiles.certificate) {
+          await handleUpload("certificate");
+        }
+        if (selectedFiles.graduationCertificate) {
+          await handleUpload("graduationCertificate");
+        }
 
-    //     errors.forEach((err) => {
-    //       if (err.includes("dateOfBirth")) {
-    //         Swal.fire({
-    //           text: "Employee must be at least 18 years old.",
-    //           icon: "error",
-    //         });
-    //       } else if (err.includes("idCardNumber")) {
-    //         Swal.fire({
-    //           text: "Invalid ID Card Number. Please check your input.",
-    //           icon: "error",
-    //         });
-    //       } else if (err.includes("phoneNumber")) {
-    //         Swal.fire({
-    //           text: "Invalid phone number format.",
-    //           icon: "error",
-    //         });
-    //       } else if (err.includes("role")) {
-    //         Swal.fire({
-    //           text: "Invalid role selected.",
-    //           icon: "error",
-    //         });
-    //       } else if (err.includes("employeeType")) {
-    //         Swal.fire({
-    //           text: "Invalid employee type provided.",
-    //           icon: "error",
-    //         });
-    //       } else {
-    //         Swal.fire({
-    //           text: err,
-    //           icon: "error",
-    //         });
-    //       }
-    //     });
-    //   } else {
-    //     Swal.fire({
-    //       text: "An error occurred while sending data. Please try again later.",
-    //       icon: "error",
-    //     });
-    //   }
-    // }
+        Swal.fire({
+          text: message,
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+
+        setTimeout(() => {
+          setModalIsOpen(false);
+          window.location.reload();
+        }, 1000);
+      } else {
+        Swal.fire({
+          text: message,
+          icon: "error",
+          timer: 2000,
+        });
+      }
+    } catch (error) {
+      // Split error
+      const serverErrorMessage = error.response?.data?.error;
+      if (serverErrorMessage) {
+        const errors = serverErrorMessage
+          .replace("User validation failed:", "")
+          .split(".,")
+          .map((err) => err.trim())
+          .filter((err) => err);
+
+        errors.forEach((err) => {
+          if (err.includes("dateOfBirth")) {
+            Swal.fire({
+              text: "Employee must be at least 18 years old.",
+              icon: "error",
+            });
+          } else if (err.includes("idCardNumber")) {
+            Swal.fire({
+              text: "Invalid ID Card Number. Please check your input.",
+              icon: "error",
+            });
+          } else if (err.includes("phoneNumber")) {
+            Swal.fire({
+              text: "Invalid phone number format.",
+              icon: "error",
+            });
+          } else if (err.includes("role")) {
+            Swal.fire({
+              text: "Invalid role selected.",
+              icon: "error",
+            });
+          } else if (err.includes("employeeType")) {
+            Swal.fire({
+              text: "Invalid employee type provided.",
+              icon: "error",
+            });
+          } else {
+            Swal.fire({
+              text: err,
+              icon: "error",
+            });
+          }
+        });
+      } else {
+        Swal.fire({
+          text: "An error occurred while sending data. Please try again later.",
+          icon: "error",
+        });
+      }
+    }
   };
 
+  // Search
   const handleSearch = async (e) => {
     const keyword = e.target.value;
-    setSearchKeyword(keyword);
+    const token = localStorage.getItem("token");
 
     if (keyword.trim() === "") {
-      axios.get("/api/employees").then((res) => setData(res.data));
+      axios
+        .get(apiRoutes.user.getAll, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        })
+        .then((res) => setData(res.data));
       return;
     }
 
     try {
       const response = await axios.get(
-        `${apiRoutes.user.search}?keyword=${keyword}`
+        `${apiRoutes.user.search}?keyword=${keyword}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
       setData(response.data.users);
     } catch (error) {
@@ -911,6 +952,13 @@ const Employee = () => {
     setModalIsOpen(false);
     setStatus(true);
     setPreview(null);
+    setSelectedFiles({
+      avatar: null,
+      photoID: null,
+      certificate: null,
+      graduationCertificate: null,
+      order: null,
+    });
   };
 
   useEffect(() => {
@@ -928,11 +976,11 @@ const Employee = () => {
         if (fileId) {
           try {
             const res = await axios.get(apiRoutes.file.file(fileId), {
-              responseType: "blob", // ⚠️ RẤT QUAN TRỌNG
+              responseType: "blob",
             });
 
             const blobUrl = URL.createObjectURL(res.data);
-            fileData[field] = blobUrl; // hoặc lưu object { url, type, name } nếu cần
+            fileData[field] = blobUrl;
           } catch (error) {
             console.error(`❌ Error fetching ${field}:`, error);
           }
@@ -953,10 +1001,9 @@ const Employee = () => {
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) {
-      alert("Không có file nào được chọn!");
       return;
     }
-    setSelectedFile(file);
+    setSelectedAva(file);
     setPreview(URL.createObjectURL(file));
   };
 
@@ -972,21 +1019,30 @@ const Employee = () => {
       });
   }, []);
 
-  const handleUploadFile = async () => {
-    const formData = new FormData();
-    formData.append("employeeID", iDNext);
+  const handleUpload = async (fileType) => {
+    const selectedFile = selectedFiles[fileType];
+    try {
+      const formData = new FormData();
+      formData.append("employeeID", iDNext);
+      formData.append(fileType, selectedFile);
 
-    // Object.entries(files).forEach(([type, file]) => {
-    //   if (file) formData.append(type, file);
-    // });
+      const uploadRes = await axios.post(apiRoutes.file.uploadfile, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-    // try {
-    //   await axios.post(apiRoutes.file.uploadfile, formData);
-    //   alert("Upload thành công");
-    // } catch (err) {
-    //   console.error(err);
-    //   alert("Upload thất bại");
-    // }
+      if (uploadRes.data.success) {
+        console.error("Upload success");
+      }
+    } catch (error) {
+      console.error("Upload failed:", error);
+      Swal.fire({
+        text: `Tải lên ${fileType} thất bại.`,
+        icon: "error",
+        showConfirmButton: true,
+      });
+    }
   };
 
   return (
@@ -1970,30 +2026,15 @@ const Employee = () => {
                     <div className="flex mt-[2%]">
                       {/* avatar */}
                       <div className="ml-[10px] ">
-                        {preview ? (
-                          <img
-                            src={preview}
-                            alt="preview"
-                            className="w-[240px] h-[240px] object-cover border ml-[20px] mr-[15px]"
-                          />
-                        ) : (
-                          <button
-                            onClick={handleChooseFile}
-                            className="flex flex-col rounded-none ml-[20px] border-[1px] mr-[15px] w-[240px] h-[240px] bg-[#EAEAEA] border-gray-400 text-[#C5C5C5] text-[10px] justify-center items-center  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
-                          >
-                            <HiOutlinePhoto className="w-[30px] h-[30px]" />
-                            <p className="w-[150px] mt-[5px] text-[12px]">
-                              Image: png, jpg, jpeg. Size Maximum: 1mb.
-                              Resolution: 500x500px.
-                            </p>
-                          </button>
-                        )}
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          style={{ display: "none" }}
-                          accept="image/*"
-                          onClick={handleImageChange}
+                        <FileUpload
+                          fileType="avatar"
+                          selectedEmployee={selectedEmployee}
+                          setSelectedFile={(file) =>
+                            setSelectedFiles((prev) => ({
+                              ...prev,
+                              avatar: file,
+                            }))
+                          }
                         />
                       </div>
                       {/* text 1*/}
@@ -2754,24 +2795,35 @@ const Employee = () => {
                                 </div>
                               </td>
                               <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
-                                <button
-                                  onClick={handleChooseFile}
-                                  className="border-[#000000] text-center p-1 border rounded-md w-fit h-fit flex items-center justify-center"
-                                >
-                                  upload
-                                </button>
-                                {/* <input
-                                  type="file"
-                                  ref={fileInputRef}
-                                  className="hidden"
-                                  accept=".png,.jpg,.jpeg"
-                                  onChange={(e) =>
-                                    handleFileChange(e, "photoID")
+                                <FileUpload
+                                  fileType="photoID"
+                                  selectedEmployee={selectedEmployee}
+                                  setSelectedFile={(file) =>
+                                    setSelectedFiles((prev) => ({
+                                      ...prev,
+                                      photoID: file,
+                                    }))
                                   }
-                                /> */}
+                                />
                               </td>
                               <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                                <div className="text-left w-[240px]  "></div>
+                                <div className="text-left w-[240px]  ">
+                                  {" "}
+                                  {selectedFiles.photoID && (
+                                    <a
+                                      href={URL.createObjectURL(
+                                        selectedFiles.photoID
+                                      )}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                      }}
+                                    >
+                                      Preview Photo ID
+                                    </a>
+                                  )}
+                                </div>
                               </td>
                               <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
                                 <div className="text-left w-[240px]  ">--</div>
@@ -2784,12 +2836,34 @@ const Employee = () => {
                                 </div>
                               </td>
                               <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
-                                <div className="border-[#000000] text-center p-1 border rounded-md w-fit h-fit flex items-center justify-center">
-                                  upload
-                                </div>
+                                <FileUpload
+                                  fileType="certificate"
+                                  selectedEmployee={selectedEmployee}
+                                  setSelectedFile={(file) =>
+                                    setSelectedFiles((prev) => ({
+                                      ...prev,
+                                      certificate: file,
+                                    }))
+                                  }
+                                />
                               </td>
                               <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                                <div className="text-left w-[240px]  "></div>
+                                <div className="text-left w-[240px]  ">
+                                  {selectedFiles.certificate && (
+                                    <a
+                                      href={URL.createObjectURL(
+                                        selectedFiles.certificate
+                                      )}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                      }}
+                                    >
+                                      Preview Certificate
+                                    </a>
+                                  )}
+                                </div>
                               </td>
                               <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
                                 <div className="text-left w-[240px]  ">--</div>
@@ -2802,12 +2876,34 @@ const Employee = () => {
                                 </div>
                               </td>
                               <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
-                                <div className="border-[#000000] text-center p-1 border rounded-md w-fit h-fit flex items-center justify-center">
-                                  upload
-                                </div>
+                                <FileUpload
+                                  fileType="graduationCertificate"
+                                  selectedEmployee={selectedEmployee}
+                                  setSelectedFile={(file) =>
+                                    setSelectedFiles((prev) => ({
+                                      ...prev,
+                                      graduationCertificate: file,
+                                    }))
+                                  }
+                                />
                               </td>
                               <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                                <div className="text-left w-[240px]  "></div>
+                                <div className="text-left w-[240px]  ">
+                                  {selectedFiles.graduationCertificate && (
+                                    <a
+                                      href={URL.createObjectURL(
+                                        selectedFiles.graduationCertificate
+                                      )}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                      }}
+                                    >
+                                      Preview Graduation Certificate
+                                    </a>
+                                  )}
+                                </div>
                               </td>
                               <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
                                 <div className="text-left w-[240px]  ">--</div>
@@ -2820,12 +2916,34 @@ const Employee = () => {
                                 </div>
                               </td>
                               <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
-                                <div className="border-[#000000] text-center p-1 border rounded-md w-fit h-fit flex items-center justify-center">
-                                  upload
-                                </div>
+                                <FileUpload
+                                  fileType="order"
+                                  selectedEmployee={selectedEmployee}
+                                  setSelectedFile={(file) =>
+                                    setSelectedFiles((prev) => ({
+                                      ...prev,
+                                      order: file,
+                                    }))
+                                  }
+                                />
                               </td>
                               <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                                <div className="text-left w-[240px]"></div>
+                                <div className="text-left w-[240px]">
+                                  {selectedFiles.order && (
+                                    <a
+                                      href={URL.createObjectURL(
+                                        selectedFiles.order
+                                      )}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                      }}
+                                    >
+                                      Preview Order
+                                    </a>
+                                  )}
+                                </div>
                               </td>
                               <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
                                 <div className="text-left w-[240px]">--</div>
@@ -2848,7 +2966,6 @@ const Employee = () => {
                       <button
                         onClick={() => {
                           handleCreate();
-                          handleUploadFile();
                         }}
                         className="mt-1 bg-[#E7F7EF] text-[#097C44] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] ml-[10px]"
                       >

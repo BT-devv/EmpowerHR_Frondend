@@ -13,6 +13,8 @@ import Swal from "sweetalert2";
 import FileUpload from "../components/FileUpload";
 import TabSelector from "../components/TabSelector";
 import PaginationFooter from "../components/PaginationFooter";
+import ClickOutside from "../components/ClickOutside";
+import avatar from "../assets/avatar.png";
 
 // icon
 import { CiSearch } from "react-icons/ci";
@@ -29,6 +31,7 @@ import { IoTrashBinOutline } from "react-icons/io5";
 import { IoBookmarkOutline } from "react-icons/io5";
 import { IoCloseCircleOutline } from "react-icons/io5";
 import { BiFilterAlt } from "react-icons/bi";
+import { FaRegTrashCan } from "react-icons/fa6";
 
 Modal.setAppElement("#root");
 const Employee = () => {
@@ -44,8 +47,6 @@ const Employee = () => {
   const [selectedTab, setSelectedTab] = useState("general");
 
   const [errors, setErrors] = useState({});
-
-  const dropdownRef = useRef(null);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   // fields
@@ -83,16 +84,17 @@ const Employee = () => {
   const [selectedAva, setSelectedAva] = useState(null);
 
   const [gender, setGender] = useState("Gender");
-  const [type, setType] = useState("Employee Type");
+  const [employeeType, setEmployeeType] = useState("Employee Type");
   const [department, setDepartment] = useState("Department");
-  const [position, setPosition] = useState("Position");
+  const [jobTitle, setJobTitle] = useState("Position");
   const [role, setRole] = useState("Role");
 
   const genderData = ["Male", "Female", "Other"];
-  const typeData = ["Fulltime", "Farttime", "Collabration", "Intern"];
-  const departData = ["Quality Assuarance"];
-  const positionData = ["Manual QA", "Front-End", "Backend"];
-  const roleData = ["Admin", "Employee"];
+  const typeData = ["Fulltime", "Partime", "Collab", "Intern"];
+
+  const [departData, setDepartData] = useState([]);
+  const [positionData, setPositionData] = useState([]);
+  const [roleData, setRoleData] = useState([]);
 
   // Edit employee 1
   const [isEditing1, setIsEditing1] = useState(false);
@@ -224,7 +226,7 @@ const Employee = () => {
           });
           setTimeout(() => {
             setIsEditing1(false);
-            // window.location.reload();
+            window.location.reload();
           }, 2000);
         } else {
           alert("Cập nhật thất bại: " + response.data.message);
@@ -356,9 +358,9 @@ const Employee = () => {
   const [isEditing4, setIsEditing4] = useState(false);
 
   const [formData4, setFormData4] = useState(() => ({
-    type: selectedEmployee?.type || "",
+    employeeType: selectedEmployee?.employeeType || "",
     department: selectedEmployee?.department || "",
-    position: selectedEmployee?.position || "",
+    jobTitle: selectedEmployee?.position || "",
     role: selectedEmployee?.role || "",
     joiningDate: selectedEmployee?.joiningDate || "",
     endDate: selectedEmployee?.endDate || "",
@@ -367,7 +369,7 @@ const Employee = () => {
   useEffect(() => {
     if (selectedEmployee) {
       setFormData4({
-        type: selectedEmployee.type || "",
+        employeeType: selectedEmployee.employeeType || "",
         department: selectedEmployee.department || "",
         position: selectedEmployee.position || "",
         role: selectedEmployee.role || "",
@@ -384,7 +386,7 @@ const Employee = () => {
   const handleCancelClick4 = () => {
     setIsEditing4(false);
     setFormData4({
-      type: selectedEmployee.type,
+      employeeType: selectedEmployee.type,
       department: selectedEmployee.department,
       position: selectedEmployee.position,
       role: selectedEmployee.role,
@@ -394,19 +396,35 @@ const Employee = () => {
   };
 
   const handleSaveClick4 = async () => {
+    const token = localStorage.getItem("token");
+
     if (!selectedEmployee?.employeeID) {
       alert("Không tìm thấy ID nhân viên!");
       return;
     }
     try {
       const response = await axios.put(
-        apiRoutes.posts.updateUser(selectedEmployee.employeeID),
-        formData4
+        apiRoutes.posts.updateUser(selectedEmployee._id),
+        formData4,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
 
       if (response.data.success) {
-        alert("Cập nhật thành công!");
-        setIsEditing4(false);
+        Swal.fire({
+          text: response.data.message,
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+        setTimeout(() => {
+          setIsEditing4(false);
+          window.location.reload();
+        }, 2000);
       } else {
         alert("Cập nhật thất bại: " + response.data.message);
       }
@@ -414,10 +432,6 @@ const Employee = () => {
       console.error("Lỗi cập nhật:", error);
       alert("Có lỗi xảy ra khi cập nhật.");
     }
-  };
-
-  const handleChange4 = (e) => {
-    setFormData4({ ...formData4, [e.target.name]: e.target.value });
   };
 
   // edit employee 3
@@ -489,6 +503,27 @@ const Employee = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentPage, selectedEmployee]);
 
+  // Get data dropdown
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        const [departments, positions, roles] = await Promise.all([
+          axios.get(apiRoutes.department.getAllDepartment),
+          axios.get(apiRoutes.jobtitle.getAllJobtitle),
+          axios.get(apiRoutes.role.getRole),
+        ]);
+
+        setDepartData(departments.data);
+        setPositionData(positions.data);
+        setRoleData(roles.data);
+      } catch (error) {
+        console.error("Failed to fetch options:", error);
+      }
+    };
+
+    fetchOptions();
+  }, []);
+
   // Dropdown selection of gender
   const toggleGenderDropdown = () => setIsGenderOpen(!isGenderOpen);
   const handleOptionClick1 = (option) => {
@@ -505,7 +540,7 @@ const Employee = () => {
   // Dropdown selection of type
   const toggleTypeDropdown = () => setIsTypeOpen(!isTypeOpen);
   const handleOptionClick3 = (option) => {
-    setType(option);
+    setEmployeeType(option);
     setIsTypeOpen(false);
   };
 
@@ -519,7 +554,7 @@ const Employee = () => {
   // Dropdown selection of position
   const togglePossitionDropdown = () => setIsPositionOpen(!isPositionOpen);
   const handleOptionClick5 = (option) => {
-    setPosition(option);
+    setJobTitle(option);
     setIsPositionOpen(false);
   };
 
@@ -531,19 +566,6 @@ const Employee = () => {
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   };
-
-  // Prevent click outside
-  const handleClickOutside = (event) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-      setIsGenderOpen(false);
-    }
-  };
-  useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   // Get all users
   useEffect(() => {
@@ -639,13 +661,13 @@ const Employee = () => {
       message: "Role is required.",
       isInvalid: (val) => val === "Role",
     },
-    position: {
-      value: position,
+    jobTitle: {
+      value: jobTitle,
       message: "Position is required.",
       isInvalid: (val) => val === "Position",
     },
-    type: {
-      value: type,
+    employeeType: {
+      value: employeeType,
       message: "Type is required.",
       isInvalid: (val) => val === "Employee Type",
     },
@@ -693,7 +715,7 @@ const Employee = () => {
       idCardNumber: idCard,
       dateOfBirth: dateOfBirth,
       gender: gender,
-      employeeType: type,
+      employeeType: employeeType,
       phoneNumber: "(+84)" + " " + phoneNumber,
       emailCompany: emailCompany,
       address: address,
@@ -704,8 +726,8 @@ const Employee = () => {
       bankAccountName: accountName,
       bankAccountNumber: bankAccountNumber,
       department: department,
-      role: role === "Admin" ? "admin" : "employee",
-      jobTitle: position,
+      role: role._id,
+      jobTitle: jobTitle,
       joiningDate: joiningDate,
       endDate: endDate,
       status: status ? "Active" : "Inactive",
@@ -882,10 +904,10 @@ const Employee = () => {
     setCity("");
     setDateOfBirth(null);
     setGender("Gender");
-    setType("Employee Type");
+    setEmployeeType("Employee Type");
     setRole("Role");
     setDepartment("Department");
-    setPosition("Position");
+    setJobTitle("Position");
     setIdCard("");
     setPhoneNumber("");
     setModalIsOpen(false);
@@ -1047,7 +1069,11 @@ const Employee = () => {
               ) : (
                 <img
                   alt="avatar"
-                  src={apiRoutes.file.avatar(selectedEmployee.avatar)}
+                  src={
+                    apiRoutes.file.avatar(selectedEmployee.avatar)
+                      ? apiRoutes.file.avatar(selectedEmployee.avatar)
+                      : avatar
+                  }
                   className="w-[230px] h-[230px] object-cover border border-gray-300"
                 />
               )}
@@ -1239,9 +1265,9 @@ const Employee = () => {
                     <p className="w-fit text-[#828282]">Gender</p>
 
                     {isEditing1 ? (
-                      <div
-                        className="relative inline-block text-left "
-                        ref={dropdownRef}
+                      <ClickOutside
+                        className="w-full"
+                        setIsOpen={setIsGenderOpen}
                       >
                         <div className="relative">
                           <div
@@ -1274,7 +1300,7 @@ const Employee = () => {
                             </ul>
                           </div>
                         )}
-                      </div>
+                      </ClickOutside>
                     ) : (
                       <p className="w-fit font-bold mt-[5%]">
                         {selectedEmployee.gender}
@@ -1561,10 +1587,7 @@ const Employee = () => {
                   <div>
                     <p className="text-[#828282]">Employee Type</p>
                     {isEditing4 ? (
-                      <div
-                        className="relative inline-block text-left "
-                        ref={dropdownRef}
-                      >
+                      <ClickOutside setIsOpen={setIsTypeOpen}>
                         <div className="relative">
                           <div
                             className="inline-flex w-[260px] border-gray-200 border-1 h-[42px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
@@ -1585,7 +1608,7 @@ const Employee = () => {
                                   onClick={() =>
                                     setFormData4((prev) => ({
                                       ...prev,
-                                      type: option,
+                                      employeeType: option,
                                     }))
                                   }
                                   className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
@@ -1596,7 +1619,7 @@ const Employee = () => {
                             </ul>
                           </div>
                         )}
-                      </div>
+                      </ClickOutside>
                     ) : (
                       <p className="w-fit font-bold">
                         {selectedEmployee.employeeType}
@@ -1606,10 +1629,7 @@ const Employee = () => {
                   <div>
                     <p className="text-[#828282]">Department</p>
                     {isEditing4 ? (
-                      <div
-                        className="relative inline-block text-left "
-                        ref={dropdownRef}
-                      >
+                      <ClickOutside setIsOpen={setIsDepartOpen}>
                         <div className="relative">
                           <div
                             className="inline-flex w-[260px] border-gray-200 border-1 h-[42px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
@@ -1630,18 +1650,18 @@ const Employee = () => {
                                   onClick={() =>
                                     setFormData4((prev) => ({
                                       ...prev,
-                                      department: option,
+                                      department: option.name,
                                     }))
                                   }
                                   className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
                                 >
-                                  {option}
+                                  {option.name}
                                 </li>
                               ))}
                             </ul>
                           </div>
                         )}
-                      </div>
+                      </ClickOutside>
                     ) : (
                       <p className="w-fit font-bold">
                         {selectedEmployee.department}
@@ -1651,17 +1671,14 @@ const Employee = () => {
                   <div>
                     <p className="text-[#828282]">Position</p>
                     {isEditing4 ? (
-                      <div
-                        className="relative inline-block text-left "
-                        ref={dropdownRef}
-                      >
+                      <ClickOutside setIsOpen={setIsPositionOpen}>
                         <div className="relative">
                           <div
                             className="inline-flex w-[260px] border-gray-200 border-1 h-[42px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
                             onClick={togglePossitionDropdown}
                           >
                             <span className="text-[15px]">
-                              {formData4.position}
+                              {formData4.jobTitle}
                             </span>
                             <IoIosArrowDown />
                           </div>
@@ -1675,31 +1692,28 @@ const Employee = () => {
                                   onClick={() =>
                                     setFormData4((prev) => ({
                                       ...prev,
-                                      position: option,
+                                      jobTitle: option.name,
                                     }))
                                   }
                                   className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
                                 >
-                                  {option}
+                                  {option.name}
                                 </li>
                               ))}
                             </ul>
                           </div>
                         )}
-                      </div>
+                      </ClickOutside>
                     ) : (
                       <p className="w-fit font-bold">
-                        {selectedEmployee.position}
+                        {selectedEmployee.jobTitle}
                       </p>
                     )}
                   </div>
                   <div>
                     <p className="text-[#828282]">Role</p>
                     {isEditing4 ? (
-                      <div
-                        className="relative inline-block text-left "
-                        ref={dropdownRef}
-                      >
+                      <ClickOutside setIsOpen={setIsRoleOpen}>
                         <div className="relative">
                           <div
                             className="inline-flex w-[260px] border-gray-200 border-1 h-[42px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
@@ -1725,15 +1739,15 @@ const Employee = () => {
                                       role: option,
                                     }))
                                   }
-                                  className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                                  className="block capitalize px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
                                 >
-                                  {option}
+                                  {option.name}
                                 </li>
                               ))}
                             </ul>
                           </div>
                         )}
-                      </div>
+                      </ClickOutside>
                     ) : (
                       <p className="w-fit font-bold">
                         {selectedEmployee.role === "67fc24eb88df30b9541815ec"
@@ -1747,11 +1761,62 @@ const Employee = () => {
                 <div className="grid grid-cols-2 mt-[3%] mb-[3%]">
                   <div>
                     <p className="text-[#828282]">Joining Date</p>
-                    <p className="font-bold mt-2">01/04/2023</p>
-                  </div>{" "}
+                    {isEditing4 ? (
+                      <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <DatePicker
+                          value={
+                            formData4.joiningDate
+                              ? dayjs(formData4.joiningDate)
+                              : null
+                          }
+                          onChange={(newDate) =>
+                            setFormData4((prev) => ({
+                              ...prev,
+                              joiningDate: newDate ? newDate.toISOString() : "",
+                            }))
+                          }
+                          renderInput={(params) => (
+                            <TextField {...params} fullWidth />
+                          )}
+                          slotProps={{ textField: { size: "small" } }}
+                        />
+                      </LocalizationProvider>
+                    ) : (
+                      <p className="mt-2 font-bold">
+                        {formatDate(selectedEmployee.joiningDate) ===
+                        "NaN/NaN/NaN"
+                          ? "--"
+                          : formatDate(selectedEmployee.joiningDate)}
+                      </p>
+                    )}
+                  </div>
                   <div>
                     <p className="text-[#828282]">End Date</p>
-                    <p className="font-bold mt-2">--</p>
+                    {isEditing4 ? (
+                      <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <DatePicker
+                          value={
+                            formData4.endDate ? dayjs(formData4.endDate) : null
+                          }
+                          onChange={(newDate) =>
+                            setFormData4((prev) => ({
+                              ...prev,
+                              endDate: newDate ? newDate.toISOString() : "",
+                            }))
+                          }
+                          renderInput={(params) => (
+                            <TextField {...params} fullWidth />
+                          )}
+                          slotProps={{ textField: { size: "small" } }}
+                        />
+                      </LocalizationProvider>
+                    ) : (
+                      <p className="mt-2 font-bold">
+                        {formatDate(selectedEmployee.endDate) === "NaN/NaN/NaN"
+                          ? "--"
+                          : formatDate(selectedEmployee.endDate)}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1837,7 +1902,9 @@ const Employee = () => {
                           </td>
 
                           <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
-                            <div className="text-left w-[90px]">--</div>
+                            <div className="text-left w-[90px]">
+                              <FaRegTrashCan className="w-[25px] h-[25px] text-red-400" />
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -2126,10 +2193,7 @@ const Employee = () => {
                               )}
                             </div>
                             <div className="mt-7 space-x-5">
-                              <div
-                                className="relative inline-block text-left "
-                                ref={dropdownRef}
-                              >
+                              <ClickOutside setIsOpen={setIsGenderOpen}>
                                 <div className="flex">
                                   <p>Gender</p>
                                   <p className="text-[#E03137] ml-1">*</p>
@@ -2172,7 +2236,7 @@ const Employee = () => {
                                     {errors.gender}
                                   </p>
                                 )}
-                              </div>
+                              </ClickOutside>
                             </div>
                           </div>
                         </div>
@@ -2375,7 +2439,7 @@ const Employee = () => {
                     </div>
                     {/* Text 3 */}
                     <div className="mt-[2%] ml-[3%]">
-                      <p className="text-[20px] font-bold">Contact Details</p>
+                      <p className="text-[20px] font-bold">Bank Account</p>
                       {/* fields 3*/}
                       <div className="flex space-x-7">
                         <div>
@@ -2456,10 +2520,7 @@ const Employee = () => {
                       <div className="flex space-x-5">
                         {/* Col 1 */}
                         <div className="mt-7">
-                          <div
-                            className="relative inline-block text-left "
-                            // ref={dropdownRef}
-                          >
+                          <ClickOutside setIsOpen={setIsTypeOpen}>
                             <div className="flex">
                               <p>Employee Type</p>
                               <p className="text-[#E03137] ml-1">*</p>
@@ -2467,13 +2528,15 @@ const Employee = () => {
                             <div className="relative">
                               <div
                                 className={`inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 ${
-                                  errors.type
+                                  errors.employeeType
                                     ? "border-[2px] border-red-500"
                                     : ""
                                 }`}
                                 onClick={toggleTypeDropdown}
                               >
-                                <span className="text-[15px]">{type}</span>
+                                <span className="text-[15px]">
+                                  {employeeType}
+                                </span>
                                 <IoIosArrowDown />
                               </div>
                             </div>
@@ -2495,18 +2558,15 @@ const Employee = () => {
                                 </ul>
                               </div>
                             )}
-                          </div>
-                          {errors.type && (
-                            <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                              {errors.type}
-                            </p>
-                          )}
+                            {errors.employeeType && (
+                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                {errors.employeeType}
+                              </p>
+                            )}
+                          </ClickOutside>
                         </div>
                         <div className="mt-7">
-                          <div
-                            className="relative inline-block text-left "
-                            // ref={dropdownRef}
-                          >
+                          <ClickOutside setIsOpen={setIsDepartOpen}>
                             <div className="flex">
                               <p>Department</p>
                               <p className="text-[#E03137] ml-1">*</p>
@@ -2533,29 +2593,28 @@ const Employee = () => {
                                     <li
                                       key={index}
                                       onClick={() => {
-                                        handleOptionClick4(option);
+                                        handleOptionClick4(option.name);
                                         setErrors({});
                                       }}
                                       className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
                                     >
-                                      {option}
+                                      {option.name}
                                     </li>
                                   ))}
                                 </ul>
                               </div>
                             )}
-                          </div>
-                          {errors.department && (
-                            <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                              {errors.department}
-                            </p>
-                          )}
+
+                            {errors.department && (
+                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                {errors.department}
+                              </p>
+                            )}
+                          </ClickOutside>
                         </div>
+
                         <div className="mt-7">
-                          <div
-                            className="relative inline-block text-left "
-                            // ref={dropdownRef}
-                          >
+                          <ClickOutside setIsOpen={setIsPositionOpen}>
                             <div className="flex">
                               <p>Job title</p>
                               <p className="text-[#E03137] ml-1">*</p>
@@ -2569,7 +2628,7 @@ const Employee = () => {
                                 }`}
                                 onClick={togglePossitionDropdown}
                               >
-                                <span className="text-[15px]">{position}</span>
+                                <span className="text-[15px]">{jobTitle}</span>
                                 <IoIosArrowDown />
                               </div>
                             </div>
@@ -2580,29 +2639,27 @@ const Employee = () => {
                                     <li
                                       key={index}
                                       onClick={() => {
-                                        handleOptionClick5(option);
+                                        handleOptionClick5(option.name);
                                         setErrors({});
                                       }}
                                       className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
                                     >
-                                      {option}
+                                      {option.name}
                                     </li>
                                   ))}
                                 </ul>
                               </div>
                             )}
-                          </div>
-                          {errors.position && (
-                            <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                              {errors.position}
-                            </p>
-                          )}
+
+                            {errors.position && (
+                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                {errors.position}
+                              </p>
+                            )}
+                          </ClickOutside>
                         </div>
                         <div className="mt-7">
-                          <div
-                            className="relative inline-block text-left "
-                            // ref={dropdownRef}
-                          >
+                          <ClickOutside setIsOpen={setIsRoleOpen}>
                             <div className="flex">
                               <p>Role</p>
                               <p className="text-[#E03137] ml-1">*</p>
@@ -2616,7 +2673,9 @@ const Employee = () => {
                                 }`}
                                 onClick={toggleRoleDropdown}
                               >
-                                <span className="text-[15px]">{role}</span>
+                                <span className="text-[15px] capitalize">
+                                  {role}
+                                </span>
                                 <IoIosArrowDown />
                               </div>
                             </div>
@@ -2627,23 +2686,24 @@ const Employee = () => {
                                     <li
                                       key={index}
                                       onClick={() => {
-                                        handleOptionClick2(option);
+                                        handleOptionClick2(option.name);
                                         setErrors({});
                                       }}
-                                      className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                                      className="block capitalize px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
                                     >
-                                      {option}
+                                      {option.name}
                                     </li>
                                   ))}
                                 </ul>
                               </div>
                             )}
-                          </div>
-                          {errors.role && (
-                            <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                              {errors.role}
-                            </p>
-                          )}
+
+                            {errors.role && (
+                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                {errors.role}
+                              </p>
+                            )}
+                          </ClickOutside>
                         </div>
                       </div>
                       <div>

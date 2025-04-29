@@ -961,14 +961,6 @@ const Setting = () => {
               </button>
             </div>
           )}
-          {/* infor bottom */}
-          <PaginationFooter
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-            totalItems={permission.length}
-            itemsPerPage={itemsPerPage}
-            setItemsPerPage={setItemsPerPage}
-          />
         </div>
       )}
 

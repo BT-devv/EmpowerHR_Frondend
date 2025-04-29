@@ -64,6 +64,12 @@ const apiRoutes = {
     file: (file) => `${API_BASE_URL}/file/${file}`,
     uploadfile: `${API_BASE_URL}/upload`,
   },
+  holiday: {
+    createHoliday: `${API_BASE_URL}/holiday/`,
+    deleteHoliday: (id) => `${API_BASE_URL}/holiday/${id}`,
+    getAllHolidays: `${API_BASE_URL}/holiday/`,
+    updateHoliday: (id) => `${API_BASE_URL}/holiday/${id}`,
+  },
 };
 
 export default apiRoutes;

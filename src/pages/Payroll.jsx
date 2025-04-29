@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Modal from "react-modal";
-
+import TabSelector from "../components/TabSelector";
 // icon
 import { CiSearch } from "react-icons/ci";
 import { BiFilterAlt } from "react-icons/bi";
@@ -34,25 +34,16 @@ const Payroll = () => {
   return (
     <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">
       <div className="bg-white ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-[70px] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] flex items-center">
-        <div className="flex gap-10 md:gap-10 text-[#1C1C1C] ml-7">
-          {[
+        <TabSelector
+          tabs={[
             { key: "payroll", label: "Payroll" },
             { key: "payitems", label: "Pay Items" },
             { key: "payslip", label: "Pay Slip" },
-          ].map((tab) => (
-            <p
-              key={tab.key}
-              className={`cursor-pointer py-6 border-b-2 transition-all caret-transparent ${
-                selectedTab === tab.key
-                  ? "font-bold border-black"
-                  : "border-transparent text-gray-500 hover:text-black"
-              }`}
-              onClick={() => setSelectedTab(tab.key)}
-            >
-              {tab.label}
-            </p>
-          ))}
-        </div>
+          ]}
+          selectedTab={selectedTab}
+          onTabSelect={(key) => setSelectedTab(key)}
+          wrapperClassName="gap-10 md:gap-10 text-[#1C1C1C] ml-7"
+        />
       </div>
 
       {selectedTab === "payroll" && (
@@ -316,25 +307,18 @@ const Payroll = () => {
 
       {selectedTab === "payitems" && (
         <>
-          <div className="flex gap-10 md:gap-5 text-[#1C1C1C] ml-[3%] mt-[2%] text-center">
-            {[
+          <TabSelector
+            tabs={[
               { key: "base", label: "Base Salary" },
               { key: "additional", label: "Additional" },
               { key: "deduction", label: "Deduction" },
-            ].map((tab) => (
-              <p
-                key={tab.key}
-                className={`bg-[#2EB67D] font-light w-[10%] rounded-[10px] cursor-pointer p-4 border-b-2 transition-all caret-transparent ${
-                  selectedTab2 === tab.key
-                    ? "text-white"
-                    : "border-transparent bg-[#B8E4D2]"
-                }`}
-                onClick={() => setSelectedTab2(tab.key)}
-              >
-                {tab.label}
-              </p>
-            ))}
-          </div>
+            ]}
+            selectedTab={selectedTab2}
+            onTabSelect={(key) => setSelectedTab2(key)}
+            type="button"
+            wrapperClassName="flex gap-10 md:gap-5 text-[#1C1C1C] ml-[3%] mt-[2%] text-center"
+          />
+
           {selectedTab2 === "base" && (
             <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-[77%] ml-[3%] rounded-[15px] mt-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
               <div className="flex flex-wrap w-full items-center gap-x-4 px-4 py-6">

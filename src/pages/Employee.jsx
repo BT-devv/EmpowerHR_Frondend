@@ -13,8 +13,11 @@ import Swal from "sweetalert2";
 import FileUpload from "../components/FileUpload";
 import TabSelector from "../components/TabSelector";
 import PaginationFooter from "../components/PaginationFooter";
+<<<<<<< HEAD
 import ClickOutside from "../components/ClickOutside";
 import avatar from "../assets/avatar.png";
+=======
+>>>>>>> 4816786611cc56553a32ae39ab344f748160b6b8
 
 // icon
 import { CiSearch } from "react-icons/ci";
@@ -503,6 +506,7 @@ const Employee = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentPage, selectedEmployee]);
 
+<<<<<<< HEAD
   // Get data dropdown
   useEffect(() => {
     const fetchOptions = async () => {
@@ -524,6 +528,8 @@ const Employee = () => {
     fetchOptions();
   }, []);
 
+=======
+>>>>>>> 4816786611cc56553a32ae39ab344f748160b6b8
   // Dropdown selection of gender
   const toggleGenderDropdown = () => setIsGenderOpen(!isGenderOpen);
   const handleOptionClick1 = (option) => {

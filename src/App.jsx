@@ -13,8 +13,10 @@ import Absence from "./pages/Absence";
 import QRScanner from "./pages/QRScanner";
 import Setting from "./pages/Setting";
 import NotPermission from "./components/NotPermission";
-import Comingsoon from "./components/Comingsoon";
 import Payroll from "./pages/Payroll";
+import Dashboard from "./pages/Dashboard";
+import Chat from "./pages/Chat";
+import Calendar from "./pages/Calendar";
 
 function App() {
   return (
@@ -31,9 +33,9 @@ function App() {
         {/* Protected Routes */}
 
         <Route path="/" element={<Layout />}>
-          <Route path="dashboard" element={<Comingsoon />} />
-          <Route path="message" element={<Comingsoon />} />
-          <Route path="calendar" element={<Comingsoon />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="message" element={<Chat />} />
+          <Route path="calendar" element={<Calendar />} />
           <Route path="overtime" element={<Overtime />} />
           <Route path="absense" element={<Absence />} />
 

@@ -66,7 +66,12 @@ const Absence = () => {
   // Get all users
   useEffect(() => {
     axios
-      .get(apiRoutes.user.getAll)
+      .get(apiRoutes.user.getAll, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
       .then((response) => {
         setData(response.data);
         console.log(JSON.stringify(data));

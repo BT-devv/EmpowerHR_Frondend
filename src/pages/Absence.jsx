@@ -154,7 +154,11 @@ const Absence = () => {
         },
       })
       .then((response) => {
-        setDataPending(response.data.absences);
+        const allRequests = response.data.absences;
+        const filtered = allRequests.filter(
+          (req) => req.lineManagers === data.employeeID
+        );
+        setDataPending(filtered);
       })
       .catch((error) => {
         console.error("Error fetching data from API", error);
@@ -171,7 +175,11 @@ const Absence = () => {
         },
       })
       .then((response) => {
-        setDataHistory(response.data.absences);
+        const allRequests = response.data.absences;
+        const filtered = allRequests.filter(
+          (req) => req.lineManagers === data.employeeID
+        );
+        setDataHistory(filtered);
       })
       .catch((error) => {
         console.error("Error fetching data from API", error);
@@ -328,7 +336,7 @@ const Absence = () => {
       </div>
 
       {selectedTab === "absence" && (
-        <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[10px] w-[calc(100vw-340px)] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] mb-[2%]">
+        <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[10px] w-[calc(100vw-340px)] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
           <div className="flex flex-grow ml-[5%]">
             <div className="mt-[3%] w-full">
               <p>Absence Type</p>
@@ -642,7 +650,7 @@ const Absence = () => {
                     <div className="flex mt-[8%]">
                       <p className="font-bold w-1/3">Line Manager:</p>
                       <p className="w-2/3">
-                        {selectedEmployee.projectManager || "---"}
+                        {selectedEmployee.lineManagers || "---"}
                       </p>
                     </div>
                     <div className="flex mt-[8%]">
@@ -761,12 +769,9 @@ const Absence = () => {
                 className="w-[380px] h-[280px]"
               />
               <div className="mt-[10%] text-center">
-                <p className="font-bold">Empty Employee</p>
-                <p>Add your first Employee manually</p>
+                <p className="font-bold">No Absence Requests</p>
+                <p>There are no pending absence requests assigned to you.</p>
               </div>
-              <button className="text-white font-normal mt-[10%] h-[50px] w-[180px] rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 focus:outline-none hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]">
-                + Employee
-              </button>
             </div>
           )}
 
@@ -942,7 +947,7 @@ const Absence = () => {
                     <div className="flex mt-[8%]">
                       <p className="font-bold w-1/3">Line Manager:</p>
                       <p className="w-2/3">
-                        {selectedEmployee.projectManager || "---"}
+                        {selectedEmployee.lineManagers || "---"}
                       </p>
                     </div>
                     <div className="flex mt-[8%]">
@@ -1005,15 +1010,9 @@ const Absence = () => {
                 className="w-[380px] h-[280px]"
               />
               <div className="mt-[10%] text-center">
-                <p className="font-bold">Empty Employee</p>
-                <p>Add your first Employee manually</p>
+                <p className="font-bold">No History Found</p>
+                <p>{`You haven't submitted any absence requests yet.`}</p>
               </div>
-              <button
-                className="text-white font-normal mt-[10%] h-[50px] w-[180px] rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 focus:outline-none hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]"
-                // onClick={() => setModalIsOpen(true)}
-              >
-                + Employee
-              </button>
             </div>
           )}
           {/* infor bottom */}

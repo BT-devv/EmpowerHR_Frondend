@@ -47,23 +47,23 @@ const Slidebar = () => {
   }, [selectedItem]);
 
   return (
-    <div className="w-[250px] min-w-[250px] font-sans flex flex-col justify-between items-center text-[14px] caret-transparent border-r-2">
+    <div className="w-[250px] min-w-[250px] h-screen font-sans flex flex-col justify-between items-center text-[14px] caret-transparent">
       <div className="w-full flex flex-col items-start px-[10px]">
         {/* Logo */}
         <div>
           <img
             alt="logo"
             src="src\assets\logoapp.png"
-            className="w-[215px] h-[72px] left-[10px] mt-[10%]"
+            className="w-[80%] h-auto object-contain ml-5 mt-2"
           />
         </div>
         {/* Menu */}
-        <div className="mt-[10%] ml-[10px]">
+        <div className="mt-2 ml-[10px]">
           <p className="flex font-bold">MENU</p>
           <ul className="flex flex-col mt-[5%]">
             <div className="flex">
               <li
-                className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer transition-transform duration-300 ${
+                className={`flex items-center  w-[210px] rounded-[8px] h-[45px] cursor-pointer transition-transform duration-300 ${
                   selectedItem === "dashboard"
                     ? "bg-[#2EB67D] text-white translate-x-2"
                     : "bg-white text-[#979797]"
@@ -76,7 +76,7 @@ const Slidebar = () => {
             </div>
             <div className="flex">
               <li
-                className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer transition-transform duration-300 ${
+                className={`flex items-center  w-[210px] rounded-[8px] h-[45px] cursor-pointer transition-transform duration-300 ${
                   selectedItem === "message"
                     ? "bg-[#2EB67D] text-white translate-x-2"
                     : "bg-white text-[#979797]"
@@ -89,7 +89,7 @@ const Slidebar = () => {
             </div>
             <div className="flex">
               <li
-                className={`flex items-center w-[210px] rounded-[8px] h-[50px] cursor-pointer transition-transform duration-300 ${
+                className={`flex items-center w-[210px] rounded-[8px] h-[45px] cursor-pointer transition-transform duration-300 ${
                   selectedItem === "calendar"
                     ? "bg-[#2EB67D] text-white translate-x-2"
                     : "bg-white text-[#979797]"
@@ -102,7 +102,7 @@ const Slidebar = () => {
             </div>
             <div className="flex">
               <li
-                className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer transition-transform duration-300 ${
+                className={`flex items-center  w-[210px] rounded-[8px] h-[45px] cursor-pointer transition-transform duration-300 ${
                   selectedItem === "overtime"
                     ? "bg-[#2EB67D] text-white translate-x-2"
                     : "bg-white text-[#979797]"
@@ -115,7 +115,7 @@ const Slidebar = () => {
             </div>
             <div className="flex">
               <li
-                className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer transition-transform duration-300 ${
+                className={`flex items-center  w-[210px] rounded-[8px] h-[45px] cursor-pointer transition-transform duration-300 ${
                   selectedItem === "absense"
                     ? "bg-[#2EB67D] text-white translate-x-2"
                     : "bg-white text-[#979797]"
@@ -134,7 +134,7 @@ const Slidebar = () => {
           <ul className="flex flex-col mt-[5%]">
             <div className="flex">
               <li
-                className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer transition-transform duration-300 ${
+                className={`flex items-center  w-[210px] rounded-[8px] h-[45px] cursor-pointer transition-transform duration-300 ${
                   selectedItem === "employee"
                     ? "bg-[#2EB67D] text-white translate-x-2"
                     : "bg-white text-[#979797]"
@@ -147,7 +147,7 @@ const Slidebar = () => {
             </div>
             <div className="flex">
               <li
-                className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer transition-transform duration-300 ${
+                className={`flex items-center  w-[210px] rounded-[8px] h-[45px] cursor-pointer transition-transform duration-300 ${
                   selectedItem === "payroll"
                     ? "bg-[#2EB67D] text-white translate-x-2"
                     : "bg-white text-[#979797]"
@@ -160,7 +160,7 @@ const Slidebar = () => {
             </div>
             <div className="flex">
               <li
-                className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer transition-transform duration-300 ${
+                className={`flex items-center  w-[210px] rounded-[8px] h-[45px] cursor-pointer transition-transform duration-300 ${
                   selectedItem === "attendance"
                     ? "bg-[#2EB67D] text-white translate-x-2"
                     : "bg-white text-[#979797]"
@@ -173,7 +173,7 @@ const Slidebar = () => {
             </div>
             <div className="flex">
               <li
-                className={`flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointer transition-transform duration-300 ${
+                className={`flex items-center  w-[210px] rounded-[8px] h-[45px] cursor-pointer transition-transform duration-300 ${
                   selectedItem === "qrscanner"
                     ? "bg-[#2EB67D] text-white translate-x-2"
                     : "bg-white text-[#979797]"
@@ -188,9 +188,9 @@ const Slidebar = () => {
         </div>
       </div>
       {/* Setting */}
-      <div className="flex justify-end border-[#B8BDC5] border-2 rounded-[10px] mt-[50%] mb-[5%]">
+      <div className="flex justify-between  border-[#B8BDC5] border-2 rounded-[10px] mb-[5%]">
         <li
-          className="flex items-center  w-[210px] rounded-[8px] h-[50px] cursor-pointe text-[#979797]"
+          className="flex items-center w-[210px] rounded-[8px] h-[45px] cursor-pointer text-[#979797]"
           onClick={() => toggleMenu("setting", "/settings")}
         >
           <IoSettingsOutline className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />

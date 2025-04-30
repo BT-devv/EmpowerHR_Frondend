@@ -76,7 +76,6 @@ const Overtime = () => {
       endTime: formattedEndTime,
       reason,
     };
-    // alert(JSON.stringify(formData));
     try {
       const response = await axios.post(apiRoutes.overtime.request, formData, {
         headers: {
@@ -159,6 +158,7 @@ const Overtime = () => {
 
   // Get all pending
   useEffect(() => {
+    if (!data) return;
     axios
       .get(apiRoutes.overtime.listPending, {
         headers: {
@@ -167,7 +167,11 @@ const Overtime = () => {
         },
       })
       .then((response) => {
-        setDataPending(response.data.data);
+        const allRequests = response.data.data;
+        const filtered = allRequests.filter(
+          (req) => req.projectManager === data.employeeID
+        );
+        setDataPending(filtered);
       })
       .catch((error) => {
         console.error("Error fetching data from API", error);
@@ -195,7 +199,11 @@ const Overtime = () => {
         },
       })
       .then((response) => {
-        setDataHistory(response.data.data);
+        const allRequests = response.data.data;
+        const filtered = allRequests.filter(
+          (req) => req.projectManager === data.employeeID
+        );
+        setDataHistory(filtered);
       })
       .catch((error) => {
         console.error("Error fetching data from API", error);
@@ -327,7 +335,7 @@ const Overtime = () => {
 
   return (
     <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">
-      <div className="bg-white ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-[70px] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] flex items-center">
+      <div className="bg-white ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-[70px] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] flex items-center ">
         <TabSelector
           tabs={[
             { key: "overtime", label: "Overtime Form" },
@@ -739,15 +747,9 @@ const Overtime = () => {
                 className="w-[380px] h-[280px]"
               />
               <div className="mt-[10%] text-center">
-                <p className="font-bold">Empty Employee</p>
-                <p>Add your first Employee manually</p>
+                <p className="font-bold">No Overtime Requests</p>
+                <p>There are no pending overtime requests assigned to you.</p>
               </div>
-              <button
-                className="text-white font-normal mt-[10%] h-[50px] w-[180px] rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 focus:outline-none hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]"
-                // onClick={() => setModalIsOpen(true)}
-              >
-                + Employee
-              </button>
             </div>
           )}
 
@@ -985,15 +987,9 @@ const Overtime = () => {
                 className="w-[380px] h-[280px]"
               />
               <div className="mt-[10%] text-center">
-                <p className="font-bold">Empty Employee</p>
-                <p>Add your first Employee manually</p>
+                <p className="font-bold">No History Found</p>
+                <p>{`You haven't submitted any overtime requests yet.`}</p>
               </div>
-              <button
-                className="text-white font-normal mt-[10%] h-[50px] w-[180px] rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 focus:outline-none hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]"
-                // onClick={() => setModalIsOpen(true)}
-              >
-                + Employee
-              </button>
             </div>
           )}
           {/* infor bottom */}

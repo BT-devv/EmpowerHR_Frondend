@@ -14,6 +14,7 @@ import { HiOutlineDotsHorizontal } from "react-icons/hi";
 import { IoIosArrowRoundBack } from "react-icons/io";
 import { FaRegAddressCard } from "react-icons/fa";
 import { IoTrashBinOutline } from "react-icons/io5";
+import { IoIosArrowDown } from "react-icons/io";
 
 const Setting = () => {
   const [selectedTab, setSelectedTab] = useState("role");
@@ -36,6 +37,7 @@ const Setting = () => {
 
   const [moreOptions3, setMoreOptions3] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
+
   const [modalAddJob, setModalAddJob] = useState(false);
   const [modalEditJob, setModalEditJob] = useState(false);
 
@@ -46,7 +48,21 @@ const Setting = () => {
   const [nameDepart, setNameDepart] = useState("");
 
   const [errors2, setErrors2] = useState("");
+  const [errors4, setErrors4] = useState("");
   const [nameJob, setNameJob] = useState("");
+
+  const [isDepartOpen, setIsDepartOpen] = useState(false);
+  const [departName, setDepartName] = useState("Select Department");
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState(null);
+
+  const handleOptionClick1 = (option, id) => {
+    setDepartName(option);
+    setSelectedDepartmentId(id);
+    setIsDepartOpen(false);
+  };
+
+  // Dropdown selection of manager name
+  const toggleDepartDropdown = () => setIsDepartOpen(!isDepartOpen);
 
   // Page navigation
   const [currentPage, setCurrentPage] = useState(1);
@@ -186,9 +202,8 @@ const Setting = () => {
       setErrors("");
     }
 
-    if (!isValid) {
-      return;
-    }
+    if (!isValid) return;
+
     const token = localStorage.getItem("token");
 
     try {
@@ -212,9 +227,8 @@ const Setting = () => {
           timer: 2000,
           showConfirmButton: false,
         });
-
         setTimeout(() => {
-          setModalAddRole(false);
+          setModalAddDepart(false);
           window.location.reload();
         }, 2000);
       } else {
@@ -233,6 +247,7 @@ const Setting = () => {
       }
     }
   };
+
   // Edit role
   const handleEditRole = async () => {
     const token = localStorage.getItem("token");
@@ -258,6 +273,7 @@ const Setting = () => {
           timer: 2000,
           showConfirmButton: false,
         });
+
         setTimeout(() => {
           setModalEditRole(false);
           window.location.reload();
@@ -472,28 +488,34 @@ const Setting = () => {
     setNameJob("");
   };
 
-  // Add Department
+  // Add JobTitle
   const handleCreateJob = async () => {
     let isValid = true;
 
     if (!nameJob) {
-      setErrors("Name Job Title is required.");
+      setErrors2("Name Job Title is required.");
       isValid = false;
     } else {
-      setErrors("");
+      setErrors2("");
+    }
+
+    if (!selectedDepartmentId) {
+      setErrors4("Department is required.");
+      isValid = false;
+    } else {
+      setErrors4("");
     }
 
     if (!isValid) {
       return;
     }
+
     const token = localStorage.getItem("token");
 
     try {
       const response = await axios.post(
         apiRoutes.jobtitle.createJobtitle,
-        {
-          name: nameJob,
-        },
+        { name: nameJob },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -503,20 +525,44 @@ const Setting = () => {
       );
 
       if (response.status === 201) {
-        Swal.fire({
-          text: "Add Job Title Successfully",
-          icon: "success",
-          timer: 2000,
-          showConfirmButton: false,
-        });
+        const jobtitleId = response.data._id;
 
-        setTimeout(() => {
-          setModalAddJob(false);
-          window.location.reload();
-        }, 2000);
+        const assignResponse = await axios.post(
+          apiRoutes.jobtitle.assignJobtitle,
+          {
+            departmentId: selectedDepartmentId,
+            jobtitleId,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (assignResponse.status === 200) {
+          Swal.fire({
+            text: "Add and assign Job Title successfully",
+            icon: "success",
+            timer: 2000,
+            showConfirmButton: false,
+          });
+
+          setTimeout(() => {
+            setModalAddJob(false);
+            window.location.reload();
+          }, 2000);
+        } else {
+          Swal.fire({
+            text: "Assign Job Title failed",
+            icon: "error",
+            timer: 2000,
+          });
+        }
       } else {
         Swal.fire({
-          text: "Add Job Title Fail",
+          text: "Add Job Title failed",
           icon: "error",
           timer: 2000,
         });
@@ -530,6 +576,8 @@ const Setting = () => {
       }
     }
   };
+
+  // Edit job
   // Edit role
   const handleEditJob = async () => {
     const token = localStorage.getItem("token");
@@ -575,7 +623,8 @@ const Setting = () => {
       }
     }
   };
-  // Delete Department
+
+  // Delete Joj
   const verifyDeleteJob = async (id) => {
     const token = localStorage.getItem("token");
     try {
@@ -961,8 +1010,6 @@ const Setting = () => {
               </button>
             </div>
           )}
-<<<<<<< HEAD
-=======
           {/* infor bottom */}
           <PaginationFooter
             currentPage={currentPage}
@@ -971,7 +1018,6 @@ const Setting = () => {
             itemsPerPage={itemsPerPage}
             setItemsPerPage={setItemsPerPage}
           />
->>>>>>> 4816786611cc56553a32ae39ab344f748160b6b8
         </div>
       )}
 
@@ -1280,25 +1326,68 @@ const Setting = () => {
                 <div className="bg-gray-200 w-[150%] h-0.5 mt-[1%] mb-[1%] ml-[-15%]"></div>
               </div>
               <div className="mt-[5%]">
-                <div>
-                  <p>Name Job Title</p>
-                  <input
-                    type="text"
-                    className={`border border-gray-300 rounded-md p-3 w-full mt-2 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
-                      errors2 ? "border-[2px] border-red-500" : ""
-                    }`}
-                    value={nameJob}
-                    placeholder="Input Name Job Title"
-                    onChange={(e) => {
-                      setNameJob(e.target.value);
-                      setErrors2("");
-                    }}
-                  />
-                  {errors2 && (
-                    <p className="text-red-500 text-[12px] mt-2 mb-2 caret-transparent">
-                      {errors2}
-                    </p>
-                  )}
+                <div className="flex space-x-4 w-full">
+                  <div className="mt-[1%] w-[60%]">
+                    <p>Department</p>
+                    <div className="space-x-5">
+                      <div
+                        className="relative inline-block text-left w-full"
+                        // ref={dropdownRef}
+                      >
+                        <div className="relative">
+                          <div
+                            className="inline-flex w-full border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[5px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                            onClick={toggleDepartDropdown}
+                          >
+                            <span className="text-[15px]">{departName}</span>
+                            <IoIosArrowDown />
+                          </div>
+                        </div>
+                        {isDepartOpen && (
+                          <div className="absolute z-10 mt-2 w-[97%] bg-white rounded-md shadow-lg border border-gray-200">
+                            <ul className="py-1">
+                              {department.map((option, index) => (
+                                <li
+                                  key={index}
+                                  onClick={() =>
+                                    handleOptionClick1(option.name, option._id)
+                                  }
+                                  className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                                >
+                                  {option.name}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {errors4 && (
+                          <p className="text-red-500 text-[12px] mt-2 mb-2 caret-transparent">
+                            {errors4}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <p>Name Job Title</p>
+                    <input
+                      type="text"
+                      className={`border border-gray-300 rounded-md p-3 w-full mt-2 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                        errors2 ? "border-[2px] border-red-500" : ""
+                      }`}
+                      value={nameJob}
+                      placeholder="Input Name Job Title"
+                      onChange={(e) => {
+                        setNameJob(e.target.value);
+                        setErrors2("");
+                      }}
+                    />
+                    {errors2 && (
+                      <p className="text-red-500 text-[12px] mt-2 mb-2 caret-transparent">
+                        {errors2}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <div className="flex flex-col mt-5">
                   <div className="bg-gray-200 w-[150%] h-0.5 mt-[2%] mb-[1%] ml-[-20%]"></div>
@@ -1427,6 +1516,7 @@ const Setting = () => {
                               }}
                             />
                           </div>
+
                           <div className="flex flex-col mt-5">
                             <div className="bg-gray-200 w-[150%] h-0.5 mt-[2%] mb-[1%] ml-[-20%]"></div>
                             <div className="flex justify-center mr-[10px] mb-[-10%] mt-2">

@@ -64,7 +64,7 @@ const Navbar = () => {
   }, []);
 
   return (
-    <div className="h-[8%] w-[calc(100vw-270px)] flex justify-between items-center">
+    <div className="w-[calc(100vw-270px)] flex justify-between items-center">
       {/* Search */}
       <div className="relative ml-[5%]">
         <CiSearch className="absolute top-[50%] left-4 transform -translate-y-1/2 w-[20px] h-[20px] " />

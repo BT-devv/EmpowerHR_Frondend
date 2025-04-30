@@ -55,7 +55,8 @@ const EmployeeChart = () => {
     legend: {
       position: "right",
       itemMargin: {
-        vertical: 10,
+        top: -5,
+        vertical: 5,
       },
       fontSize: "14px",
       formatter: function (seriesName, opts) {

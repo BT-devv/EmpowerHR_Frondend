@@ -18,6 +18,7 @@ const Dashboard = () => {
 
   const [data, setData] = useState([]);
   const [user, setUser] = useState([]);
+  const [totalWFOLate, setTotalWFOLate] = useState("");
 
   const colors = ["#4880FF", "#FFC179", "#FF0000"];
 
@@ -79,6 +80,31 @@ const Dashboard = () => {
       });
   }, []);
 
+  // Get all attendance
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    axios
+      .get(apiRoutes.attendance.getAll, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then((response) => {
+        const attendanceData = response.data;
+        const totalWorkFromOfficeAndLate = attendanceData.filter(
+          (item) => item.status === "Work from office" || item.status === "late"
+        ).length;
+
+        setTotalWFOLate(totalWorkFromOfficeAndLate);
+      })
+      .catch((error) => {
+        if (error.response?.status === 403) {
+          navigate("/notpermission");
+        }
+      });
+  }, []);
+
   return (
     <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative mb-5 font-light">
       <div className="flex flex-col lg:flex-row mx-8 mt-6 gap-2">
@@ -89,7 +115,9 @@ const Dashboard = () => {
             <div className="flex flex-col items-start bg-white p-6 rounded-lg shadow-md w-[75%]">
               <BsPatchCheck className="w-10 h-10 text-[#2EB67D] mb-4" />
               <p className="text-gray-500">Attendance</p>
-              <p className="text-3xl font-bold mt-1">102 / 120</p>
+              <p className="text-3xl font-bold mt-1">{`${
+                totalWFOLate === "" ? "0" : totalWFOLate
+              } / ${user.length}`}</p>
               <p
                 className="text-sm text-gray-500 mt-2 cursor-pointer"
                 onClick={() => navigate("/attendance")}

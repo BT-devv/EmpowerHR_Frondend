@@ -1,10 +1,11 @@
 import avatar from "../assets/avatar.png";
 // Icon
 import { CiSearch } from "react-icons/ci";
+import { HiOutlineInformationCircle } from "react-icons/hi2";
 
 const Chat = () => {
   return (
-    <div className="flex bg-[#F5F6FA] w-auto h-full relative mb-5 font-light">
+    <div className="flex bg-[#F5F6FA] w-auto h-full relative font-light">
       {/* Sidebar */}
       <div className="w-[300px] min-w-[300px] font-sans flex flex-col items-center text-[14px] caret-transparent border-r-2 bg-white">
         {/* Search */}
@@ -51,7 +52,7 @@ const Chat = () => {
 
         {/* New Message Button */}
         <div className="flex justify-center w-full mt-auto mb-5">
-          <button className="border-2  border-[#2EB67D] text-[#2EB67D] rounded-[10px] w-[210px] h-[35px] font-bold">
+          <button className="border-2 p-3 border-[#2EB67D] text-[#2EB67D] rounded-[10px] w-[210px] font-bold">
             NEW MESSAGE
           </button>
         </div>
@@ -62,15 +63,14 @@ const Chat = () => {
         {/* Header */}
         <div className="flex items-center justify-between p-2 bg-[#2EB67D] border-b-2">
           <div className="flex items-center">
-            <img src={avatar} alt="avatar" className="w-10 h-10 rounded-full" />
             <div className="ml-3">
               <p className="font-bold text-white">HR - PM Connectivity</p>
-              <p className="text-xs text-gray-500">Online</p>
+              <p className="text-xs text-white text-left">Online</p>
             </div>
           </div>
-          <button className="text-gray-500 hover:text-gray-700 text-2xl">
-            ⋮
-          </button>
+          <div className="text-white hover:text-gray-700 text-2xl">
+            <HiOutlineInformationCircle />
+          </div>
         </div>
 
         {/* Messages */}
@@ -83,14 +83,14 @@ const Chat = () => {
               className="w-8 h-8 rounded-full mr-2"
             />
             <div className="bg-white p-3 rounded-lg shadow max-w-xs">
-              <p className="text-sm">Hey team, let's do it!</p>
+              <p className="text-sm">{`Hey team, let's do it!`}</p>
             </div>
           </div>
 
           {/* Message Item Right */}
           <div className="flex mb-4 justify-end">
             <div className="bg-[#2EB67D] text-white p-3 rounded-lg shadow max-w-xs">
-              <p className="text-sm">Sure, I'm on it 🚀</p>
+              <p className="text-sm">{`Sure, I'm on it 🚀`}</p>
             </div>
           </div>
         </div>
@@ -102,7 +102,9 @@ const Chat = () => {
             placeholder="Type your message..."
             className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:border-[#2EB67D]"
           />
-          <button className="ml-2 text-[#2EB67D] font-bold">Send</button>
+          <button className="ml-2 text-[#2EB67D] border-[#2EB67D] font-bold">
+            Send
+          </button>
         </div>
       </div>
     </div>

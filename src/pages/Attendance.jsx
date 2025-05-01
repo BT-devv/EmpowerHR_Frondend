@@ -4,6 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import apiRoutes from "../../apiRoutes";
 import PaginationFooter from "../components/PaginationFooter";
+import UsePermission from "../components/UsePermission";
 
 // icon
 import { PiClock } from "react-icons/pi";
@@ -16,6 +17,7 @@ import { VscSettings } from "react-icons/vsc";
 
 const Attendance = () => {
   const navigate = useNavigate();
+  const { hasPermission, loading } = UsePermission("attendance.read");
   // Get date
   const currentDate = format(new Date(), "dd MMM, yyyy");
   const [data, setData] = useState([]);
@@ -36,7 +38,7 @@ const Attendance = () => {
       })
       .catch((error) => {
         if (error.response?.status === 403) {
-          navigate("/notpermission");
+          console.warn("Bạn không có quyền xem user.");
         }
       });
   }, []);
@@ -75,6 +77,14 @@ const Attendance = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentPage]);
+
+  useEffect(() => {
+    if (!loading && !hasPermission) {
+      navigate("/notpermission");
+    }
+  }, [loading, hasPermission]);
+
+  if (loading) return <div></div>;
 
   return (
     <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative ">

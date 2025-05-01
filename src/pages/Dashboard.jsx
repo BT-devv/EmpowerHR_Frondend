@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { format, differenceInDays } from "date-fns";
 import axios from "axios";
 import avatar from "../assets/avatar.png";
+import UsePermission from "../components/UsePermission";
 
 // icon
 import { BsPatchCheck } from "react-icons/bs";
@@ -15,6 +16,7 @@ import { HiOutlineTicket } from "react-icons/hi2";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { hasPermission, loading } = UsePermission("dashboard.read");
 
   const [data, setData] = useState([]);
   const [user, setUser] = useState([]);
@@ -41,21 +43,14 @@ const Dashboard = () => {
 
   // Get all holiday
   useEffect(() => {
-    const token = localStorage.getItem("token");
-
     axios
-      .get(apiRoutes.holiday.getAllHolidays, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      })
+      .get(apiRoutes.holiday.getAllHolidays)
       .then((response) => {
         setData(response.data);
       })
       .catch((error) => {
         if (error.response?.status === 403) {
-          navigate("/notpermission");
+          console.warn("Bạn không có quyền xem holiday.");
         }
       });
   }, []);
@@ -75,7 +70,7 @@ const Dashboard = () => {
       })
       .catch((error) => {
         if (error.response?.status === 403) {
-          navigate("/notpermission");
+          console.warn("Bạn không có quyền xem user.");
         }
       });
   }, []);
@@ -100,10 +95,18 @@ const Dashboard = () => {
       })
       .catch((error) => {
         if (error.response?.status === 403) {
-          navigate("/notpermission");
+          console.warn("Bạn không có quyền xem attendance.");
         }
       });
   }, []);
+
+  useEffect(() => {
+    if (!loading && !hasPermission) {
+      navigate("/notpermission");
+    }
+  }, [loading, hasPermission]);
+
+  if (loading) return <div></div>;
 
   return (
     <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative mb-5 font-light">

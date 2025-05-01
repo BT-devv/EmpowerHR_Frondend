@@ -6,6 +6,8 @@ import { Fragment } from "react";
 import Modal from "react-modal";
 import Swal from "sweetalert2";
 import PaginationFooter from "../components/PaginationFooter";
+import { useNavigate } from "react-router-dom";
+import UsePermission from "../components/UsePermission";
 
 // icon
 import { CiSearch } from "react-icons/ci";
@@ -17,10 +19,11 @@ import { IoTrashBinOutline } from "react-icons/io5";
 import { IoIosArrowDown } from "react-icons/io";
 
 const Setting = () => {
+  const navigate = useNavigate();
+  const { hasPermission, loading } = UsePermission("setting.read");
+
   const [selectedTab, setSelectedTab] = useState("role");
   const [dataRole, setDataRole] = useState([]);
-  const [dataRoleA, setDataRoleA] = useState([]);
-  const [dataRoleE, setDataRoleE] = useState([]);
   const [permission, setPermission] = useState([]);
   const [department, setDepartment] = useState([]);
   const [jobTitle, setJobTitle] = useState([]);
@@ -38,11 +41,19 @@ const Setting = () => {
   const [moreOptions3, setMoreOptions3] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
 
+  const [modalAddPermission, setModalAddPermission] = useState(false);
+
   const [modalAddJob, setModalAddJob] = useState(false);
   const [modalEditJob, setModalEditJob] = useState(false);
 
   const [nameRole, setNameRole] = useState("");
   const [errors, setErrors] = useState("");
+
+  const [namePermission, setNamePermission] = useState("");
+  const [desPermission, setDesPermission] = useState("");
+
+  const [errors3, setErrors3] = useState("");
+  const [errors5, setErrors5] = useState("");
 
   const [errors1, setErrors1] = useState("");
   const [nameDepart, setNameDepart] = useState("");
@@ -54,6 +65,44 @@ const Setting = () => {
   const [isDepartOpen, setIsDepartOpen] = useState(false);
   const [departName, setDepartName] = useState("Select Department");
   const [selectedDepartmentId, setSelectedDepartmentId] = useState(null);
+
+  const [expandedRoleId, setExpandedRoleId] = useState(null);
+
+  const isPermissionAssigned = (role, permId) => {
+    return role.permissions.some((p) => p._id === permId);
+  };
+
+  const handleTogglePermission = async (roleId, permissionId) => {
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await axios.post(
+        apiRoutes.permission.assignPermission,
+        { roleId, permissionId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (response.status === 200) {
+        Swal.fire({
+          text: "Permission updated",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        const refreshedData = await axios.get(apiRoutes.role.getRole);
+        setDataRole(refreshedData.data);
+      }
+    } catch (error) {
+      Swal.fire({
+        text: "Failed to update permission" + error,
+        icon: "error",
+      });
+    }
+  };
 
   const handleOptionClick1 = (option, id) => {
     setDepartName(option);
@@ -104,30 +153,6 @@ const Setting = () => {
       .get(apiRoutes.role.getRole)
       .then((response) => {
         setDataRole(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching data from API", error);
-      });
-  }, []);
-
-  // Get all role admin
-  useEffect(() => {
-    axios
-      .get(apiRoutes.role.getRole)
-      .then((response) => {
-        setDataRoleA(response.data[0].permissions);
-      })
-      .catch((error) => {
-        console.error("Error fetching data from API", error);
-      });
-  }, []);
-
-  // Get all role employee
-  useEffect(() => {
-    axios
-      .get(apiRoutes.role.getRole)
-      .then((response) => {
-        setDataRoleE(response.data[1].permissions);
       })
       .catch((error) => {
         console.error("Error fetching data from API", error);
@@ -246,6 +271,79 @@ const Setting = () => {
         });
       }
     }
+  };
+
+  // Add permission
+  const handleCreatePermission = async () => {
+    let isValid = true;
+
+    if (!namePermission) {
+      setErrors3("Name Permission is required.");
+      isValid = false;
+    } else {
+      setErrors3("");
+    }
+
+    if (!desPermission) {
+      setErrors5("Description Permission is required.");
+      isValid = false;
+    } else {
+      setErrors5("");
+    }
+
+    if (!isValid) return;
+
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await axios.post(
+        apiRoutes.permission.createPermission,
+        {
+          name: namePermission,
+          description: desPermission,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 201) {
+        Swal.fire({
+          text: "Add Permission Successfully",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        setTimeout(() => {
+          setModalAddPermission(false);
+          window.location.reload();
+        }, 2000);
+      } else {
+        Swal.fire({
+          text: "Add Permission Fail",
+          icon: "error",
+          timer: 2000,
+        });
+      }
+    } catch (error) {
+      if (error.response) {
+        Swal.fire({
+          text: error.response.data.message,
+          icon: "error",
+        });
+      }
+    }
+  };
+
+  const closeModalAddPermission = () => {
+    setModalAddPermission(false);
+    setNamePermission("");
+    setDesPermission("");
+    setErrors3("");
+    setErrors5("");
   };
 
   // Edit role
@@ -660,6 +758,14 @@ const Setting = () => {
     }
   };
 
+  useEffect(() => {
+    if (!loading && !hasPermission) {
+      navigate("/notpermission");
+    }
+  }, [loading, hasPermission]);
+
+  if (loading) return <div></div>;
+
   return (
     <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">
       <div className="bg-white ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-[70px] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] flex items-center">
@@ -802,9 +908,7 @@ const Setting = () => {
                       </td>
 
                       <td className="px-10 py-6 border-b border-gray-200 truncate text-left w-[40%]">
-                        {item.name === "admin"
-                          ? dataRoleA.length + "+"
-                          : dataRoleE.length + "+"}
+                        {item.permissions?.length + "+" || 0}
                       </td>
                       <td className="px-5 py-6 border-b border-gray-200 relative cursor-pointer ">
                         <HiOutlineDotsHorizontal
@@ -945,49 +1049,198 @@ const Setting = () => {
                 List Permission
               </p>
             </div>
+            {/* Search */}
+            <div className="relative flex items-center flex-1 min-w-[200px] sm:min-w-[300px] md:min-w-[350px] lg:min-w-[400px] ml-14">
+              <CiSearch className="absolute left-4 w-[20px] h-[20px]" />
+              <input
+                type="text"
+                placeholder="Quick Search"
+                className="h-[50px] w-full pl-12 rounded-[10px] border border-gray-300 bg-white text-[13px] focus:outline-none focus:border-[#2EB67D] hover:border-[#2EB67D] placeholder:text-[#252C58] placeholder:opacity-100"
+              />
+            </div>
+            {/* Filter Button */}
+            <div className="relative flex items-center min-w-[100px] sm:min-w-[120px]">
+              <BiFilterAlt className="absolute left-4 w-[20px] h-[20px] text-[#2EB67D]" />
+              <div className="h-[50px] w-full pl-12 rounded-[12px] border-2 bg-gray-200 border-gray-300 text-[#252C5880] text-[15px] flex items-center font-light">
+                Filter
+              </div>
+            </div>
+            {/* Add Role */}
+            <div
+              className="flex items-center justify-center min-w-[120px] sm:min-w-[150px] h-[50px] text-white font-normal rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]"
+              onClick={() => setModalAddPermission(true)}
+            >
+              <p>Add Permission</p>
+            </div>
           </div>
+          {/* Add Permission */}
+          <Modal
+            isOpen={modalAddPermission}
+            onRequestClose={() => setModalAddPermission(false)}
+            shouldCloseOnOverlayClick={false}
+            className="bg-white rounded-[20px] shadow-lg w-auto max-w-[80%] p-12 transition-all duration-500 max-h-[95%] overflow-y-auto no-scrollbar"
+            overlayClassName="fixed inset-0 bg-[#A8C1B7] bg-opacity-50 flex justify-center items-center"
+          >
+            <div className="flex flex-col mt-[-5%] ml-[-5%] ">
+              <div className="flex items-center mb-2">
+                <IoIosArrowRoundBack
+                  className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
+                  onClick={closeModalAddPermission}
+                />
+                <p className="text-[20px] font-bold ">Add Permission</p>
+              </div>
+              <div className="bg-gray-200 w-[150%] h-0.5 mt-[1%] mb-[1%] ml-[-15%]"></div>
+            </div>
+            <div className="mt-[5%]">
+              <div className="flex space-x-4">
+                <div>
+                  <p>Name Permission</p>
+                  <input
+                    type="text"
+                    className={`border border-gray-300 rounded-md p-3 w-full mt-2 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                      errors3 ? "border-[2px] border-red-500" : ""
+                    }`}
+                    value={namePermission}
+                    placeholder="Input Name Permission"
+                    onChange={(e) => {
+                      setNamePermission(e.target.value);
+                      setErrors3("");
+                    }}
+                  />
+                  {errors3 && (
+                    <p className="text-red-500 text-[12px] mt-2 mb-2 caret-transparent">
+                      {errors3}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <p>Description Permission</p>
+                  <input
+                    type="text"
+                    className={`border border-gray-300 rounded-md p-3 w-full mt-2 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                      errors5 ? "border-[2px] border-red-500" : ""
+                    }`}
+                    value={desPermission}
+                    placeholder="Input Description Permission"
+                    onChange={(e) => {
+                      setDesPermission(e.target.value);
+                      setErrors5("");
+                    }}
+                  />
+                  {errors5 && (
+                    <p className="text-red-500 text-[12px] mt-2 mb-2 caret-transparent">
+                      {errors5}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-col mt-5 mb-5">
+                <div className="bg-gray-200 w-[150%] h-0.5 mt-[2%] mb-[1%] ml-[-20%]"></div>
+                <div className="flex justify-center mr-[10px] mb-[-10%] mt-2">
+                  <button
+                    onClick={closeModalAddPermission}
+                    className="mt-1 bg-white text-[#FF6262] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] "
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => handleCreatePermission()}
+                    className="mt-1 bg-[#E7F7EF] text-[#097C44] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] ml-[10px]"
+                  >
+                    Create
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Modal>
           {/* List */}
-          {permission.length > 0 ? (
-            <div className="overflow-x-auto mt-[20px] text-[14px] ml-[15px]">
+          {dataRole.length > 0 ? (
+            <div className="overflow-x-auto mt-[20px] text-[14px] ml-[15px] ">
               <table className="border-collapse bg-white overflow-hidden w-[calc(100vw-400px)] ">
                 <thead>
                   <tr className="border-gray-300 border-t border-b-2 text-left">
                     <th className="px-3 py-5 border-b border-gray-300 caret-transparent text-gray-500">
+                      No
+                    </th>
+                    <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
+                      Name
+                    </th>
+                    <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
                       Permission
                     </th>
                     <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                      Sub-Permission
+                      Action
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {Object.entries(groupedData).map(
-                    ([title, items], groupIndex) => (
-                      <Fragment key={groupIndex}>
-                        {items.map((item, itemIndex) => (
-                          <Fragment key={item._id}>
-                            <tr className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer text-[15px]">
-                              {itemIndex === 0 ? (
-                                <td className="px-3 py-6 text-left font-semibold text-[16px] w-[25%]">
-                                  {title}
-                                </td>
-                              ) : (
-                                <td className="px-3 py-6 w-[25%]" />
-                              )}
-                              <td className="px-5 py-6 truncate text-left w-[40%] capitalize">
-                                {item.description}
-                              </td>
-                            </tr>
-                            {itemIndex === items.length - 1 && (
-                              <tr className="border-b border-gray-200">
-                                <td></td>
-                              </tr>
-                            )}
-                          </Fragment>
-                        ))}
-                      </Fragment>
-                    )
-                  )}
+                  {currentItems.map((role, index) => (
+                    <Fragment key={role._id}>
+                      {/* Dòng chính */}
+                      <tr className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer text-[15px]">
+                        <td className="px-3 py-6 border-b border-gray-200 text-left w-[20%]">
+                          {index + 1}
+                        </td>
+                        <td className="px-5 py-6 border-b border-gray-200 truncate text-left w-[40%] capitalize">
+                          {role.name}
+                        </td>
+                        <td className="px-10 py-6 border-b border-gray-200 truncate text-left w-[40%]">
+                          {role.permissions?.length + "+" || 0}
+                        </td>
+                        <td className="px-5 py-6 border-b border-gray-200 relative cursor-pointer">
+                          <IoIosArrowDown
+                            className="text-xl cursor-pointer"
+                            onClick={() =>
+                              setExpandedRoleId(
+                                expandedRoleId === role._id ? null : role._id
+                              )
+                            }
+                          />
+                        </td>
+                      </tr>
+                      {expandedRoleId === role._id && (
+                        <tr>
+                          <td
+                            colSpan={4}
+                            className="px-4 py-4 bg-gray-50 border-b border-gray-300"
+                          >
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                              {permission.map((perm) => {
+                                const assigned = isPermissionAssigned(
+                                  role,
+                                  perm._id
+                                );
+                                return (
+                                  <div
+                                    key={perm._id}
+                                    className="flex justify-between items-center border p-3 rounded bg-white"
+                                  >
+                                    <span className="text-sm">
+                                      {perm.description}
+                                    </span>
+                                    <button
+                                      onClick={() =>
+                                        handleTogglePermission(
+                                          role._id,
+                                          perm._id,
+                                          !assigned
+                                        )
+                                      }
+                                      className={`px-3 py-1 text-xs text-white rounded ${
+                                        assigned ? "bg-red-500" : "bg-green-500"
+                                      }`}
+                                    >
+                                      {assigned ? "Inactive" : "Active"}
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -1002,22 +1255,16 @@ const Setting = () => {
                 <p className="font-bold">Empty Employee</p>
                 <p>Add your first Employee manually</p>
               </div>
-              <button
-                className="text-white font-normal mt-[10%] h-[50px] w-[180px] rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 focus:outline-none hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]"
-                // onClick={() => setModalIsOpen(true)}
-              >
+              <button className="text-white font-normal mt-[10%] h-[50px] w-[180px] rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 focus:outline-none hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]">
                 + Employee
               </button>
             </div>
           )}
-          {/* infor bottom */}
-          <PaginationFooter
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-            totalItems={permission.length}
-            itemsPerPage={itemsPerPage}
-            setItemsPerPage={setItemsPerPage}
-          />
+          <div className="flex flex-wrap items-center w-full justify-between text-[#9A9A9A] caret-transparent p-4 gap-4 md:gap-6 mt-2">
+            <p className="text-sm sm:text-base">
+              Showing {dataRole.length} entries
+            </p>
+          </div>
         </div>
       )}
 
@@ -1300,7 +1547,7 @@ const Setting = () => {
               </div>
             </div>
 
-            {/* Add Role */}
+            {/* Add Jobtitle */}
             <div
               onClick={() => setModalAddJob(true)}
               className="flex items-center justify-center min-w-[150px] sm:min-w-[150px] h-[50px] caret-transparent text-white font-normal rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]"
@@ -1321,7 +1568,7 @@ const Setting = () => {
                     className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
                     onClick={closeModalAddJob}
                   />
-                  <p className="text-[20px] font-bold ">Add Role</p>
+                  <p className="text-[20px] font-bold ">Add Job Title</p>
                 </div>
                 <div className="bg-gray-200 w-[150%] h-0.5 mt-[1%] mb-[1%] ml-[-15%]"></div>
               </div>
@@ -1389,7 +1636,7 @@ const Setting = () => {
                     )}
                   </div>
                 </div>
-                <div className="flex flex-col mt-5">
+                <div className="flex flex-col mt-5 mb-5">
                   <div className="bg-gray-200 w-[150%] h-0.5 mt-[2%] mb-[1%] ml-[-20%]"></div>
                   <div className="flex justify-center mr-[10px] mb-[-10%] mt-2">
                     <button

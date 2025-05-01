@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Modal from "react-modal";
 import TabSelector from "../components/TabSelector";
+import { useNavigate } from "react-router-dom";
+import UsePermission from "../components/UsePermission";
 // icon
 import { CiSearch } from "react-icons/ci";
 import { BiFilterAlt } from "react-icons/bi";
@@ -11,6 +13,9 @@ import { IoIosArrowRoundBack } from "react-icons/io";
 
 Modal.setAppElement("#root");
 const Payroll = () => {
+  const navigate = useNavigate();
+  const { hasPermission, loading } = UsePermission("payroll.read");
+
   const [selectedTab, setSelectedTab] = useState("payroll");
   const [selectedTab2, setSelectedTab2] = useState("base");
   const [modalSalaryIsOpen, setModalSalaryIsOpen] = useState(false);
@@ -30,6 +35,14 @@ const Payroll = () => {
   const closeModalDeduction = () => {
     setModalDeductionIsOpen(false);
   };
+
+  useEffect(() => {
+    if (!loading && !hasPermission) {
+      navigate("/notpermission");
+    }
+  }, [loading, hasPermission]);
+
+  if (loading) return <div></div>;
 
   return (
     <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">

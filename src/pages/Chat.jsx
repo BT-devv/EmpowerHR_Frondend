@@ -1,9 +1,22 @@
 import avatar from "../assets/avatar.png";
+import UsePermission from "../components/UsePermission";
+import { useEffect } from "react";
 // Icon
 import { CiSearch } from "react-icons/ci";
 import { HiOutlineInformationCircle } from "react-icons/hi2";
+import { useNavigate } from "react-router-dom";
 
 const Chat = () => {
+  const navigate = useNavigate();
+  const { hasPermission, loading } = UsePermission("message.read");
+
+  useEffect(() => {
+    if (!loading && !hasPermission) {
+      navigate("/notpermission");
+    }
+  }, [loading, hasPermission]);
+
+  if (loading) return <div></div>;
   return (
     <div className="flex bg-[#F5F6FA] w-auto h-full relative font-light">
       {/* Sidebar */}

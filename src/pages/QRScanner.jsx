@@ -3,6 +3,8 @@ import { Scanner } from "@yudiel/react-qr-scanner";
 import axios from "axios";
 import Modal from "react-modal";
 import apiRoutes from "../../apiRoutes";
+import { useNavigate } from "react-router-dom";
+import UsePermission from "../components/UsePermission";
 
 // Icons
 import { BiHome } from "react-icons/bi";
@@ -10,6 +12,9 @@ import { IoIosArrowRoundForward } from "react-icons/io";
 import { HiQrCode } from "react-icons/hi2";
 
 const QRScanner = () => {
+  const navigate = useNavigate();
+  const { hasPermission, loading } = UsePermission("qr.read");
+
   const [data, setData] = useState();
   const [error, setError] = useState(false);
   const [countdown, setCountdown] = useState(3);
@@ -66,6 +71,14 @@ const QRScanner = () => {
       alert(employeeID);
     }
   };
+
+  useEffect(() => {
+    if (!loading && !hasPermission) {
+      navigate("/notpermission");
+    }
+  }, [loading, hasPermission]);
+
+  if (loading) return <div></div>;
 
   return (
     <div className="flex bg-[rgba(151,151,151,0.78)] w-screen h-screen">

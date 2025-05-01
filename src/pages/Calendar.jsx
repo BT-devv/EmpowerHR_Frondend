@@ -7,8 +7,12 @@ import apiRoutes from "../../apiRoutes";
 import { createDragAndDropPlugin } from "@schedule-x/drag-and-drop";
 import { createEventModalPlugin } from "@schedule-x/event-modal";
 import "@schedule-x/theme-default/dist/index.css";
+import { useNavigate } from "react-router-dom";
+import UsePermission from "../components/UsePermission";
 
 const Calendar = () => {
+  const navigate = useNavigate();
+  const { hasPermission, loading } = UsePermission("calendar.read");
   const eventsService = createEventsServicePlugin();
   const eventModalPlugin = createEventModalPlugin(); // <-- quan trọng
 
@@ -79,6 +83,14 @@ const Calendar = () => {
   const openModal = () => {
     eventModalPlugin.openEmptyModal();
   };
+
+  useEffect(() => {
+    if (!loading && !hasPermission) {
+      navigate("/notpermission");
+    }
+  }, [loading, hasPermission]);
+
+  if (loading) return <div></div>;
 
   return (
     <div>

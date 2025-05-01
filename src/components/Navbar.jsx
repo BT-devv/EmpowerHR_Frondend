@@ -14,19 +14,20 @@ const countries = [
   { name: "Vietnam", flag: "https://flagcdn.com/w320/vn.png" },
   { name: "English", flag: "https://flagcdn.com/w320/gb.png" },
 ];
+
 const Navbar = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [logout, setLogout] = useState(false);
-
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
   const [avatar, setAvatar] = useState("");
-
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
 
-  const toggleDropdown = () => setIsOpen(!isOpen);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotiDropdown, setShowNotiDropdown] = useState(false);
 
+  const toggleDropdown = () => setIsOpen(!isOpen);
   const handleSelect = (country) => {
     setSelectedCountry(country);
     setIsOpen(false);
@@ -35,7 +36,6 @@ const Navbar = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("expiryTime");
-
     setLogout(false);
 
     Swal.fire({
@@ -58,13 +58,46 @@ const Navbar = () => {
       setName(`${decodedToken.firstName}  ${decodedToken.lastName}`);
       setRole(decodedToken.role);
       setAvatar(decodedToken.avatar);
+
+      const socket = new WebSocket("ws://localhost:3000");
+
+      socket.addEventListener("open", () => {
+        socket.send(
+          JSON.stringify({
+            type: "register",
+            employeeID: decodedToken.employeeID,
+          })
+        );
+      });
+
+      socket.addEventListener("message", (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type && data.message) {
+          setNotifications((prev) => [
+            {
+              id: Date.now(),
+              type: data.type,
+              message: data.message,
+              data: data.data,
+              read: false,
+            },
+            ...prev,
+          ]);
+        }
+      });
+
+      return () => socket.close();
     } else {
       console.error("Token không tồn tại hoặc không hợp lệ.");
     }
   }, []);
 
+  const markAllAsRead = () => {
+    setNotifications((prev) => prev.map((noti) => ({ ...noti, read: true })));
+  };
+
   return (
-    <div className="w-[calc(100vw-270px)] flex justify-between items-center">
+    <div className="w-[calc(100vw-270px)] flex justify-between items-center relative">
       {/* Search */}
       <div className="relative ml-[5%]">
         <CiSearch className="absolute top-[50%] left-4 transform -translate-y-1/2 w-[20px] h-[20px] " />
@@ -74,11 +107,44 @@ const Navbar = () => {
           className="h-[40px] w-[185%] pl-12 rounded-[19px] border-2 bg-[#F5F6FA] border-gray-300 focus:outline-none text-[13px] focus:border-[#2EB67D] hover:border-[#2EB67D]"
         />
       </div>
-      <div className="flex items-center">
-        <IoNotifications
-          className="w-[25px] h-[25px]"
-          // onClick={getUser}
-        />
+
+      <div className="flex items-center relative">
+        <div
+          className="relative cursor-pointer"
+          onClick={() => {
+            setShowNotiDropdown(!showNotiDropdown);
+            markAllAsRead();
+          }}
+        >
+          <IoNotifications className="w-[25px] h-[25px] hover:text-[#2EB67D]" />
+          {notifications.filter((n) => !n.read).length > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
+              {notifications.filter((n) => !n.read).length}
+            </span>
+          )}
+        </div>
+
+        {showNotiDropdown && (
+          <div className="absolute right-[230px] top-[60px] w-[320px] bg-white shadow-lg rounded-lg z-50">
+            <div className="p-4 border-b font-semibold text-gray-700">
+              Notification
+            </div>
+            <ul className="max-h-[300px] overflow-y-auto">
+              {notifications.length === 0 ? (
+                <li className="p-4 text-gray-500 text-sm text-center">
+                  No notifications
+                </li>
+              ) : (
+                notifications.map((noti) => (
+                  <li key={noti.id} className="p-3 border-b hover:bg-gray-100">
+                    <div className="font-medium">{noti.message}</div>
+                    <div className="text-xs text-gray-500">{noti.type}</div>
+                  </li>
+                ))
+              )}
+            </ul>
+          </div>
+        )}
 
         {/* dropdown languages */}
         <div className="relative inline-block ml-[35px] text-[14px]">
@@ -115,15 +181,13 @@ const Navbar = () => {
             </ul>
           )}
         </div>
+
         {/* dropdown user */}
         <div className="flex items-center p-4 rounded-lg h-[60px] bg-white ml-[10px] ">
-          {/* Avatar */}
           <img
             src={apiRoutes.file.avatar(avatar)}
             className="w-12 h-12 rounded-full"
           />
-
-          {/* User Info */}
           <div className="flex-grow ml-[25px] ">
             <p className="text-[14px] font-bold text-left truncate w-[70%]">
               {name}
@@ -132,8 +196,6 @@ const Navbar = () => {
               {role === "67fc24eb88df30b9541815ec" ? "Admin" : "Employee"}
             </p>
           </div>
-
-          {/* Dropdown Icon */}
           <div className="text-gray-600 cursor-pointer text-xl border-2 rounded-[50%]">
             <IoIosArrowDown
               onClick={() => {
@@ -143,15 +205,9 @@ const Navbar = () => {
           </div>
 
           {logout && (
-            <div
-              className="absolute bg-white right-5 z-10 mt-2 w-[200%] origin-top-right rounded-[20px] focus:outline-none "
-              role="menu"
-              aria-orientation="vertical"
-              aria-labelledby="menu-button"
-            >
+            <div className="absolute bg-white right-5 z-10 mt-2 w-[200%] origin-top-right rounded-[20px] focus:outline-none ">
               <div className="absolute right-3 z-10 t-[-20px] w-auto origin-top-right rounded-lg shadow-lg bg-white">
                 <div className="flex flex-col divide-y divide-gray-200">
-                  {/* View Detail */}
                   <div className="flex items-center px-4 py-3 text-[15px] text-gray-700 hover:bg-gray-100 cursor-pointer">
                     <IoLogOutOutline className="w-[20px] h-[20px] text-[#2EB67D] mr-3" />
                     <span onClick={handleLogout}>Log out</span>

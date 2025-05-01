@@ -14,6 +14,8 @@ import TabSelector from "../components/TabSelector";
 import { format } from "date-fns";
 import Modal from "react-modal";
 import PaginationFooter from "../components/PaginationFooter";
+import { useNavigate } from "react-router-dom";
+import UsePermission from "../components/UsePermission";
 //icon
 import { CiSearch } from "react-icons/ci";
 import { CiCalendarDate } from "react-icons/ci";
@@ -25,6 +27,9 @@ import { MdOutlineNotInterested } from "react-icons/md";
 import { IoIosArrowRoundBack } from "react-icons/io";
 
 const Overtime = () => {
+  const navigate = useNavigate();
+  const { hasPermission, loading } = UsePermission("overtime.read");
+
   const [data, setData] = useState([]);
   const [dataPending, setDataPending] = useState([]);
   const [dataHistory, setDataHistory] = useState([]);
@@ -332,6 +337,14 @@ const Overtime = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentPage]);
+
+  useEffect(() => {
+    if (!loading && !hasPermission) {
+      navigate("/notpermission");
+    }
+  }, [loading, hasPermission]);
+
+  if (loading) return <div></div>;
 
   return (
     <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">

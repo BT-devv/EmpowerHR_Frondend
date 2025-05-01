@@ -15,6 +15,7 @@ import TabSelector from "../components/TabSelector";
 import PaginationFooter from "../components/PaginationFooter";
 import ClickOutside from "../components/ClickOutside";
 import avatar from "../assets/avatar.png";
+import UsePermission from "../components/UsePermission";
 
 // icon
 import { CiSearch } from "react-icons/ci";
@@ -36,6 +37,7 @@ import { FaRegTrashCan } from "react-icons/fa6";
 Modal.setAppElement("#root");
 const Employee = () => {
   const navigate = useNavigate();
+  const { hasPermission, loading } = UsePermission("user.read");
 
   const [data, setData] = useState([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -360,7 +362,7 @@ const Employee = () => {
   const [formData4, setFormData4] = useState(() => ({
     employeeType: selectedEmployee?.employeeType || "",
     department: selectedEmployee?.department || "",
-    jobTitle: selectedEmployee?.position || "",
+    jobTitle: selectedEmployee?.jobTitle || "",
     role: selectedEmployee?.role || "",
     joiningDate: selectedEmployee?.joiningDate || "",
     endDate: selectedEmployee?.endDate || "",
@@ -371,7 +373,7 @@ const Employee = () => {
       setFormData4({
         employeeType: selectedEmployee.employeeType || "",
         department: selectedEmployee.department || "",
-        position: selectedEmployee.position || "",
+        position: selectedEmployee.jobTitle || "",
         role: selectedEmployee.role || "",
         joiningDate: selectedEmployee.joiningDate || "",
         endDate: selectedEmployee.endDate || "",
@@ -388,7 +390,7 @@ const Employee = () => {
     setFormData4({
       employeeType: selectedEmployee.type,
       department: selectedEmployee.department,
-      position: selectedEmployee.position,
+      jobTitle: selectedEmployee.jobTitle,
       role: selectedEmployee.role,
       joiningDate: selectedEmployee.joiningDate,
       endDate: selectedEmployee.endDate,
@@ -582,7 +584,7 @@ const Employee = () => {
       })
       .catch((error) => {
         if (error.response?.status === 403) {
-          navigate("/notpermission");
+          console.warn("Bạn không có quyền xem user.");
         }
       });
   }, []);
@@ -1005,6 +1007,14 @@ const Employee = () => {
       });
     }
   };
+
+  useEffect(() => {
+    if (!loading && !hasPermission) {
+      navigate("/notpermission");
+    }
+  }, [loading, hasPermission]);
+
+  if (loading) return <div></div>;
 
   return (
     <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">
@@ -1678,7 +1688,7 @@ const Employee = () => {
                             onClick={togglePossitionDropdown}
                           >
                             <span className="text-[15px]">
-                              {formData4.jobTitle}
+                              {formData4.position}
                             </span>
                             <IoIosArrowDown />
                           </div>
@@ -1720,9 +1730,7 @@ const Employee = () => {
                             onClick={toggleRoleDropdown}
                           >
                             <span className="text-[15px]">
-                              {formData4.role === "67fc24eb88df30b9541815ec"
-                                ? "Admin"
-                                : "Employee"}
+                              {formData4.role?.name || "Select Role"}
                             </span>
                             <IoIosArrowDown />
                           </div>
@@ -1749,10 +1757,9 @@ const Employee = () => {
                         )}
                       </ClickOutside>
                     ) : (
-                      <p className="w-fit font-bold">
-                        {selectedEmployee.role === "67fc24eb88df30b9541815ec"
-                          ? "Admin"
-                          : "Employee"}
+                      <p className="w-fit font-bold capitalize">
+                        {roleData.find((r) => r._id === selectedEmployee.role)
+                          ?.name || "--"}
                       </p>
                     )}
                   </div>

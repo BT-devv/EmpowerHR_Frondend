@@ -70,6 +70,19 @@ const apiRoutes = {
     getAllHolidays: `${API_BASE_URL}/holiday/`,
     updateHoliday: (id) => `${API_BASE_URL}/holiday/${id}`,
   },
+  payroll: {
+    createPayroll: `${API_BASE_URL}/payroll/`,
+    deletePayroll: (id) => `${API_BASE_URL}/payroll/${id}`,
+    getAllPayrolls: `${API_BASE_URL}/payroll/`,
+    updatePayroll: (id) => `${API_BASE_URL}/payroll/${id}`,
+    getPayrollById: (id) => `${API_BASE_URL}/payroll/${id}`,
+  },
+  basesalary: {
+    createBaseSalary: `${API_BASE_URL}/base-salary/`,
+    deleteBaseSalary: (id) => `${API_BASE_URL}/base-salary/${id}`,
+    getAllBaseSalaries: `${API_BASE_URL}/base-salary/`,
+    updateBaseSalary: (id) => `${API_BASE_URL}/base-salary/${id}`,
+  },
 };
 
 export default apiRoutes;

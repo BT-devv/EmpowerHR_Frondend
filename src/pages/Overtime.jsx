@@ -137,7 +137,12 @@ const Overtime = () => {
   // Get all users
   useEffect(() => {
     axios
-      .get(apiRoutes.user.getAll)
+      .get(apiRoutes.user.getAll, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
       .then((response) => {
         setData(response.data);
         console.log(JSON.stringify(data));
@@ -231,7 +236,6 @@ const Overtime = () => {
     if (!isValid) {
       return;
     }
-    const token = localStorage.getItem("token");
     const data = {
       overtimeID: selectedEmployee._id,
       status: updateStatus,
@@ -274,7 +278,6 @@ const Overtime = () => {
   };
 
   const handleApprove = async () => {
-    const token = localStorage.getItem("token");
     const data = {
       overtimeID: selectedEmployee._id,
       status: updateStatus,
@@ -380,8 +383,8 @@ const Overtime = () => {
                 </div>
                 {isManagerOpen && (
                   <div className="absolute z-10 mt-2 w-[97%] bg-white rounded-md shadow-lg border border-gray-200">
-                    <ul className="py-1">
-                      {data.map((option, index) => (
+                    <ul className="py-1 max-h-[250px] overflow-y-auto">
+                      {data.slice(0, 10).map((option, index) => (
                         <li
                           key={index}
                           onClick={() =>

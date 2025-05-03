@@ -44,6 +44,7 @@ const QRScanner = () => {
         qrData: { EmployeeID: employeeID },
       });
       setData(response.data.data);
+      console.log(data);
     } catch (error) {
       console.error("Error fetching data from API", error);
     }
@@ -52,23 +53,24 @@ const QRScanner = () => {
   const handleScan = (scannedData) => {
     if (scannedData && scannedData.length > 0) {
       const qrResult = scannedData[0].rawValue;
+
       let employeeID = null;
       try {
-        const match = qrResult.match(/EmployeeID:\s*(\S+)/);
-
-        if (match) {
-          employeeID = match[1];
-        }
+        const parsed = JSON.parse(qrResult);
+        console.log("parsed result", parsed);
+        employeeID = parsed.EmployeeID;
       } catch (error) {
         console.error("Error parsing scanned data:", error);
       }
-      if (employeeID === null) {
+
+      if (!employeeID) {
         setError(true);
         setData();
         return;
       }
+
       sendToAPI(employeeID);
-      alert(employeeID);
+      console.log(employeeID);
     }
   };
 

@@ -49,15 +49,14 @@ const AttendanceOverview = () => {
   const chartOptions = {
     chart: {
       type: "bar",
-      stacked: true,
-      stackType: "100%",
+      stacked: false,
       toolbar: { show: false },
     },
     plotOptions: {
       bar: {
         horizontal: true,
-        barHeight: "30%",
-        borderRadius: 8,
+        barHeight: "50%",
+        borderRadius: 6,
       },
     },
     xaxis: {
@@ -81,7 +80,8 @@ const AttendanceOverview = () => {
       },
       fontSize: "14px",
       markers: {
-        show: false,
+        width: 12,
+        height: 12,
       },
       formatter: function (seriesName) {
         const { workFromOffice, late, absent } = attendanceData;
@@ -99,43 +99,27 @@ const AttendanceOverview = () => {
         return `${seriesName} (${percent.toFixed(2)}%)`;
       },
     },
-    colors: [
-      "#FF0000", // Absent: đỏ
-      "#828282", // Late: xám
-      "#2EB67D", // Work from Office: xanh lá
-    ],
+    colors: ["#FF0000", "#828282", "#2EB67D"],
   };
 
   const chartSeries = [
     {
       name: "Absent",
-      data: [
-        parseFloat(calcPercent(absent)),
-        parseFloat(calcPercent(absent)),
-        parseFloat(calcPercent(absent)),
-      ],
+      data: [parseFloat(calcPercent(absent)), 0, 0],
     },
     {
       name: "Late",
-      data: [
-        parseFloat(calcPercent(late)),
-        parseFloat(calcPercent(late)),
-        parseFloat(calcPercent(late)),
-      ],
+      data: [0, parseFloat(calcPercent(late)), 0],
     },
     {
       name: "Work from Office",
-      data: [
-        parseFloat(calcPercent(workFromOffice)),
-        parseFloat(calcPercent(workFromOffice)),
-        parseFloat(calcPercent(workFromOffice)),
-      ],
+      data: [0, 0, parseFloat(calcPercent(workFromOffice))],
     },
   ];
 
   return (
     <div className=" bg-white">
-      <div className="mt-[-8%] mb-[-9%] ">
+      <div className="mt-[-7%] mb-[-9%] ">
         <Chart
           options={chartOptions}
           series={chartSeries}

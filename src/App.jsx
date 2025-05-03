@@ -37,7 +37,7 @@ function App() {
           <Route path="message" element={<Chat />} />
           <Route path="calendar" element={<Calendar />} />
           <Route path="overtime" element={<Overtime />} />
-          <Route path="absense" element={<Absence />} />
+          <Route path="absence" element={<Absence />} />
 
           <Route path="employee" element={<Employee />} />
           <Route path="payroll" element={<Payroll />} />

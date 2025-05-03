@@ -42,14 +42,22 @@ const Absence = () => {
   const [isTypeOpen, setIsTypeOpen] = useState(false);
   const [type, setType] = useState("Select Type");
   const typeData = ["Full Day", "Half Day", "Leave Desk"];
+  const [dayType, setDayType] = useState("Select Day Type");
+  const dayTypeData = ["Half Day - Morning", "Half Day - Afternoon"];
+  const [isDayTypeOpen, setIsDayTypeOpen] = useState(false);
 
   const [data, setData] = useState([]);
   const [dataPending, setDataPending] = useState([]);
   const [dataHistory, setDataHistory] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+
   const [isManagerOpen, setIsManagerOpen] = useState(false);
   const [lineManagers, setLineManagers] = useState("");
   const [managerName, setManagerName] = useState("Select Manager");
+
+  const [isTeammateOpen, setIsTeammateOpen] = useState(false);
+  const [teammates, setTeammates] = useState("");
+  const [teammateName, setTeammateName] = useState("Select Manager");
 
   const dropdownRef = useRef(null);
 
@@ -66,6 +74,21 @@ const Absence = () => {
     setManagerName(option);
     setLineManagers(id);
     setIsManagerOpen(false);
+  };
+
+  // Dropdown selection of teammate
+  const toggleTeammateDropdown = () => setIsTeammateOpen(!isTeammateOpen);
+  const handleOptionClick4 = (option, id) => {
+    setTeammateName(option);
+    setTeammates(id);
+    setIsTeammateOpen(false);
+  };
+
+  // Dropdown selection of datetype
+  const toggleDayTypeDropdown = () => setIsDayTypeOpen(!isDayTypeOpen);
+  const handleOptionClick3 = (option) => {
+    setDayType(option);
+    setIsDayTypeOpen(false);
   };
 
   // Get all users
@@ -103,7 +126,7 @@ const Absence = () => {
   const token = localStorage.getItem("token");
 
   const handleSubmit = async () => {
-    if (!lineManagers || !dateTo || !dateFrom || !reason || !type) {
+    if (!lineManagers || !dateTo || !dateFrom || !reason || !type || !dayType) {
       Swal.fire({ text: "Vui lòng nhập đầy đủ thông tin", icon: "warning" });
       return;
     }
@@ -111,6 +134,7 @@ const Absence = () => {
       lineManagers,
       dateTo,
       dateFrom,
+      dayType,
       type,
       reason,
     };
@@ -401,8 +425,8 @@ const Absence = () => {
                   </div>
                   {isManagerOpen && (
                     <div className="absolute z-10 mt-2 w-[91%] bg-white rounded-md shadow-lg border border-gray-200">
-                      <ul className="py-1">
-                        {data.map((option, index) => (
+                      <ul className="py-1 max-h-[250px] overflow-y-auto">
+                        {data.slice(0, 10).map((option, index) => (
                           <li
                             key={index}
                             onClick={() =>
@@ -423,7 +447,7 @@ const Absence = () => {
               </div>
             </div>
           </div>
-          <div className="flex ml-[5%] mt-[3%]">
+          <div className="flex ml-[5%] mt-[2%]">
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <div className="w-full">
                 <p className="mb-2">From</p>
@@ -447,21 +471,80 @@ const Absence = () => {
               </div>
             </LocalizationProvider>
           </div>
-          <div className="flex ml-[5%] mt-[3%]">
-            <input type="checkbox" className="w-[15px]" />
-            <p className="text-[#657081] ml-[1%]">Half Day</p>
-          </div>
-          <div className="mt-[2%] ml-[5%]">
+          {type === "Half Day" && (
+            <div className="flex ml-[5%] mt-[3%] w-full">
+              <div className="w-full">
+                <p className="mb-2">Day Type</p>
+                <div
+                  className="relative inline-block text-left w-full "
+                  ref={dropdownRef}
+                >
+                  <div className="relative">
+                    <div
+                      className="inline-flex w-[91%] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                      onClick={toggleDayTypeDropdown}
+                    >
+                      <span className="text-[15px]">{dayType}</span>
+                      <IoIosArrowDown />
+                    </div>
+                  </div>
+                  {isDayTypeOpen && (
+                    <div className="absolute z-10 mt-2 w-[91%] bg-white rounded-md shadow-lg border border-gray-200">
+                      <ul className="py-1">
+                        {dayTypeData.map((option, index) => (
+                          <li
+                            key={index}
+                            onClick={() => handleOptionClick3(option)}
+                            className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                          >
+                            {option}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="mt-[3%] ml-[5%] w-full">
             <p>Teammate</p>
-            <input
-              type="text"
-              className="border-gray-200 rounded-[5px] border-[2px] w-[95%] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
-              // value={firstName}
-              placeholder="Select Type"
-              // onChange={(e) => {
-              //   setFirstName(e.target.value);
-              // }}
-            />
+            <div className="space-x-5">
+              <div
+                className="relative inline-block text-left w-full"
+                // ref={dropdownRef}
+              >
+                <div className="relative">
+                  <div
+                    className="inline-flex w-[91%] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[5px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                    onClick={toggleTeammateDropdown}
+                  >
+                    <span className="text-[15px]">{teammateName}</span>
+                    <IoIosArrowDown />
+                  </div>
+                </div>
+                {isTeammateOpen && (
+                  <div className="absolute z-10 mt-2 w-[91%] bg-white rounded-md shadow-lg border border-gray-200">
+                    <ul className="py-1 max-h-[250px] overflow-y-auto">
+                      {data.slice(0, 10).map((option, index) => (
+                        <li
+                          key={index}
+                          onClick={() =>
+                            handleOptionClick1(
+                              `${option.firstName} ${option.lastName}`,
+                              option.employeeID
+                            )
+                          }
+                          className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                        >
+                          {`${option.firstName} ${option.lastName}`}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
           <div className="mt-[3%] ml-[5%] ">
             <p>Reason</p>

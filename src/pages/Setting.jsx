@@ -775,7 +775,7 @@ const Setting = () => {
             { key: "permission", label: "Setting Permission" },
             { key: "department", label: "Setting Department" },
             { key: "job", label: "Setting Job Title" },
-            { key: "notification", label: "Setting Notification" },
+            { key: "holiday", label: "Setting Holiday" },
           ]}
           selectedTab={selectedTab}
           onTabSelect={(key) => setSelectedTab(key)}

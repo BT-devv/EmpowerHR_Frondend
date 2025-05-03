@@ -65,6 +65,7 @@ const EmployeeChart = () => {
         return `${seriesName} (${value})`;
       },
     },
+    columns: 2,
     responsive: [
       {
         breakpoint: 480,

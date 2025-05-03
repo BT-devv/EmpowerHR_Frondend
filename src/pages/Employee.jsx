@@ -97,6 +97,7 @@ const Employee = () => {
   const [departData, setDepartData] = useState([]);
   const [positionData, setPositionData] = useState([]);
   const [roleData, setRoleData] = useState([]);
+  const [filteredJobTitles, setFilteredJobTitles] = useState([]);
 
   // Edit employee 1
   const [isEditing1, setIsEditing1] = useState(false);
@@ -548,17 +549,27 @@ const Employee = () => {
 
   // Dropdown selection of department
   const toggleDepartDropdown = () => setIsDepartOpen(!isDepartOpen);
-  const handleOptionClick4 = (option) => {
-    setDepartment(option);
+  const handleOptionClick4 = (selectedDeptName) => {
+    setDepartment(selectedDeptName);
+    setJobTitle("Position");
+
+    const selectedDept = departData.find(
+      (dept) => dept.name === selectedDeptName
+    );
+    if (selectedDept) {
+      const jobIds = selectedDept.jobtitle;
+      const filtered = positionData.filter((job) => jobIds.includes(job._id));
+      setFilteredJobTitles(filtered);
+    } else {
+      setFilteredJobTitles([]);
+    }
+
+    setIsDepartOpen(false);
     setIsDepartOpen(false);
   };
 
   // Dropdown selection of position
   const togglePossitionDropdown = () => setIsPositionOpen(!isPositionOpen);
-  const handleOptionClick5 = (option) => {
-    setJobTitle(option);
-    setIsPositionOpen(false);
-  };
 
   // Format date of birth
   const formatDate = (dateString) => {
@@ -644,14 +655,6 @@ const Employee = () => {
     city: {
       value: city,
       message: "City is required.",
-    },
-    accountName: {
-      value: accountName,
-      message: "Account Name is required.",
-    },
-    bankAccountNumber: {
-      value: bankAccountNumber,
-      message: "Bank Account Number is required.",
     },
     department: {
       value: department,
@@ -2013,7 +2016,7 @@ const Employee = () => {
                   isOpen={modalIsOpen}
                   onRequestClose={() => setModalIsOpen(false)}
                   shouldCloseOnOverlayClick={false}
-                  className="bg-white rounded-[20px] shadow-lg w-auto max-w-[80%] p-12 transition-all duration-500 max-h-[95%] overflow-y-auto no-scrollbar"
+                  className="bg-white rounded-[20px] shadow-lg w-auto max-w-[80%] p-12 transition-all duration-500 max-h-[85%] overflow-y-auto no-scrollbar mt-10"
                   overlayClassName="fixed inset-0 bg-[#A8C1B7] bg-opacity-50 flex justify-center items-center"
                 >
                   <div className="flex flex-col mt-[-2%]">
@@ -2082,7 +2085,9 @@ const Employee = () => {
                                 value={firstName}
                                 placeholder="Input First Name"
                                 onChange={(e) => {
-                                  setFirstName(e.target.value);
+                                  setFirstName(
+                                    e.target.value.replace(/[0-9]/g, "")
+                                  );
                                   setErrors({});
                                 }}
                               />
@@ -2105,9 +2110,12 @@ const Employee = () => {
                                     : ""
                                 }`}
                                 value={idCard}
+                                maxLength={11}
                                 placeholder="Input ID Card"
                                 onChange={(e) => {
-                                  setIdCard(e.target.value);
+                                  setIdCard(
+                                    e.target.value.replace(/[a-zA-Z]/g, "")
+                                  );
                                   setErrors({});
                                 }}
                               />
@@ -2135,7 +2143,9 @@ const Employee = () => {
                                 value={lastName}
                                 placeholder="Input Last Name"
                                 onChange={(e) => {
-                                  setLastName(e.target.value);
+                                  setLastName(
+                                    e.target.value.replace(/[0-9]/g, "")
+                                  );
                                   setErrors({});
                                 }}
                               />
@@ -2189,7 +2199,9 @@ const Employee = () => {
                                 value={alias}
                                 placeholder="Input Alias"
                                 onChange={(e) => {
-                                  setAlias(e.target.value);
+                                  setAlias(
+                                    e.target.value.replace(/[0-9]/g, "")
+                                  );
                                   setErrors({});
                                 }}
                               />
@@ -2467,15 +2479,10 @@ const Employee = () => {
                           <div className="mt-7">
                             <div className="flex">
                               <p>Account Number</p>
-                              <p className="text-[#E03137] ml-1">*</p>
                             </div>
                             <input
                               type="text"
-                              className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
-                                errors.bankAccountNumber
-                                  ? "border-[2px] border-red-500"
-                                  : ""
-                              }`}
+                              className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light`}
                               value={bankAccountNumber}
                               placeholder="Input Account Number"
                               onChange={(e) => {
@@ -2483,11 +2490,6 @@ const Employee = () => {
                                 setErrors({});
                               }}
                             />
-                            {errors.bankAccountNumber && (
-                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                                {errors.bankAccountNumber}
-                              </p>
-                            )}
                           </div>
                         </div>
                         <div>
@@ -2495,15 +2497,10 @@ const Employee = () => {
                           <div className="mt-[3%]">
                             <div className="flex">
                               <p>Account Name</p>
-                              <p className="text-[#E03137] ml-1">*</p>
                             </div>
                             <input
                               type="text"
-                              className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
-                                errors.accountName
-                                  ? "border-[2px] border-red-500"
-                                  : ""
-                              }`}
+                              className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light`}
                               value={accountName}
                               placeholder="Input Account Name"
                               onChange={(e) => {
@@ -2511,11 +2508,6 @@ const Employee = () => {
                                 setErrors({});
                               }}
                             />
-                            {errors.accountName && (
-                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                                {errors.accountName}
-                              </p>
-                            )}
                           </div>
                         </div>
                       </div>
@@ -2629,7 +2621,7 @@ const Employee = () => {
                             <div className="relative">
                               <div
                                 className={`inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 ${
-                                  errors.position
+                                  errors.jobTitle
                                     ? "border-[2px] border-red-500"
                                     : ""
                                 }`}
@@ -2642,12 +2634,12 @@ const Employee = () => {
                             {isPositionOpen && (
                               <div className="absolute z-10 mt-2 w-[260px] bg-white rounded-md shadow-lg border border-gray-200">
                                 <ul className="py-1">
-                                  {positionData.map((option, index) => (
+                                  {filteredJobTitles.map((option, index) => (
                                     <li
                                       key={index}
                                       onClick={() => {
-                                        handleOptionClick5(option.name);
-                                        setErrors({});
+                                        setJobTitle(option.name); // hoặc setFormData4({...}) nếu đang dùng formData
+                                        setIsPositionOpen(false);
                                       }}
                                       className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
                                     >
@@ -2658,9 +2650,9 @@ const Employee = () => {
                               </div>
                             )}
 
-                            {errors.position && (
+                            {errors.jobTitle && (
                               <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                                {errors.position}
+                                {errors.jobTitle}
                               </p>
                             )}
                           </ClickOutside>
@@ -2992,7 +2984,7 @@ const Employee = () => {
                         Department
                       </th>
                       <th className="px-3 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        Email
+                        Email Company
                       </th>
                       <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
                         Status
@@ -3022,7 +3014,7 @@ const Employee = () => {
                         </td>
                         <td className="px-3 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%] truncate">
                           <div className="truncate text-left w-[260px]">
-                            {item.emailPersonal}
+                            {item.emailCompany}
                           </div>
                         </td>
                         <td className="px-4 py-6 border-b border-gray-200 ">

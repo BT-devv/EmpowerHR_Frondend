@@ -3,15 +3,19 @@ import { useNavigate, useLocation } from "react-router-dom";
 import usePermission from "../components/UsePermission";
 // icon
 import { CiDollar } from "react-icons/ci";
-import { HiOutlineSquares2X2 } from "react-icons/hi2";
+import {
+  HiOutlineSquares2X2,
+  HiOutlineUserGroup,
+  HiOutlineDocumentCheck,
+} from "react-icons/hi2";
 import { BiMessageRounded } from "react-icons/bi";
 import {
   IoCalendarOutline,
   IoTimeOutline,
   IoCloseCircleOutline,
   IoSettingsOutline,
+  IoCameraOutline,
 } from "react-icons/io5";
-import { HiOutlineUserGroup, HiOutlineDocumentCheck } from "react-icons/hi2";
 
 const Slidebar = () => {
   const navigate = useNavigate();
@@ -40,7 +44,7 @@ const Slidebar = () => {
       "/employee": "employee",
       "/attendance": "attendance",
       "/overtime": "overtime",
-      "/absense": "absense",
+      "/absence": "absence",
       "/settings": "settings",
       "/qrscanner": "qrscanner",
     };
@@ -66,7 +70,9 @@ const Slidebar = () => {
       <div className="flex" key={key}>
         <li
           className={`flex items-center w-[210px] rounded-[8px] h-[45px] cursor-pointer transition-transform duration-300 ${
-            selectedItem === key
+            key === "qr"
+              ? "bg-white text-[#979797]"
+              : selectedItem === key
               ? "bg-[#2EB67D] text-white translate-x-2"
               : "bg-white text-[#979797]"
           }`}
@@ -128,7 +134,7 @@ const Slidebar = () => {
               "Absence",
               <IoCloseCircleOutline className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />,
               "absence",
-              "/absense"
+              "/absence"
             )}
           </ul>
         </div>
@@ -156,7 +162,7 @@ const Slidebar = () => {
             )}
             {renderMenuItem(
               "QR Scanner",
-              <HiOutlineDocumentCheck className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />,
+              <IoCameraOutline className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />,
               "qr",
               "/qrscanner",
               true
@@ -165,12 +171,16 @@ const Slidebar = () => {
         </div>
       </div>
 
-      <div className="flex justify-between border-[#B8BDC5] border-2 rounded-[10px] mb-[5%]">
+      <div className="flex justify-between border-[#B8BDC5] border-1 rounded-[10px] mb-[5%]">
         {!permissions.settings.loading &&
           permissions.settings.hasPermission && (
             <li
-              className="flex items-center w-[210px] rounded-[8px] h-[45px] cursor-pointer text-[#979797]"
-              onClick={() => toggleMenu("setting", "/settings")}
+              className={`flex items-center w-[210px] rounded-[8px] h-[45px] cursor-pointer ${
+                selectedItem === "settings"
+                  ? "border-2 border-[#2EB67D] text-[#2EB67D]"
+                  : "border-2 border-[#B8BDC5] text-[#979797]"
+              }`}
+              onClick={() => toggleMenu("settings", "/settings")}
             >
               <IoSettingsOutline className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />
               Settings

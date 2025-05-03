@@ -3,38 +3,274 @@ import Modal from "react-modal";
 import TabSelector from "../components/TabSelector";
 import { useNavigate } from "react-router-dom";
 import UsePermission from "../components/UsePermission";
+import axios from "axios";
+import apiRoutes from "../../apiRoutes";
+import Swal from "sweetalert2";
+import PaginationFooter from "../components/PaginationFooter";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import "react-datepicker/dist/react-datepicker.css";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 // icon
 import { CiSearch } from "react-icons/ci";
 import { BiFilterAlt } from "react-icons/bi";
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
 import { IoTrashBinOutline } from "react-icons/io5";
 import { FaRegAddressCard } from "react-icons/fa";
-import { IoIosArrowRoundBack } from "react-icons/io";
+import { IoIosArrowRoundBack, IoIosArrowDown } from "react-icons/io";
 
 Modal.setAppElement("#root");
 const Payroll = () => {
   const navigate = useNavigate();
   const { hasPermission, loading } = UsePermission("payroll.read");
 
+  const [payroll, setPayroll] = useState([]);
+  const [baseSalary, setBaseSalary] = useState([]);
+
   const [selectedTab, setSelectedTab] = useState("payroll");
   const [selectedTab2, setSelectedTab2] = useState("base");
   const [modalSalaryIsOpen, setModalSalaryIsOpen] = useState(false);
   const [modalBaseIsOpen, setModalBaseIsOpen] = useState(false);
-  const [modalDeductionIsOpen, setModalDeductionIsOpen] = useState(false);
+  const [modalAddBaseIsOpen, setModalAddBaseIsOpen] = useState(false);
+  const [modalAddSalaryIsOpen, setModalAddSalaryIsOpen] = useState(false);
 
   const [moreOptions1, setMoreOptions1] = useState(null);
   const [moreOptions2, setMoreOptions2] = useState(null);
-  const [moreOptions4, setMoreOptions4] = useState(null);
+
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [selectedEmployee1, setSelectedEmployee1] = useState(null);
+
+  // const [user, setUser] = useState([]);
+  const [month, setMonth] = useState(null);
+  const [year, setYear] = useState(null);
+
+  // const [netSalary, setNetSalary] = useState("");
+  // const [basicSalary, setBasicSalary] = useState("");
+  // const [ot, setOt] = useState("");
+  // const [unpaid, setUnpaid] = useState("");
+  // const [income, setIncome] = useState("");
+  // const [advance, setAdvance] = useState("");
+  // const [subtraction, setSubtraction] = useState("");
+
+  const [nameBase, setNameBase] = useState("");
+  const [amount, setAmount] = useState("");
+
+  const [department, setDepartment] = useState("Department");
+  const [isDepartOpen, setIsDepartOpen] = useState(false);
+  const [isPositionOpen, setIsPositionOpen] = useState(false);
+  const [departData, setDepartData] = useState([]);
+  const [jobTitle, setJobTitle] = useState("Position");
+  const [filteredJobTitles, setFilteredJobTitles] = useState([]);
+  const [positionData, setPositionData] = useState([]);
+
+  const [selectedJobTitles, setSelectedJobTitles] = useState([]);
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState("");
 
   const closeModalSalary = () => {
     setModalSalaryIsOpen(false);
   };
+
   const closeModalBase = () => {
     setModalBaseIsOpen(false);
   };
-  const closeModalDeduction = () => {
-    setModalDeductionIsOpen(false);
+
+  const closeModalAddBase = () => {
+    setModalAddBaseIsOpen(false);
+    setDepartment("Department");
+    setJobTitle("Position");
+    setSelectedJobTitles([]);
   };
+
+  const closeModalAddSalary = () => {
+    setModalAddSalaryIsOpen(false);
+  };
+
+  useEffect(() => {
+    axios
+      .get(apiRoutes.payroll.getAllPayrolls)
+      .then((response) => {
+        setPayroll(response.data);
+      })
+      .catch((error) => {
+        if (error.response?.status === 403) {
+          console.warn("Bạn không có quyền xem user.");
+        }
+      });
+  }, []);
+
+  // Delete base salary
+  const verifyDeleteSalary = async (id) => {
+    try {
+      const response = await axios.delete(apiRoutes.payroll.deletePayroll(id));
+
+      if (response.status === 200) {
+        Swal.fire({
+          text: "Delete Salary Successfully",
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        Swal.fire({
+          text: "Delete Salary Fail",
+          icon: "error",
+          timer: 2000,
+        });
+      }
+    } catch (error) {
+      console.log("Failed to delete the profile: " + error.message);
+    }
+  };
+
+  // Get all base salary
+  useEffect(() => {
+    axios
+      .get(apiRoutes.basesalary.getAllBaseSalaries)
+      .then((response) => {
+        setBaseSalary(response.data);
+      })
+      .catch((error) => {
+        if (error.response?.status === 403) {
+          console.warn("Bạn không có quyền xem user.");
+        }
+      });
+  }, []);
+
+  // Create Base salary
+  const handleCreateBasealary = async () => {
+    let isValid = true;
+
+    if (!isValid) {
+      return;
+    }
+
+    const formData = {
+      name: nameBase,
+      amount,
+      departmentId: selectedDepartmentId,
+      jobtitleIds: selectedJobTitles,
+    };
+
+    try {
+      const response = await axios.post(
+        apiRoutes.basesalary.createBaseSalary,
+        formData
+      );
+
+      if (response.status === 201) {
+        Swal.fire({
+          text: "Add Salary Successfully",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+
+        setTimeout(() => {
+          setModalAddSalaryIsOpen(false);
+          window.location.reload();
+        }, 2000);
+      } else {
+        Swal.fire({
+          text: "Add Salary Fail",
+          icon: "error",
+          timer: 2000,
+        });
+      }
+    } catch (error) {
+      if (error.response) {
+        Swal.fire({
+          text: error.response.data.message,
+          icon: "error",
+        });
+      }
+    }
+  };
+
+  // Delete base salary
+  const verifyDeleteBase = async (id) => {
+    try {
+      const response = await axios.delete(
+        apiRoutes.basesalary.deleteBaseSalary(id)
+      );
+
+      if (response.status === 200) {
+        Swal.fire({
+          text: "Delete Base Salary Successfully",
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        Swal.fire({
+          text: "Delete Base Salary Fail",
+          icon: "error",
+          timer: 2000,
+        });
+      }
+    } catch (error) {
+      console.log("Failed to delete the profile: " + error.message);
+    }
+  };
+
+  // Dropdown selection of position
+  const togglePossitionDropdown = () => setIsPositionOpen(!isPositionOpen);
+
+  // Dropdown selection of department
+  const toggleDepartDropdown = () => setIsDepartOpen(!isDepartOpen);
+  const handleOptionClick4 = (selectedDeptName) => {
+    setDepartment(selectedDeptName);
+    setJobTitle("Position");
+
+    const selectedDept = departData.find(
+      (dept) => dept.name === selectedDeptName
+    );
+    if (selectedDept) {
+      const jobIds = selectedDept.jobtitle;
+      const filtered = positionData.filter((job) => jobIds.includes(job._id));
+      setFilteredJobTitles(filtered);
+    } else {
+      setFilteredJobTitles([]);
+    }
+
+    setIsDepartOpen(false);
+  };
+
+  // Get data dropdown
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        const [departments, positions] = await Promise.all([
+          axios.get(apiRoutes.department.getAllDepartment),
+          axios.get(apiRoutes.jobtitle.getAllJobtitle),
+        ]);
+
+        setDepartData(departments.data);
+        setPositionData(positions.data);
+      } catch (error) {
+        console.error("Failed to fetch options:", error);
+      }
+    };
+
+    fetchOptions();
+  }, []);
+
+  // Page navigation
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = payroll.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems1 = baseSalary.slice(indexOfFirstItem, indexOfLastItem);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentPage]);
 
   useEffect(() => {
     if (!loading && !hasPermission) {
@@ -60,7 +296,7 @@ const Payroll = () => {
       </div>
 
       {selectedTab === "payroll" && (
-        <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-[77%] ml-[3%] rounded-[15px] mt-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
+        <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-auto ml-[3%] rounded-[15px] mt-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
           <div className="flex flex-wrap w-full items-center gap-x-4 px-4 py-6">
             {/* Overtime Request Title */}
             <div>
@@ -88,244 +324,405 @@ const Payroll = () => {
             </div>
 
             {/* Add Salary */}
-            <div className="flex items-center justify-center min-w-[100px] sm:min-w-[120px] h-[50px] text-white font-normal rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]">
+            <div
+              onClick={() => setModalAddSalaryIsOpen(true)}
+              className="flex items-center justify-center min-w-[100px] sm:min-w-[120px] h-[50px] text-white font-normal rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]"
+            >
               <p>Add Salary</p>
             </div>
           </div>
-          {/* List */}
-          <div className="overflow-x-auto mt-[20px] text-[14px] ml-[15px]">
-            <table className="border-collapse bg-white overflow-hidden w-[calc(100vw-400px)] ">
-              <thead>
-                <tr className="border-gray-300 border-t border-b-2 text-left">
-                  <th className="px-1 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                    ID
-                  </th>
-                  <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                    Employee
-                  </th>
-                  <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                    Email
-                  </th>
-                  <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                    Department
-                  </th>
-                  <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                    Employee Type
-                  </th>
-                  <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                    Joining Date
-                  </th>
-                  <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                    Salary
-                  </th>
-                  <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer text-[15px]">
-                  <td className="px-1 py-6 border-b border-gray-200 text-left w-[12%]">
-                    sdvsv
-                  </td>
-                  <td className="px-5 py-6 border-b border-gray-200  truncate text-left w-[25%]">
-                    csdcsc
-                  </td>
-
-                  <td className="px-5 py-6 border-b border-gray-200 truncate text-left w-[20%]">
-                    vdfvdfv
-                  </td>
-                  <td className="px-5 py-6 border-b border-gray-200 w-[15%]">
-                    vdfvdfv
-                  </td>
-                  <td className="px-35 py-6 border-b border-gray-200 w-[15%]">
-                    vdfvdfv
-                  </td>
-                  <td className="px-5 py-6 border-b border-gray-200 w-[15%]">
-                    vdfvdfv
-                  </td>
-                  <td className="px-5 py-6 border-b border-gray-200 text-center w-[15%]">
-                    vdfvdfv
-                  </td>
-                  <td className="px-5 py-6 border-b border-gray-200 relative cursor-pointer">
-                    <HiOutlineDotsHorizontal
-                      className="text-[23px]"
-                      onClick={() => {
-                        setMoreOptions1(moreOptions1 === 1 ? null : 1);
+          <Modal
+            isOpen={modalAddSalaryIsOpen}
+            onRequestClose={() => setModalAddSalaryIsOpen(false)}
+            shouldCloseOnOverlayClick={false}
+            className="bg-white mt-10 rounded-[20px] shadow-lg w-auto max-w-[80%] p-12 transition-all duration-500 max-h-[95%] overflow-y-auto no-scrollbar"
+            overlayClassName="fixed inset-0 bg-[#A8C1B7] bg-opacity-50 flex justify-center items-center"
+          >
+            <div className="flex flex-col mt-[-5%] ml-[-5%]">
+              <div className="flex items-center mb-2">
+                <IoIosArrowRoundBack
+                  className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
+                  onClick={closeModalAddSalary}
+                />
+                <p className="text-[20px] font-bold ">Add Salary Employee</p>
+              </div>
+              <div className="bg-gray-200 w-[120%] h-0.5 mt-[1%] mb-[1%] ml-[-10%]"></div>
+            </div>
+            <div>
+              <div className="flex space-x-14 mt-3">
+                <div>
+                  <p>Employee Name</p>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value=""
+                    className="border border-gray-300 rounded-md p-3 w-full mt-2 "
+                  />
+                </div>
+                <div>
+                  <p>Bonus</p>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value=""
+                    className="border border-gray-300 rounded-md p-3 w-full mt-2 "
+                  />
+                </div>
+              </div>
+              <div className="flex space-x-14 mt-5">
+                <div>
+                  <p>Salary Advance</p>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value=""
+                    className="border border-gray-300 rounded-md p-3 w-full mt-2 "
+                  />
+                </div>
+                <div>
+                  <p>Salary Subtraction</p>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value=""
+                    className="border border-gray-300 rounded-md p-3 w-full mt-2 "
+                  />
+                </div>
+              </div>
+              <div className="flex space-x-14 mt-5 ">
+                <div className="w-[43%]">
+                  <p>Month</p>
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DatePicker
+                      views={["month"]}
+                      value={month}
+                      onChange={(newDate) => {
+                        setMonth(newDate);
                       }}
                     />
-                  </td>
-                  {moreOptions1 === 1 && (
-                    <div
-                      className="absolute bg-white right-5 z-10 mt-2 w-[200%] origin-top-right rounded-[20px] focus:outline-none font-normal"
-                      role="menu"
-                      aria-orientation="vertical"
-                      aria-labelledby="menu-button"
-                    >
-                      <div className="absolute right-3 z-10 t-[-20px] w-auto origin-top-right rounded-lg shadow-lg bg-white">
-                        <div className="flex flex-col divide-y divide-gray-200">
-                          {/* View Detail */}
-                          <div
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setMoreOptions1(null);
-                              // setSelectedEmployee(item);
-                              setModalSalaryIsOpen(true);
-                            }}
-                            className="flex items-center px-4 py-3 text-[15px] text-gray-700 hover:bg-gray-100 cursor-pointer"
-                          >
-                            <FaRegAddressCard className="w-[20px] h-[20px] text-[#2EB67D] mr-3" />
-                            <span>View detail</span>
-                          </div>
-                          {/* Delete */}
-                          <div
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setMoreOptions1(null);
-                              // verifyDelete(item._id);
-                            }}
-                            className="flex items-center px-4 py-3 text-[15px] text-gray-700 hover:bg-gray-100 cursor-pointer"
-                          >
-                            <IoTrashBinOutline className="w-[20px] h-[20px] text-[#2EB67D] mr-3" />
-                            <span>Delete</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  <Modal
-                    isOpen={modalSalaryIsOpen}
-                    onRequestClose={() => setModalSalaryIsOpen(false)}
-                    shouldCloseOnOverlayClick={false}
-                    className="bg-white rounded-[20px] shadow-lg w-auto max-w-[80%] p-12 transition-all duration-500 max-h-[95%] overflow-y-auto no-scrollbar"
-                    overlayClassName="fixed inset-0 bg-[#A8C1B7] bg-opacity-50 flex justify-center items-center"
+                  </LocalizationProvider>
+                </div>
+                <div className="w-[43%]">
+                  <p>Year</p>
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DatePicker
+                      views={["year"]}
+                      value={year}
+                      onChange={(newDate) => {
+                        setYear(newDate);
+                      }}
+                    />
+                  </LocalizationProvider>
+                </div>
+              </div>
+              <div className="flex flex-col mt-5 mb-5">
+                <div className="bg-gray-200 w-[150%] h-0.5 mt-[2%] mb-[1%] ml-[-20%]"></div>
+                <div className="flex justify-end mr-[10px] mb-[-10%] mt-2">
+                  <button
+                    onClick={closeModalAddSalary}
+                    className="mt-1 bg-white text-[#FF6262] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] "
                   >
-                    <div className="flex flex-col mt-[-5%] ml-[-5%]">
-                      <div className="flex items-center mb-2">
-                        <IoIosArrowRoundBack
-                          className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
-                          onClick={closeModalSalary}
+                    Cancel
+                  </button>
+                  <button
+                    // onClick={() => handleCreatePermission()}
+                    className="mt-1 bg-[#E7F7EF] text-[#097C44] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] ml-[10px]"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Modal>
+          {/* List */}
+          {payroll.length > 0 ? (
+            <div className="overflow-x-auto mt-[20px] text-[14px] ml-[15px]">
+              <table className="border-collapse bg-white overflow-hidden w-[calc(100vw-400px)] ">
+                <thead>
+                  <tr className="border-gray-300 border-t border-b-2 text-left">
+                    <th className="px-1 py-5 border-b border-gray-300 caret-transparent text-gray-500">
+                      ID
+                    </th>
+                    <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
+                      Employee
+                    </th>
+                    <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
+                      Email
+                    </th>
+                    <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
+                      Department
+                    </th>
+                    <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
+                      Employee Type
+                    </th>
+                    <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
+                      Joining Date
+                    </th>
+                    <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
+                      Salary
+                    </th>
+                    <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentItems.map((item) => (
+                    <tr
+                      key={item._id}
+                      className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer text-[15px] text-left"
+                    >
+                      <td className="px-1 py-5 border-b border-gray-200 w-[15%]">
+                        {item.employeeID}
+                      </td>
+                      <td className="px-5 py-5 border-b border-gray-200">
+                        <div className="truncate text-left w-[75%] ">
+                          {item.employeeName}
+                        </div>
+                      </td>
+                      <td className="px-5 py-5 border-b border-gray-200 truncate w-[15%]">
+                        vdfvdfv
+                      </td>
+                      <td className="px-5 py-5 border-b border-gray-200 w-[15%]">
+                        vdfvdfv
+                      </td>
+                      <td className="px-5 py-5 border-b border-gray-200 w-[15%]">
+                        vdfvdfv
+                      </td>
+                      <td className="px-5 py-5 border-b border-gray-200 w-[13%]">
+                        vdfvdfv
+                      </td>
+                      <td className="px-5 py-5 border-b border-gray-200 w-[20%]">
+                        {`${item.total.toLocaleString("vi-VN")} VNĐ`}
+                      </td>
+                      <td className="px-5 py-5 border-b border-gray-200 relative cursor-pointer">
+                        <HiOutlineDotsHorizontal
+                          className="text-[23px]"
+                          onClick={() => {
+                            setMoreOptions1(
+                              moreOptions1 === item.employeeID
+                                ? null
+                                : item.employeeID
+                            );
+                          }}
                         />
-                        <p className="text-[20px] font-bold ">
-                          Edit Salary Employee
-                        </p>
-                      </div>
-                      <div className="bg-gray-200 w-[120%] h-0.5 mt-[1%] mb-[1%] ml-[-10%]"></div>
-                    </div>
-                    <div>
-                      <div className="flex space-x-14 mt-3">
-                        <div>
-                          <p>Employee Name</p>
-                          <input
-                            type="text"
-                            name="firstName"
-                            value="Bui Trung Tuan"
-                            className="border border-gray-300 rounded-md p-3 w-full mt-2 "
-                          />
+                      </td>
+                      {moreOptions1 === item.employeeID && (
+                        <div
+                          className="absolute bg-white right-5 z-10 mt-2 w-[200%] origin-top-right rounded-[20px] focus:outline-none font-normal"
+                          role="menu"
+                          aria-orientation="vertical"
+                          aria-labelledby="menu-button"
+                        >
+                          <div className="absolute right-3 z-10 t-[-20px] w-auto origin-top-right rounded-lg shadow-lg bg-white">
+                            <div className="flex flex-col divide-y divide-gray-200">
+                              {/* View Detail */}
+                              <div
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setMoreOptions1(null);
+                                  setSelectedEmployee(item);
+                                  setModalSalaryIsOpen(true);
+                                }}
+                                className="flex items-center px-4 py-3 text-[15px] text-gray-700 hover:bg-gray-100 cursor-pointer"
+                              >
+                                <FaRegAddressCard className="w-[20px] h-[20px] text-[#2EB67D] mr-3" />
+                                <span>View detail</span>
+                              </div>
+                              {/* Delete */}
+                              <div
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setMoreOptions1(null);
+                                  verifyDeleteSalary(item._id);
+                                }}
+                                className="flex items-center px-4 py-3 text-[15px] text-gray-700 hover:bg-gray-100 cursor-pointer"
+                              >
+                                <IoTrashBinOutline className="w-[20px] h-[20px] text-[#2EB67D] mr-3" />
+                                <span>Delete</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      <Modal
+                        isOpen={modalSalaryIsOpen}
+                        onRequestClose={() => setModalSalaryIsOpen(false)}
+                        shouldCloseOnOverlayClick={false}
+                        className="bg-white mt-10 rounded-[20px] shadow-lg w-auto max-w-[80%] p-12 transition-all duration-500 max-h-[95%] overflow-y-auto no-scrollbar"
+                        overlayClassName="fixed inset-0 bg-[#A8C1B7] bg-opacity-50 flex justify-center items-center"
+                      >
+                        <div className="flex flex-col mt-[-5%] ml-[-5%]">
+                          <div className="flex items-center mb-2">
+                            <IoIosArrowRoundBack
+                              className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
+                              onClick={closeModalSalary}
+                            />
+                            <p className="text-[20px] font-bold ">
+                              Edit Salary Employee
+                            </p>
+                          </div>
+                          <div className="bg-gray-200 w-[120%] h-0.5 mt-[1%] mb-[1%] ml-[-10%]"></div>
                         </div>
                         <div>
-                          <p>Net Salary</p>
-                          <input
-                            type="text"
-                            name="firstName"
-                            value="10,000,000 VND"
-                            className="border border-gray-300 rounded-md p-3 w-full mt-2 "
-                          />
+                          <div className="flex space-x-14 mt-3">
+                            <div>
+                              <p>Employee Name</p>
+                              <input
+                                type="text"
+                                name="firstName"
+                                value={selectedEmployee?.employeeName}
+                                className="border border-gray-300 rounded-md p-3 w-full mt-2 "
+                              />
+                            </div>
+                            <div>
+                              <p>Net Salary</p>
+                              <input
+                                type="text"
+                                name="firstName"
+                                value={`${selectedEmployee?.netSalary.toLocaleString(
+                                  "vi-VN"
+                                )} VNĐ`}
+                                className="border border-gray-300 rounded-md p-3 w-full mt-2 "
+                              />
+                            </div>
+                          </div>
+                          <div className="flex justify-between mt-4">
+                            <p className="font-bold">Earning</p>
+                            <p className="text-[#09C06C] cursor-pointer caret-transparent">
+                              + Add New
+                            </p>
+                          </div>
+                          <div className="flex space-x-14 mt-3">
+                            <div>
+                              <p>Basic Salary</p>
+                              <input
+                                type="text"
+                                name="firstName"
+                                value={`${selectedEmployee?.baseSalary.toLocaleString(
+                                  "vi-VN"
+                                )} VNĐ`}
+                                className="border border-gray-300 rounded-md p-3 w-full mt-2 "
+                              />
+                            </div>
+                            <div>
+                              <p>Overtime (OT)</p>
+                              <input
+                                type="text"
+                                name="firstName"
+                                value={`${selectedEmployee?.otPay.toLocaleString(
+                                  "vi-VN"
+                                )} VNĐ`}
+                                className="border border-gray-300 rounded-md p-3 w-full mt-2 "
+                              />
+                            </div>
+                          </div>
+                          <div className="flex justify-between mt-4">
+                            <p className="font-bold">Deduct</p>
+                            <p className="text-[#09C06C] cursor-pointer caret-transparent">
+                              + Add New
+                            </p>
+                          </div>
+                          <div className="flex space-x-14 mt-3">
+                            <div>
+                              <p>Unpaid leave</p>
+                              <input
+                                type="text"
+                                name="firstName"
+                                value={`${selectedEmployee?.unpaidLeave.toLocaleString(
+                                  "vi-VN"
+                                )} VNĐ`}
+                                className="border border-gray-300 rounded-md p-3 w-full mt-2 "
+                              />
+                            </div>
+                            <div>
+                              <p>Personal Income Tax</p>
+                              <input
+                                type="text"
+                                name="firstName"
+                                value={`${selectedEmployee?.personalIncomeTax.toLocaleString(
+                                  "vi-VN"
+                                )} VNĐ`}
+                                className="border border-gray-300 rounded-md p-3 w-full mt-2 "
+                              />
+                            </div>
+                          </div>
+                          <div className="flex space-x-14 mt-5">
+                            <div>
+                              <p>Salary Advance</p>
+                              <input
+                                type="text"
+                                name="firstName"
+                                value={`${selectedEmployee?.salaryAdvance.toLocaleString(
+                                  "vi-VN"
+                                )} VNĐ`}
+                                className="border border-gray-300 rounded-md p-3 w-full mt-2 "
+                              />
+                            </div>
+                            <div>
+                              <p>Salary Subtraction</p>
+                              <input
+                                type="text"
+                                name="firstName"
+                                value={`${selectedEmployee?.salarySubtraction.toLocaleString(
+                                  "vi-VN"
+                                )} VNĐ`}
+                                className="border border-gray-300 rounded-md p-3 w-full mt-2 "
+                              />
+                            </div>
+                          </div>
+                          <div className="flex flex-col mt-5 mb-5">
+                            <div className="bg-gray-200 w-[150%] h-0.5 mt-[2%] mb-[1%] ml-[-20%]"></div>
+                            <div className="flex justify-end mr-[10px] mb-[-10%] mt-2">
+                              <button
+                                onClick={closeModalSalary}
+                                className="mt-1 bg-white text-[#FF6262] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] "
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                // onClick={() => handleCreatePermission()}
+                                className="mt-1 bg-[#E7F7EF] text-[#097C44] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] ml-[10px]"
+                              >
+                                Save
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex justify-between mt-4">
-                        <p className="font-bold">Earning</p>
-                        <p className="text-[#09C06C] cursor-pointer caret-transparent">
-                          + Add New
-                        </p>
-                      </div>
-                      <div className="flex space-x-14 mt-3">
-                        <div>
-                          <p>Basic Salary</p>
-                          <input
-                            type="text"
-                            name="firstName"
-                            value="10,000,000 VND"
-                            className="border border-gray-300 rounded-md p-3 w-full mt-2 "
-                          />
-                        </div>
-                        <div>
-                          <p>Overtime (OT)</p>
-                          <input
-                            type="text"
-                            name="firstName"
-                            value=""
-                            className="border border-gray-300 rounded-md p-3 w-full mt-2 "
-                          />
-                        </div>
-                      </div>
-                      <div className="flex justify-between mt-4">
-                        <p className="font-bold">Deduct</p>
-                        <p className="text-[#09C06C] cursor-pointer caret-transparent">
-                          + Add New
-                        </p>
-                      </div>
-                      <div className="flex space-x-14 mt-3">
-                        <div>
-                          <p>Unpaid leave</p>
-                          <input
-                            type="text"
-                            name="firstName"
-                            value="Bui Trung Tuan"
-                            className="border border-gray-300 rounded-md p-3 w-full mt-2 "
-                          />
-                        </div>
-                        <div>
-                          <p>Personal Income Tax</p>
-                          <input
-                            type="text"
-                            name="firstName"
-                            value=""
-                            className="border border-gray-300 rounded-md p-3 w-full mt-2 "
-                          />
-                        </div>
-                      </div>
-                      <div className="flex space-x-14 mt-5">
-                        <div>
-                          <p>Salary Advance</p>
-                          <input
-                            type="text"
-                            name="firstName"
-                            value="Bui Trung Tuan"
-                            className="border border-gray-300 rounded-md p-3 w-full mt-2 "
-                          />
-                        </div>
-                        <div>
-                          <p>Salary Subtraction</p>
-                          <input
-                            type="text"
-                            name="firstName"
-                            value="10,000,000 VND"
-                            className="border border-gray-300 rounded-md p-3 w-full mt-2 "
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </Modal>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          {/* page */}
-          <div className="mt-auto font-light text-[#252C58] text-[14px] ml-[1%]">
-            Page 1 of 100
-          </div>
+                      </Modal>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="flex flex-col justify-center items-center text-gray-500 text-lg flex-grow mx-auto">
+              <img
+                alt="logo"
+                src="src/assets/Image.png"
+                className="w-[380px] h-[280px]"
+              />
+              <div className="mt-[10%] text-center">
+                <p className="font-bold">Empty Attendance</p>
+                <p>Add your first Payroll manually</p>
+              </div>
+            </div>
+          )}
+          {/* infor bottom */}
+          <PaginationFooter
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+            totalItems={payroll.length}
+            itemsPerPage={itemsPerPage}
+            setItemsPerPage={setItemsPerPage}
+          />
         </div>
       )}
 
       {selectedTab === "payitems" && (
         <>
           <TabSelector
-            tabs={[
-              { key: "base", label: "Base Salary" },
-              { key: "additional", label: "Additional" },
-              { key: "deduction", label: "Deduction" },
-            ]}
+            tabs={[{ key: "base", label: "Base Salary" }]}
             selectedTab={selectedTab2}
             onTabSelect={(key) => setSelectedTab2(key)}
             type="button"
@@ -359,388 +756,386 @@ const Payroll = () => {
                 </div>
 
                 {/* Add Salary */}
-                <div className="flex items-center justify-center min-w-[100px] sm:min-w-[120px] h-[50px] text-white font-normal rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]">
+                <div
+                  onClick={() => setModalAddBaseIsOpen(true)}
+                  className="flex items-center justify-center min-w-[100px] sm:min-w-[120px] h-[50px] text-white font-normal rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]"
+                >
                   <p>Add Item</p>
                 </div>
               </div>
-              {/* List */}
-              <div className="overflow-x-auto mt-[20px] text-[14px] ml-[15px]">
-                <table className="border-collapse bg-white overflow-hidden w-[calc(100vw-400px)] ">
-                  <thead>
-                    <tr className="border-gray-300 border-t border-b-2 text-left">
-                      <th className="px-1 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        No
-                      </th>
-                      <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        Name
-                      </th>
-                      <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        Department
-                      </th>
-                      <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        Job Type
-                      </th>
-                      <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        Amount
-                      </th>
-                      <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        Unit
-                      </th>
-                      <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer text-[15px] font-bold">
-                      <td className="px-1 py-6 border-b border-gray-200 text-left w-[10%]">
-                        1
-                      </td>
-                      <td className="px-5 py-6 border-b border-gray-200  truncate text-left w-[20%]">
-                        base salary
-                      </td>
-                      <td className="px-5 py-6 border-b border-gray-200 w-[25%] text-left">
-                        Front end
-                      </td>
-                      <td className="px-5 py-6 border-b border-gray-200 w-[15%] text-left">
-                        Intern
-                      </td>
-                      <td className="px-5 py-6 border-b border-gray-200 w-[15%] text-left">
-                        3.000.000
-                      </td>
-                      <td className="px-5 py-6 border-b border-gray-200 w-[15%] text-left">
-                        VNĐ
-                      </td>
-                      <td className="px-5 py-6 border-b border-gray-200 relative cursor-pointer">
-                        <HiOutlineDotsHorizontal
-                          className="text-[23px]"
-                          onClick={() => {
-                            setMoreOptions2(moreOptions2 === 1 ? null : 1);
-                          }}
-                        />
-                      </td>
-                      {moreOptions2 === 1 && (
-                        <div
-                          className="absolute bg-white right-5 z-10 mt-2 w-[200%] origin-top-right rounded-[20px] focus:outline-none font-normal"
-                          role="menu"
-                          aria-orientation="vertical"
-                          aria-labelledby="menu-button"
-                        >
-                          <div className="absolute right-3 z-10 t-[-20px] w-auto origin-top-right rounded-lg shadow-lg bg-white">
-                            <div className="flex flex-col divide-y divide-gray-200">
-                              {/* View Detail */}
-                              <div
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setMoreOptions2(null);
-                                  // setSelectedEmployee(item);
-                                  setModalBaseIsOpen(true);
-                                }}
-                                className="flex items-center px-4 py-3 text-[15px] text-gray-700 hover:bg-gray-100 cursor-pointer"
-                              >
-                                <FaRegAddressCard className="w-[20px] h-[20px] text-[#2EB67D] mr-3" />
-                                <span>View detail</span>
-                              </div>
-
-                              {/* Delete */}
-                              <div
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setMoreOptions2(null);
-                                  // verifyDelete(item._id);
-                                }}
-                                className="flex items-center px-4 py-3 text-[15px] text-gray-700 hover:bg-gray-100 cursor-pointer"
-                              >
-                                <IoTrashBinOutline className="w-[20px] h-[20px] text-[#2EB67D] mr-3" />
-                                <span>Delete</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      <Modal
-                        isOpen={modalBaseIsOpen}
-                        onRequestClose={() => setModalBaseIsOpen(false)}
-                        shouldCloseOnOverlayClick={false}
-                        className="bg-white rounded-[20px] shadow-lg w-auto max-w-[80%] p-12 transition-all duration-500 max-h-[95%] overflow-y-auto no-scrollbar"
-                        overlayClassName="fixed inset-0 bg-[#A8C1B7] bg-opacity-50 flex justify-center items-center"
-                      >
-                        <div className="flex flex-col mt-[-5%] ml-[-5%] ">
-                          <div className="flex items-center mb-2">
-                            <IoIosArrowRoundBack
-                              className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
-                              onClick={closeModalBase}
-                            />
-                            <p className="text-[20px] font-bold ">
-                              Edit Base Salary
-                            </p>
-                          </div>
-                          <div className="bg-gray-200 w-[120%] h-0.5 mt-[1%] mb-[1%] ml-[-10%]"></div>
-                        </div>
-                        <div>
-                          <div className="flex space-x-14 mt-3">
-                            <div>
-                              <p>Name</p>
-                              <input
-                                type="text"
-                                name="firstName"
-                                value=""
-                                placeholder="Input name"
-                                className="border border-gray-300 rounded-md p-3 w-full mt-2 "
-                              />
-                            </div>
-                            <div>
-                              <p>Net Salary</p>
-                              <input
-                                type="text"
-                                name="firstName"
-                                placeholder="Select Department"
-                                className="border border-gray-300 rounded-md p-3 w-full mt-2 "
-                              />
-                            </div>
-                          </div>
-                          <div className="flex space-x-14 mt-3">
-                            <div>
-                              <p>Job Title</p>
-                              <input
-                                type="text"
-                                name="firstName"
-                                placeholder="Select Job Title"
-                                className="border border-gray-300 rounded-md p-3 w-full mt-2 "
-                              />
-                            </div>
-                            <div>
-                              <p>Amount</p>
-                              <input
-                                type="text"
-                                name="firstName"
-                                placeholder="Input Amount"
-                                className="border border-gray-300 rounded-md p-3 w-full mt-2 "
-                              />
-                            </div>
-                          </div>
-                          <div className="flex space-x-14 mt-3">
-                            <div>
-                              <p>Unit</p>
-                              <input
-                                type="text"
-                                name="firstName"
-                                placeholder="Select Unit"
-                                className="border border-gray-300 rounded-md p-3 w-full mt-2 "
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </Modal>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              {/* page */}
-              <div className="mt-auto font-light text-[#252C58] text-[14px] ml-[1%]">
-                Page 1 of 100
-              </div>
-            </div>
-          )}
-
-          {selectedTab2 === "deduction" && (
-            <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-[77%] ml-[3%] rounded-[15px] mt-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
-              <div className="flex flex-wrap w-full items-center gap-x-4 px-4 py-6">
-                {/* Overtime Request Title */}
+              <Modal
+                isOpen={modalAddBaseIsOpen}
+                onRequestClose={() => setModalAddBaseIsOpen(false)}
+                shouldCloseOnOverlayClick={false}
+                className="bg-white mt-10 rounded-[20px] shadow-lg w-auto max-w-[80%] p-12 transition-all duration-500 max-h-[95%] overflow-y-auto no-scrollbar"
+                overlayClassName="fixed inset-0 bg-[#A8C1B7] bg-opacity-50 flex justify-center items-center"
+              >
+                <div className="flex flex-col mt-[-5%] ml-[-5%]">
+                  <div className="flex items-center mb-2">
+                    <IoIosArrowRoundBack
+                      className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
+                      onClick={closeModalAddBase}
+                    />
+                    <p className="text-[20px] font-bold ">Add Base Salary</p>
+                  </div>
+                  <div className="bg-gray-200 w-[120%] h-0.5 mt-[1%] mb-[1%] ml-[-10%]"></div>
+                </div>
                 <div>
-                  <p className="text-[#252C58] text-[20px] font-light">
-                    Deduction List
-                  </p>
-                </div>
+                  <div className="flex space-x-14 mt-3">
+                    <div className="w-[50%]">
+                      <div className="flex">
+                        <p>Name</p>
+                        <p className="text-[#E03137] ml-1">*</p>
+                      </div>
+                      <input
+                        type="text"
+                        name="nameBase"
+                        value={nameBase}
+                        onChange={(e) => {
+                          setNameBase(e.target.value);
+                        }}
+                        className="border border-gray-300 rounded-md p-3 w-full mt-2"
+                      />
+                    </div>
+                    <div className="w-[50%]">
+                      <div className="flex">
+                        <p>Amount</p>
+                        <p className="text-[#E03137] ml-1">*</p>
+                      </div>
+                      <input
+                        type="text"
+                        name="amount"
+                        value={amount}
+                        onChange={(e) => {
+                          setAmount(e.target.value);
+                        }}
+                        className="border border-gray-300 rounded-md p-3 w-full mt-2"
+                      />
+                    </div>
+                  </div>
 
-                {/* Search */}
-                <div className="relative flex items-center flex-1 min-w-[200px] sm:min-w-[300px] md:min-w-[350px] lg:min-w-[400px] ml-14">
-                  <CiSearch className="absolute left-4 w-[20px] h-[20px]" />
-                  <input
-                    type="text"
-                    placeholder="Quick Search"
-                    className="h-[50px] w-full pl-12 rounded-[10px] border border-gray-300 bg-white text-[13px] focus:outline-none focus:border-[#2EB67D] hover:border-[#2EB67D] placeholder:text-[#252C58] placeholder:opacity-100"
-                  />
-                </div>
+                  <div className="flex space-x-14 mt-3">
+                    <div className="w-[50%]">
+                      <div className="flex">
+                        <p>Department</p>
+                        <p className="text-[#E03137] ml-1">*</p>
+                      </div>
+                      <div className="relative w-full">
+                        <div
+                          className={`inline-flex z-10 w-full border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2`}
+                          onClick={toggleDepartDropdown}
+                        >
+                          <span className="text-[15px]">{department}</span>
+                          <IoIosArrowDown />
+                        </div>
+                        {isDepartOpen && (
+                          <div className="absolute z-10 mt-2 w-full bg-white rounded-md shadow-lg border border-gray-200">
+                            <ul className="py-1">
+                              {departData.map((option, index) => (
+                                <li
+                                  key={index}
+                                  onClick={() => {
+                                    handleOptionClick4(option.name);
+                                    setSelectedDepartmentId(option._id);
+                                  }}
+                                  className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                                >
+                                  {option.name}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
 
-                {/* Filter Button */}
-                <div className="relative flex items-center min-w-[100px] sm:min-w-[120px]">
-                  <BiFilterAlt className="absolute left-4 w-[20px] h-[20px] text-[#2EB67D]" />
-                  <div className="h-[50px] w-full pl-12 rounded-[12px] border-2 bg-gray-200 border-gray-300 text-[#252C5880] text-[15px] flex items-center font-light">
-                    Filter
+                    <div className="w-[50%]">
+                      <div className="flex">
+                        <p>Job Title</p>
+                        <p className="text-[#E03137] ml-1">*</p>
+                      </div>
+                      <div className="relative w-full">
+                        <div
+                          className={`inline-flex w-full border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2`}
+                          onClick={togglePossitionDropdown}
+                        >
+                          <span className="text-[15px] truncate">
+                            {selectedJobTitles
+                              .map(
+                                (id) =>
+                                  filteredJobTitles.find(
+                                    (job) => job._id === id
+                                  )?.name || "(Không tìm thấy)"
+                              )
+                              .join(", ")}
+                          </span>
+                          <IoIosArrowDown />
+                        </div>
+                        {isPositionOpen && (
+                          <div className="absolute z-10 mt-2 w-full bg-white rounded-md shadow-lg border border-gray-200 max-h-[200px] overflow-y-auto">
+                            <ul className="py-1">
+                              {filteredJobTitles.map((option, index) => {
+                                const isSelected = selectedJobTitles.includes(
+                                  option._id
+                                );
+                                return (
+                                  <li
+                                    key={index}
+                                    onClick={() => {
+                                      if (isSelected) {
+                                        setSelectedJobTitles(
+                                          (prev) =>
+                                            prev.filter(
+                                              (id) => id !== option._id
+                                            ) // Loại bỏ _id khỏi danh sách
+                                        );
+                                      } else {
+                                        setSelectedJobTitles((prev) => [
+                                          ...prev,
+                                          option._id,
+                                        ]); // Thêm _id vào danh sách
+                                      }
+                                    }}
+                                    className={`px-4 py-2 text-[15px] cursor-pointer ${
+                                      isSelected
+                                        ? "bg-[#2EB67D] text-white"
+                                        : "text-gray-700 hover:bg-gray-100"
+                                    }`}
+                                  >
+                                    {option.name}
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col mt-5 mb-5">
+                    <div className="bg-gray-200 w-[150%] h-0.5 mt-[2%] mb-[1%] ml-[-20%]"></div>
+                    <div className="flex justify-end mr-[10px] mb-[-10%] mt-2">
+                      <button
+                        onClick={closeModalAddBase}
+                        className="mt-1 bg-white text-[#FF6262] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] "
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => handleCreateBasealary()}
+                        className="mt-1 bg-[#E7F7EF] text-[#097C44] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] ml-[10px]"
+                      >
+                        Create
+                      </button>
+                    </div>
                   </div>
                 </div>
-
-                {/* Add Item */}
-                <div className="flex items-center justify-center min-w-[100px] sm:min-w-[120px] h-[50px] text-white font-normal rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]">
-                  <p>Add Item</p>
-                </div>
-              </div>
+              </Modal>
               {/* List */}
-              <div className="overflow-x-auto mt-[20px] text-[14px] ml-[15px]">
-                <table className="border-collapse bg-white overflow-hidden w-[calc(100vw-400px)] ">
-                  <thead>
-                    <tr className="border-gray-300 border-t border-b-2 text-left">
-                      <th className="px-1 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        ID
-                      </th>
-                      <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        Employee
-                      </th>
-                      <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        Email
-                      </th>
-                      <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        Department
-                      </th>
-                      <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        Employee Type
-                      </th>
-                      <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        Joining Date
-                      </th>
-                      <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        Salary
-                      </th>
-                      <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer text-[15px] font-bold">
-                      <td className="px-1 py-6 border-b border-gray-200 text-left w-[12%]">
-                        sdvsv
-                      </td>
-                      <td className="px-5 py-6 border-b border-gray-200  truncate text-left w-[25%]">
-                        csdcsc
-                      </td>
-
-                      <td className="px-5 py-6 border-b border-gray-200 truncate text-left w-[20%]">
-                        vdfvdfv
-                      </td>
-                      <td className="px-5 py-6 border-b border-gray-200 w-[15%]">
-                        vdfvdfv
-                      </td>
-                      <td className="px-35 py-6 border-b border-gray-200 w-[15%]">
-                        vdfvdfv
-                      </td>
-                      <td className="px-5 py-6 border-b border-gray-200 w-[15%]">
-                        vdfvdfv
-                      </td>
-                      <td className="px-5 py-6 border-b border-gray-200 text-center w-[15%]">
-                        vdfvdfv
-                      </td>
-                      <td className="px-5 py-6 border-b border-gray-200 relative cursor-pointer">
-                        <HiOutlineDotsHorizontal
-                          className="text-[23px]"
-                          onClick={() => {
-                            setMoreOptions4(moreOptions4 === 1 ? null : 1);
-                          }}
-                        />
-                      </td>
-                      {moreOptions4 === 1 && (
-                        <div
-                          className="absolute bg-white right-5 z-10 mt-2 w-[200%] origin-top-right rounded-[20px] focus:outline-none font-normal"
-                          role="menu"
-                          aria-orientation="vertical"
-                          aria-labelledby="menu-button"
+              {baseSalary.length > 0 ? (
+                <div className="overflow-x-auto mt-[20px] text-[14px] ml-[15px]">
+                  <table className="border-collapse bg-white overflow-hidden w-[calc(100vw-400px)] ">
+                    <thead>
+                      <tr className="border-gray-300 border-t border-b-2 text-left">
+                        <th className="px-1 py-5 border-b border-gray-300 caret-transparent text-gray-500">
+                          No
+                        </th>
+                        <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
+                          Name
+                        </th>
+                        <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
+                          Department
+                        </th>
+                        <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
+                          Job Type
+                        </th>
+                        <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
+                          Amount
+                        </th>
+                        <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
+                          Unit
+                        </th>
+                        <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentItems1.map((item, index) => (
+                        <tr
+                          key={item._id}
+                          className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer text-[15px] font-bold"
                         >
-                          <div className="absolute right-3 z-10 t-[-20px] w-auto origin-top-right rounded-lg shadow-lg bg-white">
-                            <div className="flex flex-col divide-y divide-gray-200">
-                              {/* View Detail */}
-                              <div
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setMoreOptions4(null);
-                                  // setSelectedEmployee(item);
-                                  setModalDeductionIsOpen(true);
-                                }}
-                                className="flex items-center px-4 py-3 text-[15px] text-gray-700 hover:bg-gray-100 cursor-pointer"
-                              >
-                                <FaRegAddressCard className="w-[20px] h-[20px] text-[#2EB67D] mr-3" />
-                                <span>View detail</span>
-                              </div>
-
-                              {/* Delete */}
-                              <div
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setMoreOptions4(null);
-                                  // verifyDelete(item._id);
-                                }}
-                                className="flex items-center px-4 py-3 text-[15px] text-gray-700 hover:bg-gray-100 cursor-pointer"
-                              >
-                                <IoTrashBinOutline className="w-[20px] h-[20px] text-[#2EB67D] mr-3" />
-                                <span>Delete</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      <Modal
-                        isOpen={modalDeductionIsOpen}
-                        onRequestClose={() => setModalDeductionIsOpen(false)}
-                        shouldCloseOnOverlayClick={false}
-                        className="bg-white rounded-[20px] shadow-lg w-auto max-w-[80%] p-12 transition-all duration-500 max-h-[95%] overflow-y-auto no-scrollbar"
-                        overlayClassName="fixed inset-0 bg-[#A8C1B7] bg-opacity-50 flex justify-center items-center"
-                      >
-                        <div className="flex flex-col mt-[-5%] ml-[-5%]">
-                          <div className="flex items-center m">
-                            <IoIosArrowRoundBack
-                              className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
-                              onClick={closeModalDeduction}
+                          <td className="px-1 py-6 border-b border-gray-200 text-left w-[10%]">
+                            {index + 1}
+                          </td>
+                          <td className="px-5 py-6 border-b border-gray-200  truncate text-left w-[20%]">
+                            {item.name}
+                          </td>
+                          <td className="px-5 py-6 border-b border-gray-200 w-[25%] text-left">
+                            {item.department.name}
+                          </td>
+                          <td className="px-5 py-6 border-b border-gray-200 w-[15%] text-left">
+                            {item.department.jobtitle.length}
+                          </td>
+                          <td className="px-5 py-5 border-b border-gray-200 w-[15%] text-left">
+                            {item.amount.toLocaleString("vi-VN")}
+                          </td>
+                          <td className="px-5 py-5 border-b border-gray-200 w-[15%] text-left">
+                            VNĐ
+                          </td>
+                          <td className="px-5 py-5 border-b border-gray-200 relative cursor-pointer">
+                            <HiOutlineDotsHorizontal
+                              className="text-[23px]"
+                              onClick={() => {
+                                setMoreOptions2(
+                                  moreOptions2 === item._id ? null : item._id
+                                );
+                              }}
                             />
-                            <p className="text-[20px] font-bold ">
-                              Edit Salary Employee
-                            </p>
-                          </div>
-                          <div className="bg-gray-200 w-[120%] h-0.5 mt-[1%] mb-[1%] ml-[-10%]"></div>
-                        </div>
-                        <div>
-                          <div className="flex space-x-14 mt-3">
-                            <div>
-                              <p>Name</p>
-                              <input
-                                type="text"
-                                name="firstName"
-                                placeholder="Input name"
-                                className="border border-gray-300 rounded-md p-3 w-full mt-2 "
-                              />
-                            </div>
-                            <div>
-                              <div>
-                                <p>Amount</p>
-                                <input
-                                  type="text"
-                                  name="firstName"
-                                  placeholder="Input amount"
-                                  className="border border-gray-300 rounded-md p-3 w-full mt-2 "
-                                />
+                          </td>
+                          {moreOptions2 === item._id && (
+                            <div
+                              className="absolute bg-white right-5 z-10 mt-2 w-[200%] origin-top-right rounded-[20px] focus:outline-none font-normal"
+                              role="menu"
+                              aria-orientation="vertical"
+                              aria-labelledby="menu-button"
+                            >
+                              <div className="absolute right-3 z-10 t-[-20px] w-auto origin-top-right rounded-lg shadow-lg bg-white">
+                                <div className="flex flex-col divide-y divide-gray-200">
+                                  {/* View Detail */}
+                                  <div
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setMoreOptions2(null);
+                                      setSelectedEmployee1(item);
+                                      setModalBaseIsOpen(true);
+                                    }}
+                                    className="flex items-center px-4 py-3 text-[15px] text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                  >
+                                    <FaRegAddressCard className="w-[20px] h-[20px] text-[#2EB67D] mr-3" />
+                                    <span>View detail</span>
+                                  </div>
+
+                                  {/* Delete */}
+                                  <div
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setMoreOptions2(null);
+                                      verifyDeleteBase(item._id);
+                                    }}
+                                    className="flex items-center px-4 py-3 text-[15px] text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                  >
+                                    <IoTrashBinOutline className="w-[20px] h-[20px] text-[#2EB67D] mr-3" />
+                                    <span>Delete</span>
+                                  </div>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                          <div className="flex space-x-14 mt-3">
-                            <div>
-                              <p>Unit</p>
-                              <input
-                                type="text"
-                                name="firstName"
-                                placeholder="Select Unit"
-                                className="border border-gray-300 rounded-md p-3 w-full mt-2 "
-                              />
+                          )}
+                          <Modal
+                            isOpen={modalBaseIsOpen}
+                            onRequestClose={() => setModalBaseIsOpen(false)}
+                            shouldCloseOnOverlayClick={false}
+                            className="bg-white rounded-[20px] shadow-lg w-auto max-w-[80%] p-12 transition-all duration-500 max-h-[95%] overflow-y-auto no-scrollbar"
+                            overlayClassName="fixed inset-0 bg-[#A8C1B7] bg-opacity-50 flex justify-center items-center"
+                          >
+                            <div className="flex flex-col mt-[-5%] ml-[-5%] ">
+                              <div className="flex items-center mb-2">
+                                <IoIosArrowRoundBack
+                                  className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
+                                  onClick={closeModalBase}
+                                />
+                                <p className="text-[20px] font-bold ">
+                                  Edit Base Salary
+                                </p>
+                              </div>
+                              <div className="bg-gray-200 w-[120%] h-0.5 mt-[1%] mb-[1%] ml-[-10%]"></div>
                             </div>
-                          </div>
-                        </div>
-                      </Modal>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              {/* page */}
-              <div className="mt-auto font-light text-[#252C58] text-[14px] ml-[1%]">
-                Page 1 of 100
-              </div>
+                            <div>
+                              <div className="flex space-x-14 mt-3">
+                                <div>
+                                  <p>Name</p>
+                                  <input
+                                    type="text"
+                                    name="firstName"
+                                    value={selectedEmployee1?.name}
+                                    placeholder="Input name"
+                                    className="border capitalize border-gray-300 rounded-md p-3 w-full mt-2 "
+                                  />
+                                </div>
+                                <div>
+                                  <p>Department</p>
+                                  <input
+                                    type="text"
+                                    value={selectedEmployee1?.department.name}
+                                    placeholder="Select Department"
+                                    className="border border-gray-300 rounded-md p-3 w-full mt-2 "
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex space-x-14 mt-3">
+                                <div>
+                                  <p>Job Title</p>
+                                  <input
+                                    type="text"
+                                    value={selectedEmployee1?.jobtitle}
+                                    placeholder="Select Job Title"
+                                    className="border border-gray-300 rounded-md p-3 w-full mt-2 "
+                                  />
+                                </div>
+                                <div>
+                                  <p>Amount</p>
+                                  <input
+                                    type="text"
+                                    value={`${selectedEmployee1?.amount.toLocaleString(
+                                      "vi-VN"
+                                    )} VNĐ`}
+                                    placeholder="Input Amount"
+                                    className="border border-gray-300 rounded-md p-3 w-full mt-2 "
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex space-x-14 mt-3">
+                                <div>
+                                  <p>Unit</p>
+                                  <input
+                                    type="text"
+                                    name="VNĐ"
+                                    placeholder="Select Unit"
+                                    className="border border-gray-300 rounded-md p-3 w-full mt-2 "
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </Modal>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="flex flex-col justify-center items-center text-gray-500 text-lg flex-grow mx-auto">
+                  <img
+                    alt="logo"
+                    src="src/assets/Image.png"
+                    className="w-[380px] h-[280px]"
+                  />
+                  <div className="mt-[10%] text-center">
+                    <p className="font-bold">Empty Base Salary</p>
+                    <p>Add your first Base Salary manually</p>
+                  </div>
+                </div>
+              )}
+              {/* infor bottom */}
+              <PaginationFooter
+                currentPage={currentPage}
+                setCurrentPage={setCurrentPage}
+                totalItems={baseSalary.length}
+                itemsPerPage={itemsPerPage}
+                setItemsPerPage={setItemsPerPage}
+              />
             </div>
           )}
         </>

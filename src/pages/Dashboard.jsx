@@ -167,7 +167,7 @@ const Dashboard = () => {
 
             {/* Events */}
             <div className="flex flex-col items-start bg-white p-6 rounded-lg shadow-md col-span-2 min-h-[470px] w-[79%]">
-              <h2 className="text-2xl font-bold mb-2">Upcoming events</h2>
+              <h2 className="text-2xl font-semibold mb-2">Upcoming events</h2>
               {/* Divider */}
               <div className="bg-black opacity-60 w-full h-0.5 mt-2 mb-2" />
               {/* Holidays Section */}
@@ -244,103 +244,79 @@ const Dashboard = () => {
             <EmployeeChart />
           </div>
 
-          <div className="flex-1">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="flex flex-col items-start bg-white p-6 rounded-lg shadow-md row-span-2 w-[125%]">
-                {/* Attendance */}
-                <div className="flex flex-col items-start mb-6 w-full">
-                  <p className="font-semibold text-2xl">Employees Overview</p>
-                  {/* List */}
-                  {user.length > 0 ? (
-                    <div className="mt-[20px] text-[14px] h-[290px] overflow-y-auto ">
-                      <table className=" bg-white table-fixed w-full">
-                        <thead>
-                          <tr className="border-gray-300 border-t border-b-2 text-left">
-                            <th className="px-1 py-3 border-b border-gray-300 caret-transparent text-gray-500">
-                              Name
-                            </th>
-                            <th className="px-2 py-3 border-b border-gray-300 caret-transparent text-gray-500">
-                              Department
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="h-[200px]">
-                          {user.map((item) => (
-                            <tr
-                              key={item._id}
-                              className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer text-[15px]"
-                            >
-                              <td className="px-1 py-5 border-b border-gray-200 text-left">
-                                <div className="flex">
-                                  <img
-                                    alt="avatar"
-                                    src={
-                                      apiRoutes.file.file(item.avatar)
-                                        ? apiRoutes.file.file(item.avatar)
-                                        : avatar
-                                    }
-                                    className="w-[40px] mr-[10px] rounded-full bg-red-200 object-cover"
-                                  />
-                                  <div>
-                                    <p className="w-[70%] truncate font-bold text-[13px]">{`${item.firstName} ${item.lastName}`}</p>
-                                    <p className="w-[70%] truncate text-[13px] mt-1 font-light">
-                                      {item.jobTitle}
-                                    </p>
-                                  </div>
-                                </div>
-                              </td>
-                              <td
-                                className={`px-2 py-5 border-b border-gray-200 truncate text-left text-[13px] font-light`}
-                              >
-                                <div
-                                  className={`text-center p-3 rounded-[6px] w-fit h-[40px] flex items-center justify-center ${getRandomColorBg()}`}
-                                >
+          <div className="flex-1 bg-white p-6 rounded-lg shadow-md">
+            {/* Employees */}
+            <div className="flex flex-col items-start mb-6 w-full">
+              <p className="font-semibold text-2xl">Employees Overview</p>
+              {/* List */}
+              {user.length > 0 ? (
+                <div className="mt-[20px] text-[14px] h-[290px] overflow-y-auto ">
+                  <table className=" bg-white table-fixed w-full">
+                    <thead>
+                      <tr className="border-gray-300 border-t border-b-2 text-left">
+                        <th className="px-1 py-3 border-b border-gray-300 caret-transparent text-gray-500">
+                          Name
+                        </th>
+                        <th className="px-2 py-3 border-b border-gray-300 caret-transparent text-gray-500">
+                          Department
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="h-[200px]">
+                      {user.map((item) => (
+                        <tr
+                          key={item._id}
+                          className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer text-[15px]"
+                        >
+                          <td className="px-1 py-5 border-b border-gray-200 text-left">
+                            <div className="flex">
+                              <img
+                                alt="avatar"
+                                src={
+                                  apiRoutes.file.file(item.avatar)
+                                    ? apiRoutes.file.file(item.avatar)
+                                    : avatar
+                                }
+                                className="w-[40px] mr-[10px] rounded-full bg-red-200 object-cover"
+                              />
+                              <div>
+                                <p className="font-bold text-[13px]">{`${item.firstName} ${item.lastName}`}</p>
+                                <p className="text-[13px] mt-1 font-light">
                                   {item.jobTitle}
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col justify-center items-center text-gray-500 text-lg flex-grow mx-auto">
-                      <img
-                        alt="logo"
-                        src="src/assets/Image.png"
-                        className="w-[380px] h-[280px]"
-                      />
-                      <div className="mt-[10%] text-center">
-                        <p className="font-bold">Empty Employee</p>
-                        <p>Add your first Employee manually</p>
-                      </div>
-                      <button className="text-white font-normal mt-[10%] h-[50px] w-[180px] rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 focus:outline-none hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]">
-                        + Employee
-                      </button>
-                    </div>
-                  )}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td
+                            className={`px-2 py-5 border-b border-gray-200 truncate text-left text-[13px] font-light`}
+                          >
+                            <div
+                              className={`text-center p-3 rounded-[6px] w-fit h-[40px] flex items-center justify-center ${getRandomColorBg()}`}
+                            >
+                              {item.jobTitle}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              </div>
-
-              {/* Projects */}
-              <div className="flex flex-col items-start bg-white p-6 rounded-lg shadow-md w-[75%] ml-[25%]">
-                <GoCodeSquare className="w-10 h-10 text-[#FFC179] mb-4" />
-                <p className="text-gray-500">Projects</p>
-                <p className="text-3xl font-bold mt-1">27</p>
-                <p className="text-sm text-gray-500 mt-2 cursor-pointer">
-                  View details
-                </p>
-              </div>
-
-              {/* Budgets */}
-              <div className="flex flex-col items-start bg-white p-6 rounded-lg shadow-md w-[75%] ml-[25%]">
-                <HiOutlineTicket className="w-10 h-10 text-[#4880FF] mb-4" />
-                <p className="text-gray-500">Budgets</p>
-                <p className="text-3xl font-bold mt-1">$3700</p>
-                <p className="text-sm text-gray-500 mt-2 cursor-pointer">
-                  View details
-                </p>
-              </div>
+              ) : (
+                <div className="flex flex-col justify-center items-center text-gray-500 text-lg flex-grow mx-auto">
+                  <img
+                    alt="logo"
+                    src="src/assets/Image.png"
+                    className="w-[380px] h-[280px]"
+                  />
+                  <div className="mt-[10%] text-center">
+                    <p className="font-bold">Empty Employee</p>
+                    <p>Add your first Employee manually</p>
+                  </div>
+                  <button className="text-white font-normal mt-[10%] h-[50px] w-[180px] rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 focus:outline-none hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]">
+                    + Employee
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

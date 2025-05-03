@@ -186,17 +186,15 @@ const Navbar = () => {
         <div className="flex items-center p-4 rounded-lg h-[60px] bg-white ml-[10px] ">
           <img
             src={apiRoutes.file.avatar(avatar)}
-            className="w-12 h-12 rounded-full"
+            className="w-12 h-12 rounded-full object-cover"
           />
           <div className="flex-grow ml-[25px] ">
-            <p className="text-[14px] font-bold text-left truncate w-[70%]">
-              {name}
-            </p>
+            <p className="text-[14px] font-bold text-left w-full">{name}</p>
             <p className=" text-gray-500 text-[12px] mt-[5px] text-left w-[70%]">
               {role === "67fc24eb88df30b9541815ec" ? "Admin" : "Employee"}
             </p>
           </div>
-          <div className="text-gray-600 cursor-pointer text-xl border-2 rounded-[50%]">
+          <div className="text-gray-600 cursor-pointer text-xl border-2 rounded-[50%] ml-5">
             <IoIosArrowDown
               onClick={() => {
                 setLogout(!logout);

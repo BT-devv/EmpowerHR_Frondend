@@ -5,7 +5,6 @@ import apiRoutes from "../../apiRoutes";
 import { useState, useEffect } from "react";
 import { format, differenceInDays } from "date-fns";
 import axios from "axios";
-import avatar from "../assets/avatar.png";
 import UsePermission from "../components/UsePermission";
 
 // icon
@@ -272,14 +271,14 @@ const Dashboard = () => {
                             <div className="flex">
                               <img
                                 alt="avatar"
-                                src={
-                                  apiRoutes.file.file(item.avatar)
-                                    ? apiRoutes.file.file(item.avatar)
-                                    : avatar
-                                }
-                                className="w-[40px] mr-[10px] rounded-full bg-red-200 object-cover"
+                                src={apiRoutes.file.avatar(item.avatar)}
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  e.target.src = "src/assets/avatar.png";
+                                }}
+                                className="w-[40px] mr-[10px] rounded-full object-cover"
                               />
-                              <div>
+                              <div className="ml-3">
                                 <p className="font-bold text-[13px]">{`${item.firstName} ${item.lastName}`}</p>
                                 <p className="text-[13px] mt-1 font-light">
                                   {item.jobTitle}

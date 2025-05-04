@@ -13,6 +13,7 @@ import PaginationFooter from "../components/PaginationFooter";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import UsePermission from "../components/UsePermission";
+import { CircularProgress } from "@mui/material";
 // icon
 import { CiSearch } from "react-icons/ci";
 import { CiCalendarDate } from "react-icons/ci";
@@ -26,6 +27,8 @@ import { IoIosArrowRoundBack } from "react-icons/io";
 const Absence = () => {
   const navigate = useNavigate();
   const { hasPermission, loading } = UsePermission("absence.read");
+
+  const [progress, setProgress] = useState(false);
 
   const currentDate = format(new Date(), "dd MMM, yyyy");
   const [selectedTab, setSelectedTab] = useState("absence");
@@ -111,6 +114,7 @@ const Absence = () => {
   };
   const [datamanagers, setDatamanagers] = useState([]);
   const [datateammates, setDatateammates] = useState([]);
+
   // Get all users
   useEffect(() => {
     axios
@@ -154,6 +158,7 @@ const Absence = () => {
   const token = localStorage.getItem("token");
   const decodedToken = jwtDecode(token);
 
+  // create request
   const handleSubmit = async () => {
     if (!lineManagers || !dateTo || !dateFrom || !reason || !type || !dayType) {
       Swal.fire({ text: "Vui lòng nhập đầy đủ thông tin", icon: "warning" });
@@ -168,7 +173,7 @@ const Absence = () => {
       reason,
       session: dayType === "Select Day Type" && "",
     };
-    alert(JSON.stringify(formData));
+    setProgress(true);
     try {
       const response = await axios.post(apiRoutes.absence.request, formData, {
         headers: {
@@ -184,9 +189,6 @@ const Absence = () => {
           timer: 2000,
           showConfirmButton: false,
         });
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
       } else {
         Swal.fire({
           text: message,
@@ -201,11 +203,12 @@ const Absence = () => {
           error.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại!",
         icon: "error",
       });
+    } finally {
+      setProgress(false);
     }
   };
 
-  // Get all pending{datateammates
-
+  // Get all pending
   useEffect(() => {
     axios
       .get(apiRoutes.absence.listPending, {
@@ -272,7 +275,7 @@ const Absence = () => {
       status: updateStatus,
       rejectReason: reasonReject,
     };
-
+    setProgress(true);
     try {
       const response = await axios.put(apiRoutes.absence.updateStatus, data, {
         headers: {
@@ -281,7 +284,6 @@ const Absence = () => {
         },
       });
       const { success, message } = response.data;
-      alert(response.data.absence);
       if (success) {
         Swal.fire({
           text: message,
@@ -289,10 +291,8 @@ const Absence = () => {
           timer: 2000,
           showConfirmButton: false,
         });
-        setTimeout(() => {
-          setIsModalReject(false), setIsDetailModalOpen(false);
-          window.location.reload();
-        }, 2000);
+        setIsModalReject(false);
+        setIsDetailModalOpen(false);
       } else {
         Swal.fire({
           text: message,
@@ -307,6 +307,8 @@ const Absence = () => {
           icon: "error",
         });
       }
+    } finally {
+      setProgress(false);
     }
   };
 
@@ -315,6 +317,7 @@ const Absence = () => {
       absenceID: selectedEmployee._id,
       status: updateStatus,
     };
+    setProgress(true);
     try {
       const response = await axios.put(apiRoutes.absence.updateStatus, data, {
         headers: {
@@ -330,10 +333,8 @@ const Absence = () => {
           timer: 2000,
           showConfirmButton: false,
         });
-        setTimeout(() => {
-          setIsModalReject(false), setIsDetailModalOpen(false);
-          window.location.reload();
-        }, 2000);
+        setIsModalReject(false);
+        setIsDetailModalOpen(false);
       } else {
         Swal.fire({
           text: message,
@@ -348,6 +349,8 @@ const Absence = () => {
           icon: "error",
         });
       }
+    } finally {
+      setProgress(false);
     }
   };
 
@@ -407,14 +410,14 @@ const Absence = () => {
       </div>
 
       {selectedTab === "absence" && (
-        <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[10px] w-[calc(100vw-340px)] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
-          <div className="flex flex-grow ml-[5%]">
-            <div className="mt-[3%] w-full">
+        <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[10px] h-auto w-[calc(100vw-340px)] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] text-[14px] p-1">
+          <div className="flex flex-grow ml-[4%]">
+            <div className="mt-[2%] w-full">
               <p>Absence Type</p>
               <div className="relative inline-block text-left w-full ">
                 <div className="relative">
                   <div
-                    className="inline-flex w-[91%] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                    className="inline-flex w-[91%] border-gray-200 border-1 h-[45px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
                     onClick={toggleTypeDropdown}
                   >
                     <span className="text-[15px]">{type}</span>
@@ -438,7 +441,7 @@ const Absence = () => {
                 )}
               </div>
             </div>
-            <div className="mt-[3%] w-full">
+            <div className="mt-[2%] w-full">
               <p>Manager Approval</p>
               <div className="space-x-5">
                 <div
@@ -447,7 +450,7 @@ const Absence = () => {
                 >
                   <div className="relative">
                     <div
-                      className="inline-flex w-[91%] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[5px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                      className="inline-flex w-[91%] border-gray-200 border-1 h-[45px] items-center justify-between gap-x-1.5 rounded-[5px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
                       onClick={toggleManagerDropdown}
                     >
                       <p>
@@ -483,13 +486,29 @@ const Absence = () => {
                                     option.employeeID
                                   )
                                 }
-                                className={`px-4 py-2 text-[15px] cursor-pointer ${
+                                className={`px-4 py-2 text-[13px] cursor-pointer flex ${
                                   isSelected
                                     ? "bg-[#2EB67D] text-white"
                                     : "text-gray-700 hover:bg-gray-100"
                                 }`}
                               >
-                                {fullName}
+                                <img
+                                  alt="avatar"
+                                  src={apiRoutes.file.avatar(option.avatar)}
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = "src/assets/avatar.png";
+                                  }}
+                                  className="w-[50px] h-[50px] object-cover border border-gray-100"
+                                />
+                                <div className="ml-5 mt-2">
+                                  <div className="text-gray-800">
+                                    {`${option.firstName} ${option.lastName}`}
+                                  </div>
+                                  <div className="text-gray-500">
+                                    {option.emailCompany}
+                                  </div>
+                                </div>
                               </li>
                             );
                           })}
@@ -501,7 +520,7 @@ const Absence = () => {
             </div>
           </div>
           {type !== "Leave Desk" && (
-            <div className="flex ml-[5%] mt-[2%]">
+            <div className="flex ml-[4%] mt-3">
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <div className="w-full">
                   <p className="mb-2">From</p>
@@ -531,7 +550,7 @@ const Absence = () => {
             </div>
           )}
           {type === "Half Day" && (
-            <div className="flex ml-[5%] mt-[3%] w-full">
+            <div className="flex ml-[4%] mt-7 w-full">
               <div className="w-full">
                 <p className="mb-2">Day Type</p>
                 <div
@@ -567,7 +586,7 @@ const Absence = () => {
             </div>
           )}
           {type === "Leave Desk" && (
-            <div className="flex ml-[5%] mt-[3%] w-full">
+            <div className="flex ml-[4%] mt-3 w-full">
               <div className="w-full">
                 <p className="mb-2">Time Leave</p>
                 <div
@@ -602,7 +621,7 @@ const Absence = () => {
               </div>
             </div>
           )}
-          <div className="mt-[3%] ml-[5%] w-full">
+          <div className="mt-7 ml-[4%] w-full">
             <p>Teammate</p>
             <div className="space-x-5">
               <div
@@ -611,7 +630,7 @@ const Absence = () => {
               >
                 <div className="relative">
                   <div
-                    className="inline-flex w-[91%] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[5px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                    className="inline-flex w-[91%] border-gray-200 border-1 h-[45px] items-center justify-between gap-x-1.5 rounded-[5px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
                     onClick={toggleTeammateDropdown}
                   >
                     <p>
@@ -644,13 +663,29 @@ const Absence = () => {
                               onClick={() =>
                                 handleOptionClick4(fullName, option.employeeID)
                               }
-                              className={`px-4 py-2 text-[15px] cursor-pointer ${
+                              className={`flex px-4 py-2 text-[13px] cursor-pointer ${
                                 isSelected
                                   ? "bg-[#2EB67D] text-white"
                                   : "text-gray-700 hover:bg-gray-100"
                               }`}
                             >
-                              {fullName}
+                              <img
+                                alt="avatar"
+                                src={apiRoutes.file.avatar(option.avatar)}
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  e.target.src = "src/assets/avatar.png";
+                                }}
+                                className="w-[50px] h-[50px] object-cover border border-gray-100"
+                              />
+                              <div className="ml-5 mt-2">
+                                <div className="text-gray-800">
+                                  {`${option.firstName} ${option.lastName}`}
+                                </div>
+                                <div className="text-gray-500">
+                                  {option.emailCompany}
+                                </div>
+                              </div>
                             </li>
                           );
                         })}
@@ -660,22 +695,34 @@ const Absence = () => {
               </div>
             </div>
           </div>
-          <div className="mt-[3%] ml-[5%] ">
+          <div className="mt-[3%] ml-[4%] w-[96%]">
             <p>Reason</p>
             <div className="mt-[1%]">
               <RichTextEditor value={reason} onChange={setReason} />
             </div>
 
-            <div className="flex items-center justify-center mb-[3%]">
+            <div className="flex items-center justify-center mb-5">
               <button
                 type="submit"
-                className="mt-[3%] bg-[#2EB67D] text-white outline-none w-[15%] text-[18px] focus:outline-none"
+                className="mt-5 bg-[#2EB67D] text-white outline-none w-[15%] text-[18px] focus:outline-none"
                 onClick={handleSubmit}
               >
                 SUBMIT
               </button>
             </div>
           </div>
+        </div>
+      )}
+      {progress && (
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <CircularProgress size={80} style={{ color: "#069855" }} />
         </div>
       )}
       {selectedTab === "approval" && (
@@ -879,7 +926,12 @@ const Absence = () => {
                     </div>
                     <div className="flex mt-[8%]">
                       <p className="font-bold w-1/3">Reason:</p>
-                      <p className="w-2/3">{selectedEmployee.reason}</p>
+                      <div
+                        className="w-2/3 prose"
+                        dangerouslySetInnerHTML={{
+                          __html: selectedEmployee.reason,
+                        }}
+                      ></div>
                     </div>
                     <div className="flex mt-[8%]">
                       <p className="font-bold w-1/3">Status:</p>
@@ -1178,7 +1230,12 @@ const Absence = () => {
                     </div>
                     <div className="flex mt-[8%]">
                       <p className="font-bold w-1/3">Reason:</p>
-                      <p className="w-2/3">{selectedEmployee.reason}</p>
+                      <div
+                        className="w-2/3 prose"
+                        dangerouslySetInnerHTML={{
+                          __html: selectedEmployee.reason,
+                        }}
+                      ></div>
                     </div>
                     <div className="flex mt-[8%]">
                       <p className="font-bold w-1/3">Status:</p>

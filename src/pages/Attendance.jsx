@@ -78,6 +78,15 @@ const Attendance = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentPage]);
 
+  const onTime = data.filter(
+    (a) =>
+      a.status === "Work from office" && new Date(a.checkInTime).getHours() < 9
+  ).length;
+  const late = data.filter((a) => a.status === "late").length;
+  const overtime = data.filter(
+    (a) => a.overtime === true || a.workDuration > 8
+  ).length;
+
   useEffect(() => {
     if (!loading && !hasPermission) {
       navigate("/notpermission");
@@ -97,7 +106,7 @@ const Attendance = () => {
           </div>
           <div className="text-left ml-[40%]">
             <p className="text-[#C0BEBE]">On Time</p>
-            <p className="font-bold text-[30px]">1,300</p>
+            <p className="font-bold text-[30px]">{onTime}</p>
             <div className="flex">
               <FaArrowTrendUp className="text-[#FF0404] mr-1 mt-1" />
               <p className="text-[#FF0404] mr-1">16%</p>
@@ -113,7 +122,7 @@ const Attendance = () => {
           </div>
           <div className="text-left ml-[40%]">
             <p className="text-[#C0BEBE]">Late</p>
-            <p className="font-bold text-[30px]">1,300</p>
+            <p className="font-bold text-[30px]">{late}</p>
             <div className="flex">
               <FaArrowTrendUp className="text-[#FF0404] mr-1 mt-1" />
               <p className="text-[#FF0404] mr-1">16%</p>
@@ -129,7 +138,7 @@ const Attendance = () => {
           </div>
           <div className="text-left ml-[40%]">
             <p className="text-[#C0BEBE]">Overtime</p>
-            <p className="font-bold text-[30px]">1,300</p>
+            <p className="font-bold text-[30px]">{overtime}</p>
             <div className="flex">
               <FaArrowTrendUp className="text-[#FF0404] mr-1 mt-1" />
               <p className="text-[#FF0404] mr-1">16%</p>

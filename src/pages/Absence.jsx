@@ -11,6 +11,7 @@ import Swal from "sweetalert2";
 import Modal from "react-modal";
 import PaginationFooter from "../components/PaginationFooter";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 import UsePermission from "../components/UsePermission";
 // icon
 import { CiSearch } from "react-icons/ci";
@@ -43,8 +44,11 @@ const Absence = () => {
   const [type, setType] = useState("Select Type");
   const typeData = ["Full Day", "Half Day", "Leave Desk"];
   const [dayType, setDayType] = useState("Select Day Type");
-  const dayTypeData = ["Half Day - Morning", "Half Day - Afternoon"];
+  const dayTypeData = ["Morning", "Afternoon"];
+  const timeTypeData = ["0.5 hour", "1 hour", "2 hours"];
+
   const [isDayTypeOpen, setIsDayTypeOpen] = useState(false);
+  const [isTimeTypeOpen, setIsTimeTypeOpen] = useState(false);
 
   const [data, setData] = useState([]);
   const [dataPending, setDataPending] = useState([]);
@@ -52,12 +56,12 @@ const Absence = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   const [isManagerOpen, setIsManagerOpen] = useState(false);
-  const [lineManagers, setLineManagers] = useState("");
-  const [managerName, setManagerName] = useState("Select Manager");
+  const [lineManagers, setLineManagers] = useState([]);
 
   const [isTeammateOpen, setIsTeammateOpen] = useState(false);
-  const [teammates, setTeammates] = useState("");
-  const [teammateName, setTeammateName] = useState("Select Manager");
+  const [teammates, setTeammates] = useState([]);
+
+  const [time, setTime] = useState("Select Time");
 
   const dropdownRef = useRef(null);
 
@@ -70,25 +74,41 @@ const Absence = () => {
 
   // Dropdown selection of manager name
   const toggleManagerDropdown = () => setIsManagerOpen(!isManagerOpen);
-  const handleOptionClick1 = (option, id) => {
-    setManagerName(option);
-    setLineManagers(id);
-    setIsManagerOpen(false);
+  const handleOptionClick1 = (name, id) => {
+    setLineManagers((prev) => {
+      const exists = prev.some((item) => item.id === id);
+      if (exists) {
+        return prev.filter((item) => item.id !== id);
+      } else {
+        return [...prev, { id, name }];
+      }
+    });
   };
 
   // Dropdown selection of teammate
   const toggleTeammateDropdown = () => setIsTeammateOpen(!isTeammateOpen);
-  const handleOptionClick4 = (option, id) => {
-    setTeammateName(option);
-    setTeammates(id);
-    setIsTeammateOpen(false);
+  const handleOptionClick4 = (name, id) => {
+    setTeammates((prev) => {
+      const exists = prev.some((item) => item.id === id);
+      if (exists) {
+        return prev.filter((item) => item.id !== id);
+      } else {
+        return [...prev, { id, name }];
+      }
+    });
   };
-
   // Dropdown selection of datetype
   const toggleDayTypeDropdown = () => setIsDayTypeOpen(!isDayTypeOpen);
   const handleOptionClick3 = (option) => {
     setDayType(option);
     setIsDayTypeOpen(false);
+  };
+
+  // Dropdown selection of time
+  const toggleTimeTypeDropdown = () => setIsTimeTypeOpen(!isTimeTypeOpen);
+  const handleOptionClick5 = (option) => {
+    setTime(option);
+    setIsTimeTypeOpen(false);
   };
 
   // Get all users
@@ -124,6 +144,7 @@ const Absence = () => {
   }, []);
 
   const token = localStorage.getItem("token");
+  const decodedToken = jwtDecode(token);
 
   const handleSubmit = async () => {
     if (!lineManagers || !dateTo || !dateFrom || !reason || !type || !dayType) {
@@ -131,13 +152,15 @@ const Absence = () => {
       return;
     }
     const formData = {
-      lineManagers,
+      lineManagers: lineManagers.map((item) => item.id),
+      teammates: teammates.map((item) => item.id),
       dateTo,
       dateFrom,
-      dayType,
       type,
       reason,
+      session: dayType === "Select Day Type" && "",
     };
+    alert(JSON.stringify(formData));
     try {
       const response = await axios.post(apiRoutes.absence.request, formData, {
         headers: {
@@ -185,7 +208,9 @@ const Absence = () => {
       .then((response) => {
         const allRequests = response.data.absences;
         const filtered = allRequests.filter(
-          (req) => req.lineManagers === data.employeeID
+          (req) =>
+            Array.isArray(req.lineManagers) &&
+            req.lineManagers.includes(decodedToken.employeeID)
         );
         setDataPending(filtered);
       })
@@ -206,7 +231,9 @@ const Absence = () => {
       .then((response) => {
         const allRequests = response.data.absences;
         const filtered = allRequests.filter(
-          (req) => req.lineManagers === data.employeeID
+          (req) =>
+            Array.isArray(req.lineManagers) &&
+            req.lineManagers.includes(decodedToken.employeeID)
         );
         setDataHistory(filtered);
       })
@@ -231,7 +258,6 @@ const Absence = () => {
     if (!isValid) {
       return;
     }
-    const token = localStorage.getItem("token");
     const data = {
       absenceID: selectedEmployee._id,
       status: updateStatus,
@@ -239,7 +265,7 @@ const Absence = () => {
     };
 
     try {
-      const response = await axios.post(apiRoutes.absence.updateStatus, data, {
+      const response = await axios.put(apiRoutes.absence.updateStatus, data, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -276,13 +302,12 @@ const Absence = () => {
   };
 
   const handleApprove = async () => {
-    const token = localStorage.getItem("token");
     const data = {
       absenceID: selectedEmployee._id,
       status: updateStatus,
     };
     try {
-      const response = await axios.post(apiRoutes.absence.updateStatus, data, {
+      const response = await axios.put(apiRoutes.absence.updateStatus, data, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -377,10 +402,7 @@ const Absence = () => {
           <div className="flex flex-grow ml-[5%]">
             <div className="mt-[3%] w-full">
               <p>Absence Type</p>
-              <div
-                className="relative inline-block text-left w-full "
-                ref={dropdownRef}
-              >
+              <div className="relative inline-block text-left w-full ">
                 <div className="relative">
                   <div
                     className="inline-flex w-[91%] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
@@ -419,27 +441,39 @@ const Absence = () => {
                       className="inline-flex w-[91%] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[5px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
                       onClick={toggleManagerDropdown}
                     >
-                      <span className="text-[15px]">{managerName}</span>
+                      <p>
+                        {lineManagers.length > 0
+                          ? lineManagers.map((item) => item.name).join(", ")
+                          : "Select Manager"}
+                      </p>
                       <IoIosArrowDown />
                     </div>
                   </div>
                   {isManagerOpen && (
-                    <div className="absolute z-10 mt-2 w-[91%] bg-white rounded-md shadow-lg border border-gray-200">
-                      <ul className="py-1 max-h-[250px] overflow-y-auto">
-                        {data.slice(0, 10).map((option, index) => (
-                          <li
-                            key={index}
-                            onClick={() =>
-                              handleOptionClick1(
-                                `${option.firstName} ${option.lastName}`,
-                                option.employeeID
-                              )
-                            }
-                            className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
-                          >
-                            {`${option.firstName} ${option.lastName}`}
-                          </li>
-                        ))}
+                    <div className="absolute z-10 mt-2 w-[91%] bg-white rounded-md shadow-lg border border-gray-200 max-h-[250px] overflow-y-auto">
+                      <ul className="py-1">
+                        {data.map((option, index) => {
+                          const fullName = `${option.firstName} ${option.lastName}`;
+                          const isSelected = lineManagers.some(
+                            (item) => item.id === option.employeeID
+                          );
+
+                          return (
+                            <li
+                              key={index}
+                              onClick={() =>
+                                handleOptionClick1(fullName, option.employeeID)
+                              }
+                              className={`px-4 py-2 text-[15px] cursor-pointer ${
+                                isSelected
+                                  ? "bg-[#2EB67D] text-white"
+                                  : "text-gray-700 hover:bg-gray-100"
+                              }`}
+                            >
+                              {fullName}
+                            </li>
+                          );
+                        })}
                       </ul>
                     </div>
                   )}
@@ -447,37 +481,43 @@ const Absence = () => {
               </div>
             </div>
           </div>
-          <div className="flex ml-[5%] mt-[2%]">
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <div className="w-full">
-                <p className="mb-2">From</p>
-                <DatePicker
-                  value={dateFrom}
-                  onChange={setDateFrom}
-                  format="DD/MM/YYYY"
-                  className="border-gray-200 rounded-[5px] border-[1px] w-[91%] h-[40px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
-                  renderInput={(params) => <TextField {...params} fullWidth />}
-                />
-              </div>
-              <div className="w-full">
-                <p className="mb-2">To</p>
-                <DatePicker
-                  value={dateTo}
-                  onChange={setDateTo}
-                  format="DD/MM/YYYY"
-                  className="border-gray-200 rounded-[5px] border-[1px] w-[91%] h-[40px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
-                  renderInput={(params) => <TextField {...params} fullWidth />}
-                />
-              </div>
-            </LocalizationProvider>
-          </div>
+          {type !== "Leave Desk" && (
+            <div className="flex ml-[5%] mt-[2%]">
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <div className="w-full">
+                  <p className="mb-2">From</p>
+                  <DatePicker
+                    value={dateFrom}
+                    onChange={setDateFrom}
+                    format="DD/MM/YYYY"
+                    className="border-gray-200 rounded-[5px] border-[1px] w-[91%] h-[40px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
+                    renderInput={(params) => (
+                      <TextField {...params} fullWidth />
+                    )}
+                  />
+                </div>
+                <div className="w-full">
+                  <p className="mb-2">To</p>
+                  <DatePicker
+                    value={dateTo}
+                    onChange={setDateTo}
+                    format="DD/MM/YYYY"
+                    className="border-gray-200 rounded-[5px] border-[1px] w-[91%] h-[40px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
+                    renderInput={(params) => (
+                      <TextField {...params} fullWidth />
+                    )}
+                  />
+                </div>
+              </LocalizationProvider>
+            </div>
+          )}
           {type === "Half Day" && (
             <div className="flex ml-[5%] mt-[3%] w-full">
               <div className="w-full">
                 <p className="mb-2">Day Type</p>
                 <div
                   className="relative inline-block text-left w-full "
-                  ref={dropdownRef}
+                  // ref={dropdownRef}
                 >
                   <div className="relative">
                     <div
@@ -507,6 +547,42 @@ const Absence = () => {
               </div>
             </div>
           )}
+          {type === "Leave Desk" && (
+            <div className="flex ml-[5%] mt-[3%] w-full">
+              <div className="w-full">
+                <p className="mb-2">Time Leave</p>
+                <div
+                  className="relative inline-block text-left w-full "
+                  // ref={dropdownRef}
+                >
+                  <div className="relative">
+                    <div
+                      className="inline-flex w-[91%] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                      onClick={toggleTimeTypeDropdown}
+                    >
+                      <span className="text-[15px]">{time}</span>
+                      <IoIosArrowDown />
+                    </div>
+                  </div>
+                  {isTimeTypeOpen && (
+                    <div className="absolute z-10 mt-2 w-[91%] bg-white rounded-md shadow-lg border border-gray-200">
+                      <ul className="py-1">
+                        {timeTypeData.map((option, index) => (
+                          <li
+                            key={index}
+                            onClick={() => handleOptionClick5(option)}
+                            className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                          >
+                            {option}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
           <div className="mt-[3%] ml-[5%] w-full">
             <p>Teammate</p>
             <div className="space-x-5">
@@ -519,27 +595,39 @@ const Absence = () => {
                     className="inline-flex w-[91%] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[5px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
                     onClick={toggleTeammateDropdown}
                   >
-                    <span className="text-[15px]">{teammateName}</span>
+                    <p>
+                      {teammates.length > 0
+                        ? teammates.map((item) => item.name).join(", ")
+                        : "Select Teammate"}
+                    </p>
                     <IoIosArrowDown />
                   </div>
                 </div>
                 {isTeammateOpen && (
-                  <div className="absolute z-10 mt-2 w-[91%] bg-white rounded-md shadow-lg border border-gray-200">
-                    <ul className="py-1 max-h-[250px] overflow-y-auto">
-                      {data.slice(0, 10).map((option, index) => (
-                        <li
-                          key={index}
-                          onClick={() =>
-                            handleOptionClick1(
-                              `${option.firstName} ${option.lastName}`,
-                              option.employeeID
-                            )
-                          }
-                          className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
-                        >
-                          {`${option.firstName} ${option.lastName}`}
-                        </li>
-                      ))}
+                  <div className="absolute z-10 mt-2 w-[91%] bg-white rounded-md shadow-lg border border-gray-200 max-h-[250px] overflow-y-auto">
+                    <ul className="py-1">
+                      {data.map((option, index) => {
+                        const fullName = `${option.firstName} ${option.lastName}`;
+                        const isSelected = teammates.some(
+                          (item) => item.id === option.employeeID
+                        );
+
+                        return (
+                          <li
+                            key={index}
+                            onClick={() =>
+                              handleOptionClick4(fullName, option.employeeID)
+                            }
+                            className={`px-4 py-2 text-[15px] cursor-pointer ${
+                              isSelected
+                                ? "bg-[#2EB67D] text-white"
+                                : "text-gray-700 hover:bg-gray-100"
+                            }`}
+                          >
+                            {fullName}
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
                 )}
@@ -746,7 +834,9 @@ const Absence = () => {
                     <div className="flex mt-[8%]">
                       <p className="font-bold w-1/3">Line Manager:</p>
                       <p className="w-2/3">
-                        {selectedEmployee.lineManagers || "---"}
+                        {Array.isArray(selectedEmployee.lineManagers)
+                          ? selectedEmployee.lineManagers.join(", ")
+                          : selectedEmployee.lineManagers || "---"}
                       </p>
                     </div>
                     <div className="flex mt-[8%]">

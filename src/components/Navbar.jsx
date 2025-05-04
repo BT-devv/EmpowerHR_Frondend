@@ -3,12 +3,14 @@ import { jwtDecode } from "jwt-decode";
 import apiRoutes from "../../apiRoutes";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import ClickOutside from "../components/ClickOutside";
 
 // Icon
 import { CiSearch } from "react-icons/ci";
 import { IoIosArrowDown } from "react-icons/io";
 import { IoNotifications } from "react-icons/io5";
 import { IoLogOutOutline } from "react-icons/io5";
+import { MdOutlineManageAccounts } from "react-icons/md";
 
 const countries = [
   { name: "Vietnam", flag: "https://flagcdn.com/w320/vn.png" },
@@ -51,10 +53,10 @@ const Navbar = () => {
   };
 
   const token = localStorage.getItem("token");
+  const decodedToken = jwtDecode(token);
 
   useEffect(() => {
     if (token) {
-      const decodedToken = jwtDecode(token);
       setName(`${decodedToken.firstName}  ${decodedToken.lastName}`);
       setRole(decodedToken.role);
       setAvatar(decodedToken.avatar);
@@ -126,7 +128,7 @@ const Navbar = () => {
 
         {showNotiDropdown && (
           <div className="absolute right-[230px] top-[60px] w-[320px] bg-white shadow-lg rounded-lg z-50">
-            <div className="p-4 border-b font-semibold text-gray-700">
+            <div className="p-2 border-b font-semibold text-gray-700 underline">
               Notification
             </div>
             <ul className="max-h-[300px] overflow-y-auto">
@@ -136,8 +138,13 @@ const Navbar = () => {
                 </li>
               ) : (
                 notifications.map((noti) => (
-                  <li key={noti.id} className="p-3 border-b hover:bg-gray-100">
-                    <div className="font-medium">{noti.message}</div>
+                  <li
+                    key={noti.id}
+                    className="p-3 border-b hover:bg-gray-100 text-left"
+                  >
+                    <div className="font-semibold text-[15px]">
+                      {noti.message}
+                    </div>
                     <div className="text-xs text-gray-500">{noti.type}</div>
                   </li>
                 ))
@@ -203,16 +210,31 @@ const Navbar = () => {
           </div>
 
           {logout && (
-            <div className="absolute bg-white right-5 z-10 mt-2 w-[200%] origin-top-right rounded-[20px] focus:outline-none ">
-              <div className="absolute right-3 z-10 t-[-20px] w-auto origin-top-right rounded-lg shadow-lg bg-white">
-                <div className="flex flex-col divide-y divide-gray-200">
-                  <div className="flex items-center px-4 py-3 text-[15px] text-gray-700 hover:bg-gray-100 cursor-pointer">
-                    <IoLogOutOutline className="w-[20px] h-[20px] text-[#2EB67D] mr-3" />
-                    <span onClick={handleLogout}>Log out</span>
+            <ClickOutside setIsOpen={setLogout}>
+              <div className="absolute bg-white right-5 z-10 mt-2 w-[300%] origin-top-right rounded-[20px] focus:outline-none ">
+                <div className="absolute right-3 z-10 t-[-20px] w-auto origin-top-right rounded-lg shadow-lg bg-white">
+                  <div className="flex flex-col divide-y divide-gray-200">
+                    <div className="flex items-center px-4 py-3 text-[15px] text-gray-700 hover:bg-gray-100 cursor-pointer">
+                      <MdOutlineManageAccounts className="w-[20px] h-[20px] text-[#2EB67D] mr-3" />
+                      <span
+                        onClick={() => {
+                          navigate(`/profile/${decodedToken._id}`),
+                            setLogout(!logout);
+                        }}
+                      >
+                        View Profile
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col divide-y divide-gray-200">
+                    <div className="flex items-center px-4 py-3 text-[15px] text-gray-700 hover:bg-gray-100 cursor-pointer">
+                      <IoLogOutOutline className="w-[20px] h-[20px] text-[#2EB67D] mr-3" />
+                      <span onClick={handleLogout}>Log out</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </ClickOutside>
           )}
         </div>
       </div>

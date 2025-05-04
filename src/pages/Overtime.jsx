@@ -16,6 +16,7 @@ import Modal from "react-modal";
 import PaginationFooter from "../components/PaginationFooter";
 import { useNavigate } from "react-router-dom";
 import UsePermission from "../components/UsePermission";
+import { jwtDecode } from "jwt-decode";
 //icon
 import { CiSearch } from "react-icons/ci";
 import { CiCalendarDate } from "react-icons/ci";
@@ -57,6 +58,7 @@ const Overtime = () => {
   const dropdownRef = useRef(null);
 
   const token = localStorage.getItem("token");
+  const decodedToken = jwtDecode(token);
 
   const handleSubmit = async () => {
     if (!projectManager || !date || !startTime || !endTime || !reason) {
@@ -179,7 +181,7 @@ const Overtime = () => {
       .then((response) => {
         const allRequests = response.data.data;
         const filtered = allRequests.filter(
-          (req) => req.projectManager === data.employeeID
+          (req) => req.projectManager === decodedToken.employeeID
         );
         setDataPending(filtered);
       })
@@ -211,7 +213,7 @@ const Overtime = () => {
       .then((response) => {
         const allRequests = response.data.data;
         const filtered = allRequests.filter(
-          (req) => req.projectManager === data.employeeID
+          (req) => req.projectManager === decodedToken.employeeID
         );
         setDataHistory(filtered);
       })
@@ -384,7 +386,7 @@ const Overtime = () => {
                 {isManagerOpen && (
                   <div className="absolute z-10 mt-2 w-[97%] bg-white rounded-md shadow-lg border border-gray-200">
                     <ul className="py-1 max-h-[250px] overflow-y-auto">
-                      {data.slice(0, 10).map((option, index) => (
+                      {data.map((option, index) => (
                         <li
                           key={index}
                           onClick={() =>

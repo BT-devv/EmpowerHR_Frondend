@@ -45,6 +45,7 @@ const apiRoutes = {
     // deleteRole:,
     getPermission: `${API_BASE_URL}/permission/`,
     assignPermission: `${API_BASE_URL}/permission/assign-permission`,
+    unassignPermission: `${API_BASE_URL}/permission/unassign-permission`,
   },
   department: {
     createDepartment: `${API_BASE_URL}/department/`,

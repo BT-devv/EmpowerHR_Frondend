@@ -50,7 +50,6 @@ const Absence = () => {
   const [isDayTypeOpen, setIsDayTypeOpen] = useState(false);
   const [isTimeTypeOpen, setIsTimeTypeOpen] = useState(false);
 
-  const [data, setData] = useState([]);
   const [dataPending, setDataPending] = useState([]);
   const [dataHistory, setDataHistory] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -110,7 +109,8 @@ const Absence = () => {
     setTime(option);
     setIsTimeTypeOpen(false);
   };
-
+  const [datamanagers, setDatamanagers] = useState([]);
+  const [datateammates, setDatateammates] = useState([]);
   // Get all users
   useEffect(() => {
     axios
@@ -121,8 +121,16 @@ const Absence = () => {
         },
       })
       .then((response) => {
-        setData(response.data);
-        console.log(JSON.stringify(data));
+        const filteredManagers = response.data.filter(
+          (user) => user._id !== decodedToken._id
+        );
+
+        const filteredTeammates = response.data.filter(
+          (user) => user._id !== decodedToken._id
+        );
+
+        setDatamanagers(filteredManagers);
+        setDatateammates(filteredTeammates);
       })
       .catch((error) => {
         console.error("Error fetching data from API", error);
@@ -196,7 +204,8 @@ const Absence = () => {
     }
   };
 
-  // Get all pending
+  // Get all pending{datateammates
+
   useEffect(() => {
     axios
       .get(apiRoutes.absence.listPending, {
@@ -452,28 +461,38 @@ const Absence = () => {
                   {isManagerOpen && (
                     <div className="absolute z-10 mt-2 w-[91%] bg-white rounded-md shadow-lg border border-gray-200 max-h-[250px] overflow-y-auto">
                       <ul className="py-1">
-                        {data.map((option, index) => {
-                          const fullName = `${option.firstName} ${option.lastName}`;
-                          const isSelected = lineManagers.some(
-                            (item) => item.id === option.employeeID
-                          );
+                        {datamanagers
+                          .filter(
+                            (option) =>
+                              !teammates.some(
+                                (teammate) => teammate.id === option.employeeID
+                              )
+                          )
+                          .map((option, index) => {
+                            const fullName = `${option.firstName} ${option.lastName}`;
+                            const isSelected = lineManagers.some(
+                              (item) => item.id === option.employeeID
+                            );
 
-                          return (
-                            <li
-                              key={index}
-                              onClick={() =>
-                                handleOptionClick1(fullName, option.employeeID)
-                              }
-                              className={`px-4 py-2 text-[15px] cursor-pointer ${
-                                isSelected
-                                  ? "bg-[#2EB67D] text-white"
-                                  : "text-gray-700 hover:bg-gray-100"
-                              }`}
-                            >
-                              {fullName}
-                            </li>
-                          );
-                        })}
+                            return (
+                              <li
+                                key={index}
+                                onClick={() =>
+                                  handleOptionClick1(
+                                    fullName,
+                                    option.employeeID
+                                  )
+                                }
+                                className={`px-4 py-2 text-[15px] cursor-pointer ${
+                                  isSelected
+                                    ? "bg-[#2EB67D] text-white"
+                                    : "text-gray-700 hover:bg-gray-100"
+                                }`}
+                              >
+                                {fullName}
+                              </li>
+                            );
+                          })}
                       </ul>
                     </div>
                   )}
@@ -606,28 +625,35 @@ const Absence = () => {
                 {isTeammateOpen && (
                   <div className="absolute z-10 mt-2 w-[91%] bg-white rounded-md shadow-lg border border-gray-200 max-h-[250px] overflow-y-auto">
                     <ul className="py-1">
-                      {data.map((option, index) => {
-                        const fullName = `${option.firstName} ${option.lastName}`;
-                        const isSelected = teammates.some(
-                          (item) => item.id === option.employeeID
-                        );
+                      {datateammates
+                        .filter(
+                          (option) =>
+                            !lineManagers.some(
+                              (manager) => manager.id === option.employeeID
+                            )
+                        )
+                        .map((option, index) => {
+                          const fullName = `${option.firstName} ${option.lastName}`;
+                          const isSelected = teammates.some(
+                            (item) => item.id === option.employeeID
+                          );
 
-                        return (
-                          <li
-                            key={index}
-                            onClick={() =>
-                              handleOptionClick4(fullName, option.employeeID)
-                            }
-                            className={`px-4 py-2 text-[15px] cursor-pointer ${
-                              isSelected
-                                ? "bg-[#2EB67D] text-white"
-                                : "text-gray-700 hover:bg-gray-100"
-                            }`}
-                          >
-                            {fullName}
-                          </li>
-                        );
-                      })}
+                          return (
+                            <li
+                              key={index}
+                              onClick={() =>
+                                handleOptionClick4(fullName, option.employeeID)
+                              }
+                              className={`px-4 py-2 text-[15px] cursor-pointer ${
+                                isSelected
+                                  ? "bg-[#2EB67D] text-white"
+                                  : "text-gray-700 hover:bg-gray-100"
+                              }`}
+                            >
+                              {fullName}
+                            </li>
+                          );
+                        })}
                     </ul>
                   </div>
                 )}

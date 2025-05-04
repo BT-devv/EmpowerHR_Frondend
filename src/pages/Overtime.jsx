@@ -136,6 +136,8 @@ const Overtime = () => {
     setIsManagerOpen(false);
   };
 
+  const [datamanagers, setDatamanagers] = useState([]);
+
   // Get all users
   useEffect(() => {
     axios
@@ -147,7 +149,11 @@ const Overtime = () => {
       })
       .then((response) => {
         setData(response.data);
-        console.log(JSON.stringify(data));
+        const filteredManagers = response.data.filter(
+          (user) => user._id !== decodedToken._id
+        );
+
+        setDatamanagers(filteredManagers);
       })
       .catch((error) => {
         console.error("Error fetching data from API", error);
@@ -386,7 +392,7 @@ const Overtime = () => {
                 {isManagerOpen && (
                   <div className="absolute z-10 mt-2 w-[97%] bg-white rounded-md shadow-lg border border-gray-200">
                     <ul className="py-1 max-h-[250px] overflow-y-auto">
-                      {data.map((option, index) => (
+                      {datamanagers.map((option, index) => (
                         <li
                           key={index}
                           onClick={() =>

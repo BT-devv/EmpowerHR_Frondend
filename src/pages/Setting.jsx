@@ -88,12 +88,16 @@ const Setting = () => {
     return role.permissions.some((p) => p._id === permId);
   };
 
-  const handleTogglePermission = async (roleId, permissionId) => {
+  const handleTogglePermission = async (roleId, permissionId, isActive) => {
     const token = localStorage.getItem("token");
 
     try {
+      const url = isActive
+        ? apiRoutes.permission.unassignPermission
+        : apiRoutes.permission.assignPermission;
+
       const response = await axios.post(
-        apiRoutes.permission.assignPermission,
+        url,
         { roleId, permissionId },
         {
           headers: {
@@ -104,7 +108,7 @@ const Setting = () => {
       );
       if (response.status === 200) {
         Swal.fire({
-          text: "Permission updated",
+          text: isActive ? "Permission removed" : "Permission assigned",
           icon: "success",
           timer: 1500,
           showConfirmButton: false,
@@ -1334,7 +1338,7 @@ const Setting = () => {
                                         handleTogglePermission(
                                           item._id,
                                           perm._id,
-                                          !assigned
+                                          assigned
                                         )
                                       }
                                       className={`px-3 py-1 text-xs text-white rounded ${

@@ -4,6 +4,7 @@ import TabSelector from "../components/TabSelector";
 import { useNavigate } from "react-router-dom";
 import UsePermission from "../components/UsePermission";
 import axios from "axios";
+import dayjs from "dayjs";
 import apiRoutes from "../../apiRoutes";
 import Swal from "sweetalert2";
 import PaginationFooter from "../components/PaginationFooter";
@@ -26,6 +27,7 @@ const Payroll = () => {
 
   const [payroll, setPayroll] = useState([]);
   const [baseSalary, setBaseSalary] = useState([]);
+  const [data, setData] = useState([]);
 
   const [selectedTab, setSelectedTab] = useState("payroll");
   const [selectedTab2, setSelectedTab2] = useState("base");
@@ -40,10 +42,6 @@ const Payroll = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [selectedEmployee1, setSelectedEmployee1] = useState(null);
 
-  // const [user, setUser] = useState([]);
-  const [month, setMonth] = useState(null);
-  const [year, setYear] = useState(null);
-
   // const [netSalary, setNetSalary] = useState("");
   // const [basicSalary, setBasicSalary] = useState("");
   // const [ot, setOt] = useState("");
@@ -51,9 +49,6 @@ const Payroll = () => {
   // const [income, setIncome] = useState("");
   // const [advance, setAdvance] = useState("");
   // const [subtraction, setSubtraction] = useState("");
-
-  const [nameBase, setNameBase] = useState("");
-  const [amount, setAmount] = useState("");
 
   const [department, setDepartment] = useState("Department");
   const [isDepartOpen, setIsDepartOpen] = useState(false);
@@ -65,6 +60,18 @@ const Payroll = () => {
 
   const [selectedJobTitles, setSelectedJobTitles] = useState([]);
   const [selectedDepartmentId, setSelectedDepartmentId] = useState("");
+
+  const [isNameOpen, setIsNameOpen] = useState(false);
+  const [name, setName] = useState("Select Employee");
+  const [nameBase, setNameBase] = useState("");
+  const [amount, setAmount] = useState("");
+
+  const [nameID, setNameID] = useState("");
+  const [advance, setAdvance] = useState("");
+  const [subtraction, setSubtraction] = useState("");
+  const [bonus, setBonus] = useState("");
+  const [month, setMonth] = useState(null);
+  const [year, setYear] = useState(null);
 
   const closeModalSalary = () => {
     setModalSalaryIsOpen(false);
@@ -85,6 +92,34 @@ const Payroll = () => {
     setModalAddSalaryIsOpen(false);
   };
 
+  const token = localStorage.getItem("token");
+
+  // Get all users
+  useEffect(() => {
+    axios
+      .get(apiRoutes.user.getAll, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then((response) => {
+        setData(response.data);
+        console.log(JSON.stringify(data));
+      })
+      .catch((error) => {
+        console.error("Error fetching data from API", error);
+      });
+  }, []);
+
+  // Dropdown selection of manager name
+  const toggleNameDropdown = () => setIsNameOpen(!isNameOpen);
+  const handleOptionClick1 = (option, id) => {
+    setName(option);
+    setNameID(id);
+    setIsNameOpen(false);
+  };
+
   useEffect(() => {
     axios
       .get(apiRoutes.payroll.getAllPayrolls)
@@ -98,7 +133,51 @@ const Payroll = () => {
       });
   }, []);
 
-  // Delete base salary
+  // Update salary
+  const handleUpdateSalary = async (id) => {
+    const formData = {
+      name: nameBase,
+      amount,
+      departmentId: selectedDepartmentId,
+      jobtitleIds: selectedJobTitles,
+    };
+
+    try {
+      const response = await axios.put(
+        apiRoutes.basesalary.updateBaseSalary(id),
+        formData
+      );
+
+      if (response.status === 200) {
+        Swal.fire({
+          text: "Update Base Salary Successfully",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+
+        setTimeout(() => {
+          setModalBaseIsOpen(false);
+          window.location.reload();
+        }, 2000);
+      } else {
+        Swal.fire({
+          text: "Update Base Salary Failed",
+          icon: "error",
+          timer: 2000,
+        });
+      }
+    } catch (error) {
+      if (error.response) {
+        Swal.fire({
+          text: error.response.data.message,
+          icon: "error",
+        });
+      }
+    }
+  };
+
+  // Delete salary
   const verifyDeleteSalary = async (id) => {
     try {
       const response = await axios.delete(apiRoutes.payroll.deletePayroll(id));
@@ -175,6 +254,104 @@ const Payroll = () => {
       } else {
         Swal.fire({
           text: "Add Salary Fail",
+          icon: "error",
+          timer: 2000,
+        });
+      }
+    } catch (error) {
+      if (error.response) {
+        Swal.fire({
+          text: error.response.data.message,
+          icon: "error",
+        });
+      }
+    }
+  };
+
+  // Create salary
+  const handleCreateSalary = async () => {
+    let isValid = true;
+
+    if (!isValid) {
+      return;
+    }
+
+    const formData = {
+      employeeID: nameID,
+      bonus: bonus,
+      salaryAdvance: advance,
+      salarySubtraction: subtraction,
+      month,
+      year,
+    };
+
+    console.log(JSON.stringify(formData));
+
+    try {
+      const response = await axios.post(
+        apiRoutes.payroll.createPayroll,
+        formData
+      );
+
+      if (response.status === 201) {
+        Swal.fire({
+          text: "Add Salary Successfully",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+
+        setTimeout(() => {
+          setModalAddSalaryIsOpen(false);
+          window.location.reload();
+        }, 2000);
+      } else {
+        Swal.fire({
+          text: "Add Salary Fail",
+          icon: "error",
+          timer: 2000,
+        });
+      }
+    } catch (error) {
+      if (error.response) {
+        Swal.fire({
+          text: error.response.data.message,
+          icon: "error",
+        });
+      }
+    }
+  };
+
+  // Update base salary
+  const handleUpdateBaseSalary = async (id) => {
+    const formData = {
+      name: nameBase,
+      amount,
+      departmentId: selectedDepartmentId,
+      jobtitleIds: selectedJobTitles,
+    };
+
+    try {
+      const response = await axios.put(
+        apiRoutes.basesalary.updateBaseSalary(id),
+        formData
+      );
+
+      if (response.status === 200) {
+        Swal.fire({
+          text: "Update Base Salary Successfully",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+
+        setTimeout(() => {
+          setModalBaseIsOpen(false);
+          window.location.reload();
+        }, 2000);
+      } else {
+        Swal.fire({
+          text: "Update Base Salary Failed",
           icon: "error",
           timer: 2000,
         });
@@ -349,33 +526,66 @@ const Payroll = () => {
               <div className="bg-gray-200 w-[120%] h-0.5 mt-[1%] mb-[1%] ml-[-10%]"></div>
             </div>
             <div>
-              <div className="flex space-x-14 mt-3">
-                <div>
-                  <p>Employee Name</p>
-                  <input
-                    type="text"
-                    name="firstName"
-                    value=""
-                    className="border border-gray-300 rounded-md p-3 w-full mt-2 "
-                  />
+              <div className="flex gap-8 mt-3">
+                <div className="flex-1">
+                  <p className="mb-2">Employee Name</p>
+                  <div className="relative">
+                    <div
+                      className="w-[91%] h-[50px] border border-gray-300 rounded-md px-3 py-2 flex items-center justify-between cursor-pointer hover:border-[#2EB67D] focus-within:border-[#2EB67D]"
+                      onClick={toggleNameDropdown}
+                    >
+                      <span className="text-[15px] text-gray-700">
+                        {name || "Select name"}
+                      </span>
+                      <IoIosArrowDown />
+                    </div>
+                    {isNameOpen && (
+                      <div className="absolute z-10 mt-2 w-[91%] bg-white rounded-md shadow-lg border border-gray-200 max-h-[250px] overflow-y-auto">
+                        <ul className="py-1">
+                          {data.map((option, index) => (
+                            <li
+                              key={index}
+                              onClick={() =>
+                                handleOptionClick1(
+                                  `${option.firstName} ${option.lastName}`,
+                                  option.employeeID
+                                )
+                              }
+                              className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                            >
+                              {`${option.firstName} ${option.lastName}`}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <p>Bonus</p>
+
+                {/* Bonus Input */}
+                <div className="flex-1">
+                  <p className="mb-2">Bonus</p>
                   <input
                     type="text"
-                    name="firstName"
-                    value=""
-                    className="border border-gray-300 rounded-md p-3 w-full mt-2 "
+                    name="bonus"
+                    value={bonus}
+                    onChange={(e) =>
+                      setBonus(e.target.value.replace(/[a-zA-Z]/g, ""))
+                    }
+                    className="w-[91%] h-[50px] border border-gray-300 rounded-md px-3 py-2"
                   />
                 </div>
               </div>
+
               <div className="flex space-x-14 mt-5">
                 <div>
                   <p>Salary Advance</p>
                   <input
                     type="text"
-                    name="firstName"
-                    value=""
+                    value={advance}
+                    onChange={(e) =>
+                      setAdvance(e.target.value.replace(/[a-zA-Z]/g, ""))
+                    }
                     className="border border-gray-300 rounded-md p-3 w-full mt-2 "
                   />
                 </div>
@@ -383,8 +593,10 @@ const Payroll = () => {
                   <p>Salary Subtraction</p>
                   <input
                     type="text"
-                    name="firstName"
-                    value=""
+                    value={subtraction}
+                    onChange={(e) =>
+                      setSubtraction(e.target.value.replace(/[a-zA-Z]/g, ""))
+                    }
                     className="border border-gray-300 rounded-md p-3 w-full mt-2 "
                   />
                 </div>
@@ -395,9 +607,12 @@ const Payroll = () => {
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DatePicker
                       views={["month"]}
-                      value={month}
+                      value={month ? dayjs().month(month - 1) : null} // chuyển số tháng về dayjs để hiển thị
                       onChange={(newDate) => {
-                        setMonth(newDate);
+                        if (newDate) {
+                          const monthNumber = newDate.month() + 1; // từ 1 đến 12
+                          setMonth(monthNumber);
+                        }
                       }}
                     />
                   </LocalizationProvider>
@@ -407,9 +622,12 @@ const Payroll = () => {
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DatePicker
                       views={["year"]}
-                      value={year}
+                      value={year ? dayjs().year(year) : null}
                       onChange={(newDate) => {
-                        setYear(newDate);
+                        if (newDate) {
+                          const yearNumber = newDate.year();
+                          setYear(yearNumber);
+                        }
                       }}
                     />
                   </LocalizationProvider>
@@ -425,7 +643,7 @@ const Payroll = () => {
                     Cancel
                   </button>
                   <button
-                    // onClick={() => handleCreatePermission()}
+                    onClick={() => handleCreateSalary()}
                     className="mt-1 bg-[#E7F7EF] text-[#097C44] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] ml-[10px]"
                   >
                     Save

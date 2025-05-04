@@ -731,13 +731,14 @@ const Employee = () => {
       bankAccountName: accountName,
       bankAccountNumber: bankAccountNumber,
       department: department,
-      role: role._id,
+      role: role,
       jobTitle: jobTitle,
       joiningDate: joiningDate,
       endDate: endDate,
       status: status ? "Active" : "Inactive",
       city: city,
     };
+    prompt("Copy nội dung sau:", JSON.stringify(newUserData, null, 2));
     const token = localStorage.getItem("token");
     try {
       const response = await axios.post(
@@ -1618,12 +1619,13 @@ const Employee = () => {
                               {typeData.map((option, index) => (
                                 <li
                                   key={index}
-                                  onClick={() =>
+                                  onClick={() => {
                                     setFormData4((prev) => ({
                                       ...prev,
                                       employeeType: option,
-                                    }))
-                                  }
+                                    }));
+                                    setIsTypeOpen(false);
+                                  }}
                                   className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
                                 >
                                   {option}
@@ -1660,12 +1662,13 @@ const Employee = () => {
                               {departData.map((option, index) => (
                                 <li
                                   key={index}
-                                  onClick={() =>
+                                  onClick={() => {
                                     setFormData4((prev) => ({
                                       ...prev,
-                                      department: option.name,
-                                    }))
-                                  }
+                                      department: option.name, // Cập nhật department khi chọn
+                                    }));
+                                    handleOptionClick4(option.name); // Gọi hàm lọc job title khi chọn department
+                                  }}
                                   className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
                                 >
                                   {option.name}
@@ -1691,7 +1694,7 @@ const Employee = () => {
                             onClick={togglePossitionDropdown}
                           >
                             <span className="text-[15px]">
-                              {formData4.position}
+                              {formData4?.jobTitle}
                             </span>
                             <IoIosArrowDown />
                           </div>
@@ -1699,15 +1702,16 @@ const Employee = () => {
                         {isPositionOpen && (
                           <div className="absolute z-10 mt-2 w-[260px] bg-white rounded-md shadow-lg border border-gray-200">
                             <ul className="py-1">
-                              {positionData.map((option, index) => (
+                              {filteredJobTitles.map((option, index) => (
                                 <li
                                   key={index}
-                                  onClick={() =>
+                                  onClick={() => {
                                     setFormData4((prev) => ({
                                       ...prev,
                                       jobTitle: option.name,
-                                    }))
-                                  }
+                                    }));
+                                    setIsPositionOpen(false);
+                                  }}
                                   className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
                                 >
                                   {option.name}
@@ -1744,12 +1748,13 @@ const Employee = () => {
                               {roleData.map((option, index) => (
                                 <li
                                   key={index}
-                                  onClick={() =>
+                                  onClick={() => {
                                     setFormData4((prev) => ({
                                       ...prev,
                                       role: option,
-                                    }))
-                                  }
+                                    }));
+                                    setIsRoleOpen(false);
+                                  }}
                                   className="block capitalize px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
                                 >
                                   {option.name}
@@ -2279,6 +2284,7 @@ const Employee = () => {
                               </span>
                               <input
                                 type="text"
+                                maxLength={12}
                                 className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[60px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
                                   errors.phoneNumber
                                     ? "border-[2px] border-red-500"
@@ -2287,7 +2293,9 @@ const Employee = () => {
                                 value={phoneNumber}
                                 // placeholder="Input Phone Number"
                                 onChange={(e) => {
-                                  setPhoneNumber(e.target.value);
+                                  setPhoneNumber(
+                                    e.target.value.replace(/[a-zA-Z]/g, "")
+                                  );
                                   setErrors({});
                                 }}
                               />
@@ -2482,6 +2490,7 @@ const Employee = () => {
                             </div>
                             <input
                               type="text"
+                              maxLength={10}
                               className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light`}
                               value={bankAccountNumber}
                               placeholder="Input Account Number"

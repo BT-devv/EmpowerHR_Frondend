@@ -17,6 +17,7 @@ import Payroll from "./pages/Payroll";
 import Dashboard from "./pages/Dashboard";
 import Chat from "./pages/Chat";
 import Calendar from "./pages/Calendar";
+import EmployeeDetail from "./pages/EmployeeDetail";
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
           <Route path="payroll" element={<Payroll />} />
           <Route path="attendance" element={<Attendance />} />
           <Route path="settings" element={<Setting />} />
+          <Route path="/profile/:id" element={<EmployeeDetail />} />
 
           <Route path="*" element={<NotPermission />} />
         </Route>

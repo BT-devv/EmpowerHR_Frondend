@@ -16,11 +16,13 @@ import {
   IoSettingsOutline,
   IoCameraOutline,
 } from "react-icons/io5";
+import { jwtDecode } from "jwt-decode";
 
 const Slidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [selectedItem, setSelectedItem] = useState(null);
+  const [roleToken, setRoleToken] = useState(null);
 
   const permissions = {
     dashboard: usePermission("dashboard.read"),
@@ -61,8 +63,17 @@ const Slidebar = () => {
     navigate(path);
   };
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const decodedToken = jwtDecode(token);
+      setRoleToken(decodedToken.role);
+    }
+  }, []);
+
   const renderMenuItem = (label, icon, key, path, newTab = false) => {
     const perm = permissions[key];
+    console.log(JSON.stringify(perm));
     if (perm.loading) return null;
     if (!perm.hasPermission) return null;
 
@@ -142,12 +153,13 @@ const Slidebar = () => {
         <div className="mt-[10%] ml-[10px]">
           <p className="flex font-bold">ORGANIZATION</p>
           <ul className="flex flex-col mt-[5%]">
-            {renderMenuItem(
-              "Employee",
-              <HiOutlineUserGroup className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />,
-              "employee",
-              "/employee"
-            )}
+            {roleToken === "67fc24eb88df30b9541815ec" &&
+              renderMenuItem(
+                "Employee",
+                <HiOutlineUserGroup className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />,
+                "employee",
+                "/employee"
+              )}
             {renderMenuItem(
               "Payroll",
               <CiDollar className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />,

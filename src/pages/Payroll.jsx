@@ -12,6 +12,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import "react-datepicker/dist/react-datepicker.css";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { jwtDecode } from "jwt-decode";
 // icon
 import { CiSearch } from "react-icons/ci";
 import { BiFilterAlt } from "react-icons/bi";
@@ -42,14 +43,6 @@ const Payroll = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [selectedEmployee1, setSelectedEmployee1] = useState(null);
 
-  // const [netSalary, setNetSalary] = useState("");
-  // const [basicSalary, setBasicSalary] = useState("");
-  // const [ot, setOt] = useState("");
-  // const [unpaid, setUnpaid] = useState("");
-  // const [income, setIncome] = useState("");
-  // const [advance, setAdvance] = useState("");
-  // const [subtraction, setSubtraction] = useState("");
-
   const [department, setDepartment] = useState("Department");
   const [isDepartOpen, setIsDepartOpen] = useState(false);
   const [isPositionOpen, setIsPositionOpen] = useState(false);
@@ -66,12 +59,40 @@ const Payroll = () => {
   const [nameBase, setNameBase] = useState("");
   const [amount, setAmount] = useState("");
 
-  const [nameID, setNameID] = useState("");
+  const [netSalary, setNetSalary] = useState("");
+  const [basicSalary, setBasicSalary] = useState("");
+  const [ot, setOt] = useState("");
+  const [unpaid, setUnpaid] = useState("");
+  const [income, setIncome] = useState("");
   const [advance, setAdvance] = useState("");
   const [subtraction, setSubtraction] = useState("");
+
+  const [nameID, setNameID] = useState("");
   const [bonus, setBonus] = useState("");
   const [month, setMonth] = useState(null);
   const [year, setYear] = useState(null);
+
+  useEffect(() => {
+    if (selectedEmployee1) {
+      setNameBase(selectedEmployee1.name || "");
+      setAmount(selectedEmployee1.amount || "");
+      setJobTitle(selectedEmployee1.department?.jobtitle || []);
+      setDepartment(selectedEmployee1.department?.name || "");
+    }
+  }, [selectedEmployee1]);
+
+  useEffect(() => {
+    if (selectedEmployee) {
+      setName(selectedEmployee.employeeName || "");
+      setNetSalary(selectedEmployee.netSalary || "");
+      setBasicSalary(selectedEmployee.baseSalary || []);
+      setOt(selectedEmployee.otPay || "");
+      setUnpaid(selectedEmployee.unpaidLeave || "");
+      setIncome(selectedEmployee.personalIncomeTax || "");
+      setAdvance(selectedEmployee.salaryAdvance || "");
+      setSubtraction(selectedEmployee.salarySubtraction || "");
+    }
+  }, [selectedEmployee]);
 
   const closeModalSalary = () => {
     setModalSalaryIsOpen(false);
@@ -79,6 +100,9 @@ const Payroll = () => {
 
   const closeModalBase = () => {
     setModalBaseIsOpen(false);
+    setJobTitle("Position");
+    setSelectedJobTitles([]);
+    setDepartment("Department");
   };
 
   const closeModalAddBase = () => {
@@ -93,7 +117,9 @@ const Payroll = () => {
   };
 
   const token = localStorage.getItem("token");
+  const decodedToken = jwtDecode(token);
 
+  const [datausers, setDatausers] = useState([]);
   // Get all users
   useEffect(() => {
     axios
@@ -105,12 +131,28 @@ const Payroll = () => {
       })
       .then((response) => {
         setData(response.data);
+        const filteredUser = response.data.filter(
+          (user) => user._id !== decodedToken._id
+        );
+
+        setDatausers(filteredUser);
         console.log(JSON.stringify(data));
       })
       .catch((error) => {
         console.error("Error fetching data from API", error);
       });
   }, []);
+
+  const mergedData = payroll.map((salary) => {
+    const user = data.find((emp) => emp.employeeID === salary.employeeID);
+    return {
+      ...salary,
+      email: user?.emailPersonal || "",
+      department: user?.department || "",
+      type: user?.employeeType || "",
+      joiningDate: user?.joiningDate || "",
+    };
+  });
 
   // Dropdown selection of manager name
   const toggleNameDropdown = () => setIsNameOpen(!isNameOpen);
@@ -136,21 +178,26 @@ const Payroll = () => {
   // Update salary
   const handleUpdateSalary = async (id) => {
     const formData = {
-      name: nameBase,
-      amount,
-      departmentId: selectedDepartmentId,
-      jobtitleIds: selectedJobTitles,
+      employeeID: selectedEmployee.employeeID,
+      employeeName: name,
+      otPay: ot,
+      bonus: bonus,
+      unpaidLeave: unpaid,
+      personalIncomeTax: income,
+      salaryAdvance: advance,
+      salarySubtraction: subtraction,
+      netSalary: netSalary,
     };
 
     try {
       const response = await axios.put(
-        apiRoutes.basesalary.updateBaseSalary(id),
+        apiRoutes.payroll.updatePayroll(id),
         formData
       );
 
       if (response.status === 200) {
         Swal.fire({
-          text: "Update Base Salary Successfully",
+          text: "Update Salary Successfully",
           icon: "success",
           timer: 2000,
           showConfirmButton: false,
@@ -162,7 +209,7 @@ const Payroll = () => {
         }, 2000);
       } else {
         Swal.fire({
-          text: "Update Base Salary Failed",
+          text: "Update Salary Failed",
           icon: "error",
           timer: 2000,
         });
@@ -542,7 +589,7 @@ const Payroll = () => {
                     {isNameOpen && (
                       <div className="absolute z-10 mt-2 w-[91%] bg-white rounded-md shadow-lg border border-gray-200 max-h-[250px] overflow-y-auto">
                         <ul className="py-1">
-                          {data.map((option, index) => (
+                          {datausers.map((option, index) => (
                             <li
                               key={index}
                               onClick={() =>
@@ -577,7 +624,7 @@ const Payroll = () => {
                 </div>
               </div>
 
-              <div className="flex space-x-14 mt-5">
+              <div className="flex space-x-16 mt-5">
                 <div>
                   <p>Salary Advance</p>
                   <input
@@ -685,7 +732,7 @@ const Payroll = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentItems.map((item) => (
+                  {mergedData.map((item) => (
                     <tr
                       key={item._id}
                       className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer text-[15px] text-left"
@@ -699,16 +746,16 @@ const Payroll = () => {
                         </div>
                       </td>
                       <td className="px-5 py-5 border-b border-gray-200 truncate w-[15%]">
-                        vdfvdfv
+                        {item.emailPersonal}
                       </td>
                       <td className="px-5 py-5 border-b border-gray-200 w-[15%]">
-                        vdfvdfv
+                        {item.department}
                       </td>
                       <td className="px-5 py-5 border-b border-gray-200 w-[15%]">
-                        vdfvdfv
+                        {item.type}
                       </td>
                       <td className="px-5 py-5 border-b border-gray-200 w-[13%]">
-                        vdfvdfv
+                        {item.joiningDate}
                       </td>
                       <td className="px-5 py-5 border-b border-gray-200 w-[20%]">
                         {`${item.total.toLocaleString("vi-VN")} VNĐ`}
@@ -783,24 +830,48 @@ const Payroll = () => {
                           <div className="bg-gray-200 w-[120%] h-0.5 mt-[1%] mb-[1%] ml-[-10%]"></div>
                         </div>
                         <div>
-                          <div className="flex space-x-14 mt-3">
+                          <div className="flex space-x-20 mt-3">
                             <div>
                               <p>Employee Name</p>
-                              <input
-                                type="text"
-                                name="firstName"
-                                value={selectedEmployee?.employeeName}
-                                className="border border-gray-300 rounded-md p-3 w-full mt-2 "
-                              />
+                              <div className="relative mt-2">
+                                <div
+                                  className="w-[118%] h-[50px] border border-gray-300 rounded-md px-3 py-2 flex items-center justify-between cursor-pointer hover:border-[#2EB67D] focus-within:border-[#2EB67D]"
+                                  onClick={toggleNameDropdown}
+                                >
+                                  <span className="text-[15px] text-gray-700">
+                                    {name || "Select name"}
+                                  </span>
+                                  <IoIosArrowDown />
+                                </div>
+                                {isNameOpen && (
+                                  <div className="absolute z-10 mt-2 w-[118%] bg-white rounded-md shadow-lg border border-gray-200 max-h-[250px] overflow-y-auto">
+                                    <ul className="py-1">
+                                      {datausers.map((option, index) => (
+                                        <li
+                                          key={index}
+                                          onClick={() =>
+                                            handleOptionClick1(
+                                              `${option.firstName} ${option.lastName}`,
+                                              option.employeeID
+                                            )
+                                          }
+                                          className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                                        >
+                                          {`${option.firstName} ${option.lastName}`}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                             <div>
                               <p>Net Salary</p>
                               <input
                                 type="text"
                                 name="firstName"
-                                value={`${selectedEmployee?.netSalary.toLocaleString(
-                                  "vi-VN"
-                                )} VNĐ`}
+                                value={netSalary}
+                                onChange={(e) => setNetSalary(e.target.value)}
                                 className="border border-gray-300 rounded-md p-3 w-full mt-2 "
                               />
                             </div>
@@ -817,9 +888,8 @@ const Payroll = () => {
                               <input
                                 type="text"
                                 name="firstName"
-                                value={`${selectedEmployee?.baseSalary.toLocaleString(
-                                  "vi-VN"
-                                )} VNĐ`}
+                                value={basicSalary}
+                                onChange={(e) => setBasicSalary(e.target.value)}
                                 className="border border-gray-300 rounded-md p-3 w-full mt-2 "
                               />
                             </div>
@@ -828,9 +898,8 @@ const Payroll = () => {
                               <input
                                 type="text"
                                 name="firstName"
-                                value={`${selectedEmployee?.otPay.toLocaleString(
-                                  "vi-VN"
-                                )} VNĐ`}
+                                value={ot}
+                                onChange={(e) => setOt(e.target.value)}
                                 className="border border-gray-300 rounded-md p-3 w-full mt-2 "
                               />
                             </div>
@@ -847,9 +916,8 @@ const Payroll = () => {
                               <input
                                 type="text"
                                 name="firstName"
-                                value={`${selectedEmployee?.unpaidLeave.toLocaleString(
-                                  "vi-VN"
-                                )} VNĐ`}
+                                value={unpaid}
+                                onChange={(e) => setUnpaid(e.target.value)}
                                 className="border border-gray-300 rounded-md p-3 w-full mt-2 "
                               />
                             </div>
@@ -858,9 +926,8 @@ const Payroll = () => {
                               <input
                                 type="text"
                                 name="firstName"
-                                value={`${selectedEmployee?.personalIncomeTax.toLocaleString(
-                                  "vi-VN"
-                                )} VNĐ`}
+                                value={income}
+                                onChange={(e) => setIncome(e.target.value)}
                                 className="border border-gray-300 rounded-md p-3 w-full mt-2 "
                               />
                             </div>
@@ -871,9 +938,8 @@ const Payroll = () => {
                               <input
                                 type="text"
                                 name="firstName"
-                                value={`${selectedEmployee?.salaryAdvance.toLocaleString(
-                                  "vi-VN"
-                                )} VNĐ`}
+                                value={advance}
+                                onChange={(e) => setAdvance(e.target.value)}
                                 className="border border-gray-300 rounded-md p-3 w-full mt-2 "
                               />
                             </div>
@@ -882,9 +948,8 @@ const Payroll = () => {
                               <input
                                 type="text"
                                 name="firstName"
-                                value={`${selectedEmployee?.salarySubtraction.toLocaleString(
-                                  "vi-VN"
-                                )} VNĐ`}
+                                value={subtraction}
+                                onChange={(e) => setSubtraction(e.target.value)}
                                 className="border border-gray-300 rounded-md p-3 w-full mt-2 "
                               />
                             </div>
@@ -899,7 +964,9 @@ const Payroll = () => {
                                 Cancel
                               </button>
                               <button
-                                // onClick={() => handleCreatePermission()}
+                                onClick={() =>
+                                  handleUpdateSalary(selectedEmployee._id)
+                                }
                                 className="mt-1 bg-[#E7F7EF] text-[#097C44] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] ml-[10px]"
                               >
                                 Save
@@ -1009,6 +1076,7 @@ const Payroll = () => {
                         type="text"
                         name="nameBase"
                         value={nameBase}
+                        placeholder="Input Name"
                         onChange={(e) => {
                           setNameBase(e.target.value);
                         }}
@@ -1024,6 +1092,7 @@ const Payroll = () => {
                         type="text"
                         name="amount"
                         value={amount}
+                        placeholder="Input Amount"
                         onChange={(e) => {
                           setAmount(e.target.value);
                         }}
@@ -1101,17 +1170,14 @@ const Payroll = () => {
                                     key={index}
                                     onClick={() => {
                                       if (isSelected) {
-                                        setSelectedJobTitles(
-                                          (prev) =>
-                                            prev.filter(
-                                              (id) => id !== option._id
-                                            ) // Loại bỏ _id khỏi danh sách
+                                        setSelectedJobTitles((prev) =>
+                                          prev.filter((id) => id !== option._id)
                                         );
                                       } else {
                                         setSelectedJobTitles((prev) => [
                                           ...prev,
                                           option._id,
-                                        ]); // Thêm _id vào danh sách
+                                        ]);
                                       }
                                     }}
                                     className={`px-4 py-2 text-[15px] cursor-pointer ${
@@ -1278,52 +1344,145 @@ const Payroll = () => {
                                   <input
                                     type="text"
                                     name="firstName"
-                                    value={selectedEmployee1?.name}
+                                    value={nameBase}
                                     placeholder="Input name"
                                     className="border capitalize border-gray-300 rounded-md p-3 w-full mt-2 "
-                                  />
-                                </div>
-                                <div>
-                                  <p>Department</p>
-                                  <input
-                                    type="text"
-                                    value={selectedEmployee1?.department.name}
-                                    placeholder="Select Department"
-                                    className="border border-gray-300 rounded-md p-3 w-full mt-2 "
-                                  />
-                                </div>
-                              </div>
-                              <div className="flex space-x-14 mt-3">
-                                <div>
-                                  <p>Job Title</p>
-                                  <input
-                                    type="text"
-                                    value={selectedEmployee1?.jobtitle}
-                                    placeholder="Select Job Title"
-                                    className="border border-gray-300 rounded-md p-3 w-full mt-2 "
+                                    onChange={(e) =>
+                                      setNameBase(e.target.value)
+                                    }
                                   />
                                 </div>
                                 <div>
                                   <p>Amount</p>
                                   <input
                                     type="text"
-                                    value={`${selectedEmployee1?.amount.toLocaleString(
-                                      "vi-VN"
-                                    )} VNĐ`}
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
                                     placeholder="Input Amount"
                                     className="border border-gray-300 rounded-md p-3 w-full mt-2 "
                                   />
                                 </div>
                               </div>
-                              <div className="flex space-x-14 mt-3">
+                              <div className="flex space-x-14 mt-3 w-full">
                                 <div>
-                                  <p>Unit</p>
-                                  <input
-                                    type="text"
-                                    name="VNĐ"
-                                    placeholder="Select Unit"
-                                    className="border border-gray-300 rounded-md p-3 w-full mt-2 "
-                                  />
+                                  <p>Department</p>
+                                  <div className="relative w-full">
+                                    <div
+                                      className={`inline-flex z-10 w-full border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2`}
+                                      onClick={toggleDepartDropdown}
+                                    >
+                                      <span className="text-[15px]">
+                                        {department}
+                                      </span>
+                                      <IoIosArrowDown />
+                                    </div>
+                                    {isDepartOpen && (
+                                      <div className="absolute z-10 mt-2 w-full bg-white rounded-md shadow-lg border border-gray-200">
+                                        <ul className="py-1">
+                                          {departData.map((option, index) => (
+                                            <li
+                                              key={index}
+                                              onClick={() => {
+                                                handleOptionClick4(option.name);
+                                                setSelectedDepartmentId(
+                                                  option._id
+                                                );
+                                              }}
+                                              className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                                            >
+                                              {option.name}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p>Job Title</p>
+                                  <div className="relative w-full">
+                                    <div
+                                      className={`inline-flex w-full border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2`}
+                                      onClick={togglePossitionDropdown}
+                                    >
+                                      <span className="text-[15px] truncate">
+                                        {selectedJobTitles
+                                          .map(
+                                            (id) =>
+                                              filteredJobTitles.find(
+                                                (job) => job._id === id
+                                              )?.name || "(Không tìm thấy)"
+                                          )
+                                          .join(", ")}
+                                      </span>
+                                      <IoIosArrowDown />
+                                    </div>
+                                    {isPositionOpen && (
+                                      <div className="absolute z-10 mt-2 w-full bg-white rounded-md shadow-lg border border-gray-200 max-h-[200px] overflow-y-auto">
+                                        <ul className="py-1">
+                                          {filteredJobTitles.map(
+                                            (option, index) => {
+                                              const isSelected =
+                                                selectedJobTitles.includes(
+                                                  option._id
+                                                );
+                                              return (
+                                                <li
+                                                  key={index}
+                                                  onClick={() => {
+                                                    if (isSelected) {
+                                                      setSelectedJobTitles(
+                                                        (prev) =>
+                                                          prev.filter(
+                                                            (id) =>
+                                                              id !== option._id
+                                                          )
+                                                      );
+                                                    } else {
+                                                      setSelectedJobTitles(
+                                                        (prev) => [
+                                                          ...prev,
+                                                          option._id,
+                                                        ]
+                                                      );
+                                                    }
+                                                  }}
+                                                  className={`px-4 py-2 text-[15px] cursor-pointer ${
+                                                    isSelected
+                                                      ? "bg-[#2EB67D] text-white"
+                                                      : "text-gray-700 hover:bg-gray-100"
+                                                  }`}
+                                                >
+                                                  {option.name}
+                                                </li>
+                                              );
+                                            }
+                                          )}
+                                        </ul>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex flex-col mt-5 mb-5">
+                                <div className="bg-gray-200 w-[150%] h-0.5 mt-[2%] mb-[1%] ml-[-20%]"></div>
+                                <div className="flex justify-end mr-[10px] mb-[-10%] mt-2">
+                                  <button
+                                    onClick={closeModalBase}
+                                    className="mt-1 bg-white text-[#FF6262] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] "
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      handleUpdateBaseSalary(
+                                        selectedEmployee1._id
+                                      )
+                                    }
+                                    className="mt-1 bg-[#E7F7EF] text-[#097C44] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] ml-[10px]"
+                                  >
+                                    Save
+                                  </button>
                                 </div>
                               </div>
                             </div>

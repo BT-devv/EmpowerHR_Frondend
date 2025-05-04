@@ -49,14 +49,14 @@ const AttendanceOverview = () => {
   const chartOptions = {
     chart: {
       type: "bar",
-      stacked: false,
+      stacked: true,
       toolbar: { show: false },
     },
     plotOptions: {
       bar: {
         horizontal: true,
-        barHeight: "50%",
-        borderRadius: 6,
+        barHeight: "30%",
+        borderRadius: 5,
       },
     },
     xaxis: {

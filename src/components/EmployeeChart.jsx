@@ -9,10 +9,8 @@ const EmployeeChart = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      console.error("Không tìm thấy token. Không gọi API.");
-      return;
-    }
+    if (!token) return;
+
     axios
       .get(apiRoutes.user.getAll, {
         headers: {
@@ -26,23 +24,26 @@ const EmployeeChart = () => {
 
         users.forEach((user) => {
           const jobTitle = user.jobTitle;
-          if (jobMap[jobTitle]) {
-            jobMap[jobTitle]++;
-          } else {
-            jobMap[jobTitle] = 1;
-          }
+          jobMap[jobTitle] = (jobMap[jobTitle] || 0) + 1;
         });
 
-        const titles = Object.keys(jobMap);
-        const counts = Object.values(jobMap);
-
-        setJobTitles(titles);
-        setJobCounts(counts);
+        setJobTitles(Object.keys(jobMap));
+        setJobCounts(Object.values(jobMap));
       })
       .catch((error) => {
         console.error("Error fetching user data:", error);
       });
   }, []);
+
+  const colors = [
+    "#FF6384",
+    "#36A2EB",
+    "#FFCE56",
+    "#2EB67D",
+    "#845EC2",
+    "#D65DB1",
+    "#FFC75F",
+  ];
 
   const chartOptions = {
     chart: {
@@ -52,42 +53,6 @@ const EmployeeChart = () => {
     dataLabels: {
       enabled: false,
     },
-    legend: {
-      position: "right",
-      itemMargin: {
-        top: -5,
-        vertical: 5,
-      },
-      fontSize: "14px",
-      formatter: function (seriesName, opts) {
-        const seriesIndex = opts.seriesIndex;
-        const value = jobCounts[seriesIndex];
-        return `${seriesName} (${value})`;
-      },
-    },
-    columns: 2,
-    responsive: [
-      {
-        breakpoint: 480,
-        options: {
-          chart: {
-            width: 300,
-          },
-          legend: {
-            position: "bottom",
-          },
-        },
-      },
-    ],
-    colors: [
-      "#FF6384",
-      "#36A2EB",
-      "#FFCE56",
-      "#2EB67D",
-      "#845EC2",
-      "#D65DB1",
-      "#FFC75F",
-    ],
     tooltip: {
       y: {
         formatter: (val) => `${val} employees`,
@@ -102,36 +67,60 @@ const EmployeeChart = () => {
               show: true,
               label: "",
               fontSize: "50px",
-              style: {
-                fontWeight: 700,
-              },
+              style: { fontWeight: 700 },
               color: "#333",
               formatter: function () {
-                const total = jobCounts.reduce((a, b) => a + b, 0);
-                return `${total}`;
+                return jobCounts.reduce((a, b) => a + b, 0);
               },
             },
           },
         },
       },
     },
+    legend: {
+      show: false, // Tắt legend mặc định
+    },
+    colors: colors,
   };
 
   const chartSeries = jobCounts;
 
   return (
     <div className="bg-white">
-      <div className="ml-10 mt-2 mb-[-5%]">
-        {jobTitles.length > 0 && jobCounts.length > 0 && (
-          <Chart
-            options={chartOptions}
-            series={chartSeries}
-            type="donut"
-            height={300}
-            width={400}
-          />
-        )}
-      </div>
+      {jobTitles.length > 0 && jobCounts.length > 0 && (
+        <div className="flex flex-col md:flex-row items-start gap-10">
+          {/* Chart bên trái */}
+          <div className="flex-shrink-0">
+            <Chart
+              options={chartOptions}
+              series={chartSeries}
+              type="donut"
+              height={175}
+              className="w-[175px]"
+            />
+          </div>
+
+          {/* Legend bên phải */}
+          <div className="grid grid-cols-2 gap-x-5 gap-y-5">
+            {jobTitles.map((title, index) => (
+              <div
+                key={index}
+                className="flex items-center text-left space-x-2"
+              >
+                <span
+                  className="w-3 h-3 rounded-full"
+                  style={{
+                    backgroundColor: colors[index % colors.length],
+                  }}
+                ></span>
+                <span className="text-sm">
+                  {title} ({jobCounts[index]})
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

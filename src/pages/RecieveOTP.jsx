@@ -62,6 +62,7 @@ const RecieveOPT = () => {
           icon: "success",
           timer: 2000,
           showConfirmButton: false,
+          timerProgressBar: true,
         });
         setTimeout(() => {
           navigate("/resetpass");
@@ -71,6 +72,8 @@ const RecieveOPT = () => {
           text: message,
           icon: "error",
           timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -79,6 +82,8 @@ const RecieveOPT = () => {
           text: error.response.data.message,
           icon: "error",
           timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true,
         });
       }
     } finally {

@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { format, differenceInDays } from "date-fns";
 import axios from "axios";
 import UsePermission from "../components/UsePermission";
+import alert from "../components/Alert";
 
 // icon
 import { BsPatchCheck } from "react-icons/bs";
@@ -135,7 +136,7 @@ const Dashboard = () => {
               <p className="text-3xl font-bold mt-1">27</p>
               <p
                 className="text-sm text-gray-500 mt-2 cursor-pointer"
-                onClick={() => navigate("/calendar")}
+                onClick={alert}
               >
                 View details
               </p>
@@ -148,7 +149,7 @@ const Dashboard = () => {
               <p className="text-3xl font-bold mt-1">$7200</p>
               <p
                 className="text-sm text-gray-500 mt-2 cursor-pointer"
-                onClick={() => navigate("/payroll")}
+                onClick={alert}
               >
                 View details
               </p>
@@ -159,7 +160,10 @@ const Dashboard = () => {
               <HiOutlineTicket className="w-10 h-10 text-[#4880FF] mb-4" />
               <p className="text-gray-500">Budgets</p>
               <p className="text-3xl font-bold mt-1">$3700</p>
-              <p className="text-sm text-gray-500 mt-2 cursor-pointer">
+              <p
+                onClick={alert}
+                className="text-sm text-gray-500 mt-2 cursor-pointer"
+              >
                 View details
               </p>
             </div>

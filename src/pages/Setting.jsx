@@ -329,15 +329,15 @@ const Setting = () => {
           icon: "success",
           timer: 2000,
           showConfirmButton: false,
+          timerProgressBar: true,
         });
-        setTimeout(() => {
-          setModalAddDepart(false);
-          window.location.reload();
-        }, 2000);
+        setModalAddDepart(false);
       } else {
         Swal.fire({
           text: "Add Role Fail",
           icon: "error",
+          showConfirmButton: false,
+          timerProgressBar: true,
           timer: 2000,
         });
       }
@@ -346,6 +346,9 @@ const Setting = () => {
         Swal.fire({
           text: error.response.data.message,
           icon: "error",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
         });
       }
     } finally {
@@ -395,17 +398,18 @@ const Setting = () => {
           text: "Add Permission Successfully",
           icon: "success",
           timer: 2000,
+          timerProgressBar: true,
+
           showConfirmButton: false,
         });
-        setTimeout(() => {
-          setModalAddPermission(false);
-          window.location.reload();
-        }, 2000);
+        setModalAddPermission(false);
       } else {
         Swal.fire({
           text: "Add Permission Fail",
           icon: "error",
           timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -413,6 +417,9 @@ const Setting = () => {
         Swal.fire({
           text: error.response.data.message,
           icon: "error",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
         });
       }
     } finally {
@@ -471,16 +478,16 @@ const Setting = () => {
           icon: "success",
           timer: 2000,
           showConfirmButton: false,
+          timerProgressBar: true,
         });
-        setTimeout(() => {
-          setModalAddHoliday(false);
-          window.location.reload();
-        }, 2000);
+        setModalAddHoliday(false);
       } else {
         Swal.fire({
           text: "Add Holiday Fail",
           icon: "error",
           timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -488,6 +495,9 @@ const Setting = () => {
         Swal.fire({
           text: error.response.data.message,
           icon: "error",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
         });
       }
     } finally {
@@ -520,17 +530,16 @@ const Setting = () => {
           icon: "success",
           timer: 2000,
           showConfirmButton: false,
+          timerProgressBar: true,
         });
-
-        setTimeout(() => {
-          setModalEditHoliday(false);
-          window.location.reload();
-        }, 2000);
+        setModalEditHoliday(false);
       } else {
         Swal.fire({
           text: "Edit Holiday Fail",
           icon: "error",
           timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -538,6 +547,9 @@ const Setting = () => {
         Swal.fire({
           text: error.response.data.message,
           icon: "error",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
         });
       }
     } finally {
@@ -562,15 +574,15 @@ const Setting = () => {
           icon: "success",
           showConfirmButton: false,
           timer: 2000,
+          timerProgressBar: true,
         });
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
       } else {
         Swal.fire({
           text: "Delete Holiday Fail",
           icon: "error",
           timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -612,17 +624,16 @@ const Setting = () => {
           icon: "success",
           timer: 2000,
           showConfirmButton: false,
+          timerProgressBar: true,
         });
-
-        setTimeout(() => {
-          setModalEditRole(false);
-          window.location.reload();
-        }, 2000);
+        setModalEditRole(false);
       } else {
         Swal.fire({
           text: "Edit Role Fail",
           icon: "error",
           timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -630,6 +641,9 @@ const Setting = () => {
         Swal.fire({
           text: error.response.data.message,
           icon: "error",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
         });
       }
     } finally {
@@ -652,16 +666,17 @@ const Setting = () => {
           text: "Delete Role Successfully",
           icon: "success",
           showConfirmButton: false,
+          timerProgressBar: true,
+
           timer: 2000,
         });
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
       } else {
         Swal.fire({
           text: "Delete Role Fail",
           icon: "error",
           timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -717,12 +732,9 @@ const Setting = () => {
           icon: "success",
           timer: 2000,
           showConfirmButton: false,
+          timerProgressBar: true,
         });
-
-        setTimeout(() => {
-          setModalAddDepart(false);
-          window.location.reload();
-        }, 2000);
+        setModalAddDepart(false);
       } else {
         Swal.fire({
           text: "Add Department Fail",
@@ -735,6 +747,9 @@ const Setting = () => {
         Swal.fire({
           text: error.response.data.message,
           icon: "error",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
         });
       }
     } finally {
@@ -764,16 +779,16 @@ const Setting = () => {
           icon: "success",
           timer: 2000,
           showConfirmButton: false,
+          timerProgressBar: true,
         });
-        setTimeout(() => {
-          setModalEditDepart(false);
-          window.location.reload();
-        }, 2000);
+        setModalEditDepart(false);
       } else {
         Swal.fire({
           text: "Edit Department Fail",
           icon: "error",
           timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -781,6 +796,9 @@ const Setting = () => {
         Swal.fire({
           text: error.response.data.message,
           icon: "error",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
         });
       }
     } finally {
@@ -807,15 +825,15 @@ const Setting = () => {
           icon: "success",
           showConfirmButton: false,
           timer: 2000,
+          timerProgressBar: true,
         });
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
       } else {
         Swal.fire({
           text: "Delete Department Fail",
           icon: "error",
           timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -893,17 +911,16 @@ const Setting = () => {
             icon: "success",
             timer: 2000,
             showConfirmButton: false,
+            timerProgressBar: true,
           });
-
-          setTimeout(() => {
-            setModalAddJob(false);
-            window.location.reload();
-          }, 2000);
+          setModalAddJob(false);
         } else {
           Swal.fire({
             text: "Assign Job Title failed",
             icon: "error",
             timer: 2000,
+            showConfirmButton: false,
+            timerProgressBar: true,
           });
         }
       } else {
@@ -911,6 +928,8 @@ const Setting = () => {
           text: "Add Job Title failed",
           icon: "error",
           timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -918,6 +937,9 @@ const Setting = () => {
         Swal.fire({
           text: error.response.data.message,
           icon: "error",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
         });
       }
     } finally {
@@ -949,16 +971,16 @@ const Setting = () => {
           icon: "success",
           timer: 2000,
           showConfirmButton: false,
+          timerProgressBar: true,
         });
-        setTimeout(() => {
-          setModalEditJob(false);
-          window.location.reload();
-        }, 2000);
+        setModalEditJob(false);
       } else {
         Swal.fire({
           text: "Edit Job Title Fail",
           icon: "error",
           timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -966,6 +988,9 @@ const Setting = () => {
         Swal.fire({
           text: error.response.data.message,
           icon: "error",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
         });
       }
     } finally {
@@ -995,15 +1020,15 @@ const Setting = () => {
           icon: "success",
           showConfirmButton: false,
           timer: 2000,
+          timerProgressBar: true,
         });
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
       } else {
         Swal.fire({
           text: "Delete Job Title Fail",
           icon: "error",
           timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true,
         });
       }
     } catch (error) {

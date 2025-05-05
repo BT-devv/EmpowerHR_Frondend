@@ -63,6 +63,8 @@ const ResetPass = () => {
           text: message,
           icon: "success",
           timer: 2000,
+          timerProgressBar: true,
+
           showConfirmButton: false,
         });
         localStorage.removeItem("emailVerify");
@@ -73,6 +75,8 @@ const ResetPass = () => {
         Swal.fire({
           text: message,
           icon: "error",
+          showConfirmButton: false,
+          timerProgressBar: true,
           timer: 2000,
         });
       }
@@ -81,11 +85,17 @@ const ResetPass = () => {
         Swal.fire({
           text: error.response?.data?.message,
           icon: "error",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
         });
       } else {
         Swal.fire({
           text: "An unexpected error occurred. Please try again later.",
           icon: "error",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
         });
       }
     } finally {

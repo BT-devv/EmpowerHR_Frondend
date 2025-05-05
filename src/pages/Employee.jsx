@@ -16,6 +16,7 @@ import PaginationFooter from "../components/PaginationFooter";
 import ClickOutside from "../components/ClickOutside";
 import UsePermission from "../components/UsePermission";
 import { CircularProgress } from "@mui/material";
+import alert from "../components/Alert";
 
 // icon
 import { CiSearch } from "react-icons/ci";
@@ -179,6 +180,7 @@ const Employee = () => {
         icon: "info",
         showConfirmButton: false,
         timer: 2000,
+        timerProgressBar: true,
       }).then(() => {
         setIsEditing1(false);
       });
@@ -229,6 +231,7 @@ const Employee = () => {
             icon: "success",
             showConfirmButton: false,
             timer: 2000,
+            timerProgressBar: true,
           });
           setIsEditing1(false);
         } else {
@@ -241,6 +244,7 @@ const Employee = () => {
             icon: "success",
             showConfirmButton: false,
             timer: 2000,
+            timerProgressBar: true,
           });
           setIsEditing1(false);
         }
@@ -325,7 +329,8 @@ const Employee = () => {
         text: "Không có thay đổi nào cần lưu.",
         icon: "info",
         showConfirmButton: false,
-        timer: 1500,
+        timer: 2000,
+        timerProgressBar: true,
       }).then(() => {
         setIsEditing2(false);
       });
@@ -349,6 +354,9 @@ const Employee = () => {
         Swal.fire({
           text: response.data.message,
           icon: response.data.success ? "success" : "error",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
         }).then(() => {
           setIsEditing2(false);
         });
@@ -435,6 +443,7 @@ const Employee = () => {
           icon: "success",
           showConfirmButton: false,
           timer: 2000,
+          timerProgressBar: true,
         });
         setIsEditing4(false);
       } else {
@@ -763,6 +772,7 @@ const Employee = () => {
           icon: "success",
           showConfirmButton: false,
           timer: 2000,
+          timerProgressBar: true,
         });
         setSelectedFiles({
           avatar: null,
@@ -779,6 +789,8 @@ const Employee = () => {
         text: `Tải lên ${fileType} thất bại.`,
         icon: "error",
         showConfirmButton: true,
+        timer: 2000,
+        timerProgressBar: true,
       });
     } finally {
       setProgress(false);
@@ -848,6 +860,7 @@ const Employee = () => {
           icon: "success",
           showConfirmButton: false,
           timer: 2000,
+          timerProgressBar: true,
         });
         setModalIsOpen(false);
 
@@ -859,6 +872,8 @@ const Employee = () => {
           text: message,
           icon: "error",
           timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
         });
       }
     } catch (error) {
@@ -876,31 +891,49 @@ const Employee = () => {
             Swal.fire({
               text: "Employee must be at least 18 years old.",
               icon: "error",
+              timer: 2000,
+              timerProgressBar: true,
+              showConfirmButton: false,
             });
           } else if (err.includes("idCardNumber")) {
             Swal.fire({
               text: "Invalid ID Card Number. Please check your input.",
               icon: "error",
+              timer: 2000,
+              timerProgressBar: true,
+              showConfirmButton: false,
             });
           } else if (err.includes("phoneNumber")) {
             Swal.fire({
               text: "Invalid phone number format.",
               icon: "error",
+              timer: 2000,
+              timerProgressBar: true,
+              showConfirmButton: false,
             });
           } else if (err.includes("role")) {
             Swal.fire({
               text: "Invalid role selected.",
               icon: "error",
+              timer: 2000,
+              timerProgressBar: true,
+              showConfirmButton: false,
             });
           } else if (err.includes("employeeType")) {
             Swal.fire({
               text: "Invalid employee type provided.",
               icon: "error",
+              timer: 2000,
+              timerProgressBar: true,
+              showConfirmButton: false,
             });
           } else {
             Swal.fire({
               text: err,
               icon: "error",
+              timer: 2000,
+              timerProgressBar: true,
+              showConfirmButton: false,
             });
           }
         });
@@ -908,6 +941,9 @@ const Employee = () => {
         Swal.fire({
           text: "An error occurred while sending data. Please try again later.",
           icon: "error",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
         });
       }
     } finally {
@@ -970,6 +1006,7 @@ const Employee = () => {
           icon: "success",
           showConfirmButton: false,
           timer: 2000,
+          timerProgressBar: true,
         });
         // setTimeout(() => {
         //   window.location.reload();
@@ -979,6 +1016,8 @@ const Employee = () => {
           text: message,
           icon: "error",
           timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
         });
       }
     } catch (error) {
@@ -1100,9 +1139,19 @@ const Employee = () => {
         text: `Tải lên ${fileType} thất bại.`,
         icon: "error",
         showConfirmButton: true,
+        timer: 2000,
+        timerProgressBar: true,
       });
     } finally {
       setProgress(false);
+    }
+  };
+
+  const handleTabSelect = async (key) => {
+    setSelectedTab(key);
+
+    if (key !== "general") {
+      alert();
     }
   };
 
@@ -1151,7 +1200,7 @@ const Employee = () => {
                 { key: "dependents", label: "Dependents" },
               ]}
               selectedTab={selectedTab}
-              onTabSelect={(key) => setSelectedTab(key)}
+              onTabSelect={handleTabSelect}
               wrapperClassName="gap-10 md:gap-10 text-[#1C1C1C] ml-7"
             />
           </div>

@@ -45,8 +45,8 @@ const Navbar = () => {
       icon: "success",
       timer: 2000,
       showConfirmButton: false,
+      timerProgressBar: true,
     });
-
     setTimeout(() => {
       navigate("/", { replace: true });
     }, 2000);

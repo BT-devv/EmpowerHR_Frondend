@@ -111,6 +111,7 @@ const EmployeeDetail = () => {
         icon: "info",
         showConfirmButton: false,
         timer: 2000,
+        timerProgressBar: true,
       }).then(() => {
         setIsEditing1(false);
       });
@@ -161,6 +162,7 @@ const EmployeeDetail = () => {
             icon: "success",
             showConfirmButton: false,
             timer: 2000,
+            timerProgressBar: true,
           });
           setIsEditing1(false);
         } else {
@@ -173,6 +175,7 @@ const EmployeeDetail = () => {
             icon: "success",
             showConfirmButton: false,
             timer: 2000,
+            timerProgressBar: true,
           });
           setIsEditing1(false);
         }
@@ -255,7 +258,8 @@ const EmployeeDetail = () => {
         text: "Không có thay đổi nào cần lưu.",
         icon: "info",
         showConfirmButton: false,
-        timer: 1500,
+        timer: 2000,
+        timerProgressBar: true,
       }).then(() => {
         setIsEditing2(false);
       });
@@ -279,6 +283,8 @@ const EmployeeDetail = () => {
           text: response.data.message,
           icon: "success",
           showConfirmButton: false,
+          timerProgressBar: true,
+
           timer: 2000,
         });
         setIsEditing2(false);
@@ -347,6 +353,8 @@ const EmployeeDetail = () => {
         text: "Không có thay đổi nào cần lưu.",
         icon: "info",
         showConfirmButton: false,
+        timerProgressBar: true,
+
         timer: 1500,
       }).then(() => {
         setIsEditing2(false);
@@ -372,6 +380,7 @@ const EmployeeDetail = () => {
           icon: response.data.success ? "success" : "error",
           showConfirmButton: false,
           timer: 2000,
+          timerProgressBar: true,
         }).then(() => {
           setIsEditing3(false);
         });
@@ -433,6 +442,7 @@ const EmployeeDetail = () => {
           icon: "success",
           showConfirmButton: false,
           timer: 2000,
+          timerProgressBar: true,
         });
         setSelectedFiles({
           avatar: null,
@@ -449,6 +459,8 @@ const EmployeeDetail = () => {
         text: `Tải lên ${fileType} thất bại.`,
         icon: "error",
         showConfirmButton: true,
+        timer: 2000,
+        timerProgressBar: true,
       });
     } finally {
       setLoading(false);

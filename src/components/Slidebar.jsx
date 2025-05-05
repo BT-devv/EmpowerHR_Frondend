@@ -17,6 +17,7 @@ import {
   IoCameraOutline,
 } from "react-icons/io5";
 import { jwtDecode } from "jwt-decode";
+import alert from "./Alert";
 
 const Slidebar = () => {
   const navigate = useNavigate();
@@ -89,6 +90,13 @@ const Slidebar = () => {
           }`}
           onClick={() => {
             setSelectedItem(key);
+
+            if (key === "message") {
+              alert();
+            }
+            if (key === "calendar") {
+              alert();
+            }
             if (newTab) {
               window.open(path, "_blank", "noopener,noreferrer");
             } else {

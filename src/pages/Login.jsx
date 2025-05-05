@@ -79,6 +79,7 @@ const Login = () => {
           icon: "success",
           timer: 2000,
           showConfirmButton: false,
+          timerProgressBar: true,
         });
 
         //Store token and expiryTime (1h)
@@ -93,6 +94,8 @@ const Login = () => {
           text: message,
           icon: "error",
           timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -119,6 +122,8 @@ const Login = () => {
           text: "Account does not exist or is inactive",
           icon: "error",
           timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true,
         });
       }
     } finally {

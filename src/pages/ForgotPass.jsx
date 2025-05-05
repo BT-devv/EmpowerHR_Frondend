@@ -53,6 +53,8 @@ const ForgotPass = () => {
           text: message,
           icon: "success",
           timer: 2000,
+          timerProgressBar: true,
+
           showConfirmButton: false,
         });
         setTimeout(() => {
@@ -61,6 +63,8 @@ const ForgotPass = () => {
       } else {
         Swal.fire({
           text: message,
+          showConfirmButton: false,
+          timerProgressBar: true,
           icon: "error",
           timer: 2000,
         });
@@ -75,6 +79,8 @@ const ForgotPass = () => {
           text: error.response?.data?.message,
           icon: "error",
           timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true,
         });
       }
     } finally {

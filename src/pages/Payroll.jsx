@@ -14,6 +14,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { jwtDecode } from "jwt-decode";
 import { CircularProgress } from "@mui/material";
+import alert from "../components/Alert";
 
 // icon
 import { CiSearch } from "react-icons/ci";
@@ -202,7 +203,6 @@ const Payroll = () => {
       netSalary: netSalary,
     };
     setProgress(true);
-
     try {
       const response = await axios.put(
         apiRoutes.payroll.updatePayroll(id),
@@ -215,17 +215,16 @@ const Payroll = () => {
           icon: "success",
           timer: 2000,
           showConfirmButton: false,
+          timerProgressBar: true,
         });
-
-        setTimeout(() => {
-          setModalBaseIsOpen(false);
-          window.location.reload();
-        }, 2000);
+        setModalBaseIsOpen(false);
       } else {
         Swal.fire({
           text: "Update Salary Failed",
           icon: "error",
           timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -233,10 +232,21 @@ const Payroll = () => {
         Swal.fire({
           text: error.response.data.message,
           icon: "error",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
         });
       }
     } finally {
       setProgress(false);
+    }
+  };
+
+  const handleTabSelect = async (key) => {
+    setSelectedTab(key);
+
+    if (key === "payslip") {
+      alert();
     }
   };
 
@@ -253,15 +263,15 @@ const Payroll = () => {
           icon: "success",
           showConfirmButton: false,
           timer: 2000,
+          timerProgressBar: true,
         });
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
       } else {
         Swal.fire({
           text: "Delete Salary Fail",
           icon: "error",
           timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -312,18 +322,18 @@ const Payroll = () => {
           text: "Add Salary Successfully",
           icon: "success",
           timer: 2000,
+          timerProgressBar: true,
+
           showConfirmButton: false,
         });
-
-        setTimeout(() => {
-          setModalAddSalaryIsOpen(false);
-          window.location.reload();
-        }, 2000);
+        setModalAddSalaryIsOpen(false);
       } else {
         Swal.fire({
           text: "Add Salary Fail",
           icon: "error",
           timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -331,6 +341,9 @@ const Payroll = () => {
         Swal.fire({
           text: error.response.data.message,
           icon: "error",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
         });
       }
     } finally {
@@ -368,17 +381,16 @@ const Payroll = () => {
           icon: "success",
           timer: 2000,
           showConfirmButton: false,
+          timerProgressBar: true,
         });
-
-        setTimeout(() => {
-          setModalAddSalaryIsOpen(false);
-          window.location.reload();
-        }, 2000);
+        setModalAddSalaryIsOpen(false);
       } else {
         Swal.fire({
           text: "Add Salary Fail",
           icon: "error",
           timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -386,6 +398,9 @@ const Payroll = () => {
         Swal.fire({
           text: error.response.data.message,
           icon: "error",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
         });
       }
     } finally {
@@ -415,17 +430,16 @@ const Payroll = () => {
           icon: "success",
           timer: 2000,
           showConfirmButton: false,
+          timerProgressBar: true,
         });
-
-        setTimeout(() => {
-          setModalBaseIsOpen(false);
-          window.location.reload();
-        }, 2000);
+        setModalBaseIsOpen(false);
       } else {
         Swal.fire({
           text: "Update Base Salary Failed",
           icon: "error",
           timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -433,6 +447,9 @@ const Payroll = () => {
         Swal.fire({
           text: error.response.data.message,
           icon: "error",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
         });
       }
     } finally {
@@ -455,14 +472,14 @@ const Payroll = () => {
           icon: "success",
           showConfirmButton: false,
           timer: 2000,
+          timerProgressBar: true,
         });
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
       } else {
         Swal.fire({
           text: "Delete Base Salary Fail",
           icon: "error",
+          showConfirmButton: false,
+          timerProgressBar: true,
           timer: 2000,
         });
       }
@@ -557,7 +574,7 @@ const Payroll = () => {
             { key: "payslip", label: "Pay Slip" },
           ]}
           selectedTab={selectedTab}
-          onTabSelect={(key) => setSelectedTab(key)}
+          onTabSelect={handleTabSelect}
           wrapperClassName="gap-10 md:gap-10 text-[#1C1C1C] ml-7"
         />
       </div>
@@ -736,7 +753,7 @@ const Payroll = () => {
                     onClick={() => handleCreateSalary()}
                     className="mt-1 bg-[#E7F7EF] text-[#097C44] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] ml-[10px]"
                   >
-                    Save
+                    Create
                   </button>
                 </div>
               </div>
@@ -830,6 +847,7 @@ const Payroll = () => {
                                   e.stopPropagation();
                                   setMoreOptions1(null);
                                   setSelectedEmployee(item);
+                                  setNameID(item.employeeID);
                                   setModalSalaryIsOpen(true);
                                 }}
                                 className="flex items-center px-4 py-3 text-[15px] text-gray-700 hover:bg-gray-100 cursor-pointer"

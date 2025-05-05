@@ -3,12 +3,16 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import apiRoutes from "../../apiRoutes";
 import Swal from "sweetalert2";
+import { CircularProgress } from "@mui/material";
+
 // icon
 import { IoIosArrowRoundBack } from "react-icons/io";
 import { useState } from "react";
 
 const ResetPass = () => {
   const navigate = useNavigate();
+  const [progress, setProgress] = useState(false);
+
   const [newPassword, setNewPassword] = useState("");
   const [reNewPassword, setReNewPassword] = useState("");
 
@@ -45,6 +49,8 @@ const ResetPass = () => {
       return;
     }
     let emailVerify = localStorage.getItem("emailVerify");
+    setProgress(true);
+
     try {
       const response = await axios.post(apiRoutes.user.resetPass, {
         emailCompany: emailVerify,
@@ -82,11 +88,25 @@ const ResetPass = () => {
           icon: "error",
         });
       }
+    } finally {
+      setProgress(false);
     }
   };
 
   return (
     <div className="flex bg-gray-600 w-screen h-screen overflow-hidden ">
+      {progress && (
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <CircularProgress size={80} style={{ color: "#069855" }} />
+        </div>
+      )}
       {/* Form */}
       <div className="bg-white rounded-tr-[25px] rounded-br-[25px] z-[2] w-[60%]">
         <IoIosArrowRoundBack

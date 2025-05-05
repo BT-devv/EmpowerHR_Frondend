@@ -5,6 +5,7 @@ import Modal from "react-modal";
 import apiRoutes from "../../apiRoutes";
 import { useNavigate } from "react-router-dom";
 import UsePermission from "../components/UsePermission";
+import { CircularProgress } from "@mui/material";
 
 // Icons
 import { BiHome } from "react-icons/bi";
@@ -14,6 +15,8 @@ import { HiQrCode } from "react-icons/hi2";
 const QRScanner = () => {
   const navigate = useNavigate();
   const { hasPermission, loading } = UsePermission("qr.read");
+
+  const [progress, setProgress] = useState(false);
 
   const [data, setData] = useState();
   const [error, setError] = useState(false);
@@ -39,6 +42,8 @@ const QRScanner = () => {
   }, [error]);
 
   const sendToAPI = async (employeeID) => {
+    setProgress(true);
+
     try {
       const response = await axios.post(apiRoutes.attendance.scannerQR, {
         qrData: { EmployeeID: employeeID },
@@ -47,6 +52,8 @@ const QRScanner = () => {
       console.log(data);
     } catch (error) {
       console.error("Error fetching data from API", error);
+    } finally {
+      setProgress(false);
     }
   };
 
@@ -84,6 +91,18 @@ const QRScanner = () => {
 
   return (
     <div className="flex bg-[rgba(151,151,151,0.78)] w-screen h-screen">
+      {progress && (
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <CircularProgress size={80} style={{ color: "#069855" }} />
+        </div>
+      )}
       <div className="flex flex-col items-center justify-center flex-1">
         <div className="relative w-[280px] h-[280px]">
           {/* Scanner */}

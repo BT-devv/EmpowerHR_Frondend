@@ -17,6 +17,8 @@ import PaginationFooter from "../components/PaginationFooter";
 import { useNavigate } from "react-router-dom";
 import UsePermission from "../components/UsePermission";
 import { jwtDecode } from "jwt-decode";
+import { CircularProgress } from "@mui/material";
+
 //icon
 import { CiSearch } from "react-icons/ci";
 import { CiCalendarDate } from "react-icons/ci";
@@ -30,6 +32,8 @@ import { IoIosArrowRoundBack } from "react-icons/io";
 const Overtime = () => {
   const navigate = useNavigate();
   const { hasPermission, loading } = UsePermission("overtime.read");
+
+  const [progress, setProgress] = useState(false);
 
   const [data, setData] = useState([]);
   const [dataPending, setDataPending] = useState([]);
@@ -83,6 +87,8 @@ const Overtime = () => {
       endTime: formattedEndTime,
       reason,
     };
+    setProgress(true);
+
     try {
       const response = await axios.post(apiRoutes.overtime.request, formData, {
         headers: {
@@ -98,9 +104,9 @@ const Overtime = () => {
           timer: 2000,
           showConfirmButton: false,
         });
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
+        // setTimeout(() => {
+        //   window.location.reload();
+        // }, 2000);
       } else {
         Swal.fire({
           text: message,
@@ -115,6 +121,8 @@ const Overtime = () => {
           error.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại!",
         icon: "error",
       });
+    } finally {
+      setProgress(false);
     }
   };
 
@@ -249,6 +257,8 @@ const Overtime = () => {
       status: updateStatus,
       rejectReason: reasonReject,
     };
+    setProgress(true);
+
     try {
       const response = await axios.put(apiRoutes.overtime.updateStatus, data, {
         headers: {
@@ -264,10 +274,12 @@ const Overtime = () => {
           timer: 2000,
           showConfirmButton: false,
         });
-        setTimeout(() => {
-          setIsModalReject(false), setIsDetailModalOpen(false);
-          window.location.reload();
-        }, 2000);
+        setIsModalReject(false);
+        setIsDetailModalOpen(false);
+
+        // setTimeout(() => {
+        //   window.location.reload();
+        // }, 2000);
       } else {
         Swal.fire({
           text: message,
@@ -282,6 +294,8 @@ const Overtime = () => {
           icon: "error",
         });
       }
+    } finally {
+      setProgress(false);
     }
   };
 
@@ -290,6 +304,8 @@ const Overtime = () => {
       overtimeID: selectedEmployee._id,
       status: updateStatus,
     };
+    setProgress(true);
+
     try {
       const response = await axios.put(apiRoutes.overtime.updateStatus, data, {
         headers: {
@@ -305,10 +321,12 @@ const Overtime = () => {
           timer: 2000,
           showConfirmButton: false,
         });
-        setTimeout(() => {
-          setIsModalReject(false), setIsDetailModalOpen(false);
-          window.location.reload();
-        }, 2000);
+        setIsModalReject(false);
+        setIsDetailModalOpen(false);
+
+        // setTimeout(() => {
+        //   window.location.reload();
+        // }, 2000);
       } else {
         Swal.fire({
           text: message,
@@ -323,6 +341,8 @@ const Overtime = () => {
           icon: "error",
         });
       }
+    } finally {
+      setProgress(false);
     }
   };
 
@@ -359,6 +379,18 @@ const Overtime = () => {
 
   return (
     <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">
+      {progress && (
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <CircularProgress size={80} style={{ color: "#069855" }} />
+        </div>
+      )}
       <div className="bg-white ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-[70px] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] flex items-center ">
         <TabSelector
           tabs={[
@@ -372,8 +404,8 @@ const Overtime = () => {
         />
       </div>
       {selectedTab === "overtime" && (
-        <div className="bg-white ml-[3%] mt-[2%] rounded-[10px] w-[calc(100vw-340px)] text-left shadow-md mb-[1%] p-6">
-          <div className="mt-[1%] ml-[3%]">
+        <div className="bg-white ml-[3%] mt-[2%] rounded-[10px] h-auto w-[calc(100vw-340px)] text-left shadow-md mb-[1%] p-6 text-[14px]">
+          <div className="ml-[3%]">
             <p>Manager Approval</p>
             <div className="space-x-5">
               <div
@@ -382,7 +414,7 @@ const Overtime = () => {
               >
                 <div className="relative">
                   <div
-                    className="inline-flex w-[97%] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[5px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                    className="inline-flex w-[97%] border-gray-200 border-1 h-[45px] items-center justify-between gap-x-1.5 rounded-[5px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
                     onClick={toggleManagerDropdown}
                   >
                     <span className="text-[15px]">{managerName}</span>
@@ -401,9 +433,25 @@ const Overtime = () => {
                               option.employeeID
                             )
                           }
-                          className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                          className="flex px-4 py-2 text-[13px] text-gray-500 cursor-pointer hover:bg-gray-100"
                         >
-                          {`${option.firstName} ${option.lastName}`}
+                          <img
+                            alt="avatar"
+                            src={apiRoutes.file.avatar(option.avatar)}
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = "src/assets/avatar.png";
+                            }}
+                            className="w-[50px] h-[50px] object-cover border border-gray-100"
+                          />
+                          <div className="ml-5 mt-2">
+                            <div className="text-gray-800">
+                              {`${option.firstName} ${option.lastName}`}
+                            </div>
+                            <div className="text-gray-500">
+                              {option.emailCompany}
+                            </div>
+                          </div>
                         </li>
                       ))}
                     </ul>
@@ -412,7 +460,7 @@ const Overtime = () => {
               </div>
             </div>
           </div>
-          <div className="mt-[2%] ml-[3%]">
+          <div className="mt-[1%] ml-[3%]">
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <div className="w-full">
                 <p className="mb-2">Date</p>
@@ -459,9 +507,9 @@ const Overtime = () => {
             <RichTextEditor value={reason} onChange={setReason} />
           </div>
 
-          <div className="flex justify-center mb-[3%]">
+          <div className="flex justify-center">
             <button
-              className="mt-[3%] bg-[#2EB67D] text-white outline-none w-[15%] text-[18px] focus:outline-none"
+              className="mt-5 bg-[#2EB67D] text-white outline-none w-[15%] text-[18px] focus:outline-none"
               onClick={handleSubmit}
             >
               SUBMIT
@@ -669,7 +717,12 @@ const Overtime = () => {
                     </div>
                     <div className="flex mt-[8%]">
                       <p className="font-bold w-1/3">Reason:</p>
-                      <p className="w-2/3">{selectedEmployee.reason}</p>
+                      <div
+                        className="w-2/3 prose"
+                        dangerouslySetInnerHTML={{
+                          __html: selectedEmployee.reason,
+                        }}
+                      ></div>
                     </div>
                     <div className="flex mt-[8%]">
                       <p className="font-bold w-1/3">Status:</p>
@@ -967,7 +1020,12 @@ const Overtime = () => {
                     </div>
                     <div className="flex mt-[8%]">
                       <p className="font-bold w-1/3">Reason:</p>
-                      <p className="w-2/3">{selectedEmployee.reason}</p>
+                      <div
+                        className="w-2/3 prose"
+                        dangerouslySetInnerHTML={{
+                          __html: selectedEmployee.reason,
+                        }}
+                      ></div>
                     </div>
                     <div className="flex mt-[8%]">
                       <p className="font-bold w-1/3">Status:</p>

@@ -192,7 +192,12 @@ const Navbar = () => {
         {/* dropdown user */}
         <div className="flex items-center p-4 rounded-lg h-[60px] bg-white ml-[10px] ">
           <img
+            alt="avatar"
             src={apiRoutes.file.avatar(avatar)}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "src/assets/avatar.png";
+            }}
             className="w-12 h-12 rounded-full object-cover"
           />
           <div className="flex-grow ml-[25px] ">

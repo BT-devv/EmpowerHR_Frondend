@@ -13,6 +13,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { jwtDecode } from "jwt-decode";
+import { CircularProgress } from "@mui/material";
+
 // icon
 import { CiSearch } from "react-icons/ci";
 import { BiFilterAlt } from "react-icons/bi";
@@ -25,6 +27,8 @@ Modal.setAppElement("#root");
 const Payroll = () => {
   const navigate = useNavigate();
   const { hasPermission, loading } = UsePermission("payroll.read");
+
+  const [progress, setProgress] = useState(false);
 
   const [payroll, setPayroll] = useState([]);
   const [baseSalary, setBaseSalary] = useState([]);
@@ -80,6 +84,15 @@ const Payroll = () => {
       setDepartment(selectedEmployee1.department?.name || "");
     }
   }, [selectedEmployee1]);
+
+  // Format date
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
 
   useEffect(() => {
     if (selectedEmployee) {
@@ -178,7 +191,7 @@ const Payroll = () => {
   // Update salary
   const handleUpdateSalary = async (id) => {
     const formData = {
-      employeeID: selectedEmployee.employeeID,
+      employeeID: nameID,
       employeeName: name,
       otPay: ot,
       bonus: bonus,
@@ -188,6 +201,7 @@ const Payroll = () => {
       salarySubtraction: subtraction,
       netSalary: netSalary,
     };
+    setProgress(true);
 
     try {
       const response = await axios.put(
@@ -221,11 +235,15 @@ const Payroll = () => {
           icon: "error",
         });
       }
+    } finally {
+      setProgress(false);
     }
   };
 
   // Delete salary
   const verifyDeleteSalary = async (id) => {
+    setProgress(true);
+
     try {
       const response = await axios.delete(apiRoutes.payroll.deletePayroll(id));
 
@@ -248,6 +266,8 @@ const Payroll = () => {
       }
     } catch (error) {
       console.log("Failed to delete the profile: " + error.message);
+    } finally {
+      setProgress(false);
     }
   };
 
@@ -279,6 +299,7 @@ const Payroll = () => {
       departmentId: selectedDepartmentId,
       jobtitleIds: selectedJobTitles,
     };
+    setProgress(true);
 
     try {
       const response = await axios.post(
@@ -312,6 +333,8 @@ const Payroll = () => {
           icon: "error",
         });
       }
+    } finally {
+      setProgress(false);
     }
   };
 
@@ -331,8 +354,7 @@ const Payroll = () => {
       month,
       year,
     };
-
-    console.log(JSON.stringify(formData));
+    setProgress(true);
 
     try {
       const response = await axios.post(
@@ -366,6 +388,8 @@ const Payroll = () => {
           icon: "error",
         });
       }
+    } finally {
+      setProgress(false);
     }
   };
 
@@ -377,6 +401,7 @@ const Payroll = () => {
       departmentId: selectedDepartmentId,
       jobtitleIds: selectedJobTitles,
     };
+    setProgress(true);
 
     try {
       const response = await axios.put(
@@ -410,11 +435,15 @@ const Payroll = () => {
           icon: "error",
         });
       }
+    } finally {
+      setProgress(false);
     }
   };
 
   // Delete base salary
   const verifyDeleteBase = async (id) => {
+    setProgress(true);
+
     try {
       const response = await axios.delete(
         apiRoutes.basesalary.deleteBaseSalary(id)
@@ -439,6 +468,8 @@ const Payroll = () => {
       }
     } catch (error) {
       console.log("Failed to delete the profile: " + error.message);
+    } finally {
+      setProgress(false);
     }
   };
 
@@ -489,7 +520,7 @@ const Payroll = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = payroll.slice(indexOfFirstItem, indexOfLastItem);
+  // const currentItems = payroll.slice(indexOfFirstItem, indexOfLastItem);
   const currentItems1 = baseSalary.slice(indexOfFirstItem, indexOfLastItem);
 
   useEffect(() => {
@@ -506,6 +537,18 @@ const Payroll = () => {
 
   return (
     <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">
+      {progress && (
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <CircularProgress size={80} style={{ color: "#069855" }} />
+        </div>
+      )}
       <div className="bg-white ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-[70px] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] flex items-center">
         <TabSelector
           tabs={[
@@ -737,16 +780,16 @@ const Payroll = () => {
                       key={item._id}
                       className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer text-[15px] text-left"
                     >
-                      <td className="px-1 py-5 border-b border-gray-200 w-[15%]">
+                      <td className="px-1 py-5 border-b border-gray-200 w-[10%]">
                         {item.employeeID}
                       </td>
                       <td className="px-5 py-5 border-b border-gray-200">
-                        <div className="truncate text-left w-[75%] ">
+                        <div className="truncate text-left w-full ">
                           {item.employeeName}
                         </div>
                       </td>
-                      <td className="px-5 py-5 border-b border-gray-200 truncate w-[15%]">
-                        {item.emailPersonal}
+                      <td className="px-5 py-5 border-b border-gray-200 truncate w-[20%]">
+                        {item.email}
                       </td>
                       <td className="px-5 py-5 border-b border-gray-200 w-[15%]">
                         {item.department}
@@ -755,7 +798,7 @@ const Payroll = () => {
                         {item.type}
                       </td>
                       <td className="px-5 py-5 border-b border-gray-200 w-[13%]">
-                        {item.joiningDate}
+                        {formatDate(item.joiningDate)}
                       </td>
                       <td className="px-5 py-5 border-b border-gray-200 w-[20%]">
                         {`${item.total.toLocaleString("vi-VN")} VNĐ`}
@@ -831,7 +874,7 @@ const Payroll = () => {
                         </div>
                         <div>
                           <div className="flex space-x-20 mt-3">
-                            <div>
+                            <div className="w-[39%]">
                               <p>Employee Name</p>
                               <div className="relative mt-2">
                                 <div
@@ -1015,7 +1058,7 @@ const Payroll = () => {
           />
 
           {selectedTab2 === "base" && (
-            <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-[77%] ml-[3%] rounded-[15px] mt-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
+            <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-auto ml-[3%] rounded-[15px] mt-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
               <div className="flex flex-wrap w-full items-center gap-x-4 px-4 py-6">
                 <div>
                   <p className="text-[#252C58] text-[20px] font-light">
@@ -1364,7 +1407,7 @@ const Payroll = () => {
                                 </div>
                               </div>
                               <div className="flex space-x-14 mt-3 w-full">
-                                <div>
+                                <div className="w-[50%]">
                                   <p>Department</p>
                                   <div className="relative w-full">
                                     <div
@@ -1398,7 +1441,7 @@ const Payroll = () => {
                                     )}
                                   </div>
                                 </div>
-                                <div>
+                                <div className="w-[50%]">
                                   <p>Job Title</p>
                                   <div className="relative w-full">
                                     <div

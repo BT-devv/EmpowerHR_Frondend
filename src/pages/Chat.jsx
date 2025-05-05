@@ -36,7 +36,11 @@ const Chat = () => {
         {/* Account Items */}
         {[1, 2, 3].map((item) => (
           <div key={item} className="flex items-center text-left mt-2 w-[90%]">
-            <img alt="avatar" src={avatar} className="w-[45px] h-[45px]" />
+            <img
+              alt="avatar"
+              src={avatar}
+              className="w-[45px] h-[45px] rounded-full"
+            />
             <div className="ml-4">
               <p className="font-bold">HR - PM Connectivity</p>
               <p className="truncate text-gray-500 w-[90%]">
@@ -53,7 +57,11 @@ const Chat = () => {
         <p className="flex font-bold mt-5 text-left w-[90%]">People</p>
         {[1, 2].map((item) => (
           <div key={item} className="flex items-center text-left mt-2 w-[90%]">
-            <img alt="avatar" src={avatar} className="w-[45px] h-[45px]" />
+            <img
+              alt="avatar"
+              src={avatar}
+              className="w-[45px] h-[45px] rounded-full"
+            />
             <div className="ml-4">
               <p className="font-bold">HR - PM Connectivity</p>
               <p className="truncate text-gray-500 w-[90%]">

@@ -12,6 +12,10 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import TextField from "@mui/material/TextField";
 import dayjs from "dayjs";
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert from "@mui/material/Alert";
+import Slide from "@mui/material/Slide";
+import { CircularProgress } from "@mui/material";
 
 // icon
 import { CiSearch } from "react-icons/ci";
@@ -25,6 +29,21 @@ import { IoIosArrowDown } from "react-icons/io";
 const Setting = () => {
   const navigate = useNavigate();
   const { hasPermission, loading } = UsePermission("setting.read");
+  const { hasPermission: canReadRole } = UsePermission("setting.read.role");
+  const { hasPermission: canReadPermission } = UsePermission(
+    "setting.read.permission"
+  );
+  const { hasPermission: canReadDepartment } = UsePermission(
+    "setting.read.department"
+  );
+  const { hasPermission: canReadJobTitle } = UsePermission(
+    "setting.read.jobtitle"
+  );
+  const { hasPermission: canReadHoliday } = UsePermission(
+    "setting.read.holiday"
+  );
+
+  const [progress, setProgress] = useState(false);
 
   const [selectedTab, setSelectedTab] = useState("role");
   const [dataRole, setDataRole] = useState([]);
@@ -89,7 +108,7 @@ const Setting = () => {
   };
 
   const handleTogglePermission = async (roleId, permissionId, isActive) => {
-    const token = localStorage.getItem("token");
+    setProgress(true);
 
     try {
       const url = isActive
@@ -107,20 +126,22 @@ const Setting = () => {
         }
       );
       if (response.status === 200) {
-        Swal.fire({
-          text: isActive ? "Permission removed" : "Permission assigned",
-          icon: "success",
-          timer: 1500,
-          showConfirmButton: false,
-        });
+        setSnackMessage(
+          isActive ? "Permission removed" : "Permission assigned"
+        );
+        setSnackSeverity("success");
+        setSnackOpen(true);
+
         const refreshedData = await axios.get(apiRoutes.role.getRole);
         setDataRole(refreshedData.data);
       }
     } catch (error) {
-      Swal.fire({
-        text: "Failed to update permission" + error,
-        icon: "error",
-      });
+      setSnackMessage("Failed to update permission");
+      setSnackSeverity("error");
+      setSnackOpen(true);
+      console.log(error);
+    } finally {
+      setProgress(false);
     }
   };
 
@@ -286,7 +307,7 @@ const Setting = () => {
 
     if (!isValid) return;
 
-    const token = localStorage.getItem("token");
+    setProgress(true);
 
     try {
       const response = await axios.post(
@@ -327,6 +348,8 @@ const Setting = () => {
           icon: "error",
         });
       }
+    } finally {
+      setProgress(false);
     }
   };
 
@@ -350,7 +373,7 @@ const Setting = () => {
 
     if (!isValid) return;
 
-    const token = localStorage.getItem("token");
+    setProgress(true);
 
     try {
       const response = await axios.post(
@@ -392,6 +415,8 @@ const Setting = () => {
           icon: "error",
         });
       }
+    } finally {
+      setProgress(false);
     }
   };
 
@@ -422,7 +447,7 @@ const Setting = () => {
 
     if (!isValid) return;
 
-    const token = localStorage.getItem("token");
+    setProgress(true);
 
     try {
       const response = await axios.post(
@@ -465,11 +490,13 @@ const Setting = () => {
           icon: "error",
         });
       }
+    } finally {
+      setProgress(false);
     }
   };
   // Edit holiday
   const handleEditHoliday = async () => {
-    const token = localStorage.getItem("token");
+    setProgress(true);
 
     try {
       const response = await axios.put(
@@ -513,11 +540,14 @@ const Setting = () => {
           icon: "error",
         });
       }
+    } finally {
+      setProgress(false);
     }
   };
   // Delete holiday
   const verifyDeleteHoliday = async (id) => {
-    const token = localStorage.getItem("token");
+    setProgress(true);
+
     try {
       const response = await axios.delete(apiRoutes.holiday.deleteHoliday(id), {
         headers: {
@@ -545,6 +575,8 @@ const Setting = () => {
       }
     } catch (error) {
       console.log("Failed to delete the profile: " + error.message);
+    } finally {
+      setProgress(false);
     }
   };
 
@@ -558,7 +590,7 @@ const Setting = () => {
 
   // Edit role
   const handleEditRole = async () => {
-    const token = localStorage.getItem("token");
+    setProgress(true);
 
     try {
       const response = await axios.put(
@@ -600,11 +632,13 @@ const Setting = () => {
           icon: "error",
         });
       }
+    } finally {
+      setProgress(false);
     }
   };
   // Delete role
   const verifyDeleteRole = async (id) => {
-    const token = localStorage.getItem("token");
+    setProgress(true);
     try {
       const response = await axios.delete(apiRoutes.role.deleteRole(id), {
         headers: {
@@ -632,6 +666,8 @@ const Setting = () => {
       }
     } catch (error) {
       console.log("Failed to delete the profile: " + error.message);
+    } finally {
+      setProgress(false);
     }
   };
 
@@ -660,8 +696,7 @@ const Setting = () => {
     if (!isValid) {
       return;
     }
-    const token = localStorage.getItem("token");
-
+    setProgress(true);
     try {
       const response = await axios.post(
         apiRoutes.department.createDepartment,
@@ -702,12 +737,13 @@ const Setting = () => {
           icon: "error",
         });
       }
+    } finally {
+      setProgress(false);
     }
   };
   // Edit role
   const handleEditDepart = async () => {
-    const token = localStorage.getItem("token");
-
+    setProgress(true);
     try {
       const response = await axios.put(
         apiRoutes.department.updatedDepartment(selectedDepart._id),
@@ -747,11 +783,13 @@ const Setting = () => {
           icon: "error",
         });
       }
+    } finally {
+      setProgress(false);
     }
   };
   // Delete Department
   const verifyDeleteDepart = async (id) => {
-    const token = localStorage.getItem("token");
+    setProgress(true);
     try {
       const response = await axios.delete(
         apiRoutes.department.deleteDepartment(id),
@@ -782,6 +820,8 @@ const Setting = () => {
       }
     } catch (error) {
       console.log("Failed to delete the profile: " + error.message);
+    } finally {
+      setProgress(false);
     }
   };
 
@@ -817,9 +857,7 @@ const Setting = () => {
     if (!isValid) {
       return;
     }
-
-    const token = localStorage.getItem("token");
-
+    setProgress(true);
     try {
       const response = await axios.post(
         apiRoutes.jobtitle.createJobtitle,
@@ -882,12 +920,14 @@ const Setting = () => {
           icon: "error",
         });
       }
+    } finally {
+      setProgress(false);
     }
   };
 
   // Edit job
   const handleEditJob = async () => {
-    const token = localStorage.getItem("token");
+    setProgress(true);
 
     try {
       const response = await axios.put(
@@ -928,12 +968,16 @@ const Setting = () => {
           icon: "error",
         });
       }
+    } finally {
+      setProgress(false);
     }
   };
 
+  const token = localStorage.getItem("token");
   // Delete Joj
   const verifyDeleteJob = async (id) => {
-    const token = localStorage.getItem("token");
+    setProgress(true);
+
     try {
       const response = await axios.delete(
         apiRoutes.jobtitle.deleteJobtitle(id),
@@ -964,7 +1008,21 @@ const Setting = () => {
       }
     } catch (error) {
       console.log("Failed to delete the profile: " + error.message);
+    } finally {
+      setProgress(false);
     }
+  };
+
+  const [snackOpen, setSnackOpen] = useState(false);
+  const [snackMessage, setSnackMessage] = useState("");
+  const [snackSeverity, setSnackSeverity] = useState("success"); // success, error, warning, info
+
+  const handleSnackClose = () => {
+    setSnackOpen(false);
+  };
+
+  const SlideTransition = (props) => {
+    return <Slide {...props} direction="left" />;
   };
 
   useEffect(() => {
@@ -975,23 +1033,61 @@ const Setting = () => {
 
   if (loading) return <div></div>;
 
+  const hasAnySettingPermission =
+    canReadRole ||
+    canReadPermission ||
+    canReadDepartment ||
+    canReadJobTitle ||
+    canReadHoliday;
+
+  if (!hasAnySettingPermission) {
+    return (
+      <div
+        style={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+        }}
+        className="text-[30px] font-light"
+      >{`You don't have the required permissions to view any of the settings sections.`}</div>
+    );
+  }
+
   return (
     <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">
+      {progress && (
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <CircularProgress size={80} style={{ color: "#069855" }} />
+        </div>
+      )}
       <div className="bg-white ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-[70px] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] flex items-center">
         <TabSelector
           tabs={[
-            { key: "role", label: "Setting Role" },
-            { key: "permission", label: "Setting Permission" },
-            { key: "department", label: "Setting Department" },
-            { key: "job", label: "Setting Job Title" },
-            { key: "holiday", label: "Setting Holiday" },
-          ]}
+            canReadRole && { key: "role", label: "Setting Role" },
+            canReadPermission && {
+              key: "permission",
+              label: "Setting Permission",
+            },
+            canReadDepartment && {
+              key: "department",
+              label: "Setting Department",
+            },
+            canReadJobTitle && { key: "job", label: "Setting Job Title" },
+            canReadHoliday && { key: "holiday", label: "Setting Holiday" },
+          ].filter(Boolean)} // Loại bỏ các tab không có quyền
           selectedTab={selectedTab}
           onTabSelect={(key) => setSelectedTab(key)}
           wrapperClassName="gap-10 md:gap-10 text-[#1C1C1C] ml-7"
         />
       </div>
-
       {selectedTab === "role" && (
         <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-auto ml-[3%] rounded-[15px] mt-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
           <div className="flex flex-wrap w-full items-center gap-x-4 px-4 py-6">
@@ -1387,7 +1483,6 @@ const Setting = () => {
           />
         </div>
       )}
-
       {selectedTab === "permission" && (
         <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-auto ml-[3%] rounded-[15px] mt-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
           <div className="flex flex-wrap w-full items-center gap-x-4 px-4 py-6">
@@ -1463,7 +1558,6 @@ const Setting = () => {
           )}
         </div>
       )}
-
       {selectedTab === "department" && (
         <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-auto ml-[3%] rounded-[15px] mt-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
           <div className="flex flex-wrap w-full items-center gap-x-4 px-4 py-6">
@@ -2353,6 +2447,22 @@ const Setting = () => {
           />
         </div>
       )}
+      <Snackbar
+        open={snackOpen}
+        autoHideDuration={3000}
+        onClose={handleSnackClose}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        sx={{ mt: 5 }}
+        TransitionComponent={SlideTransition}
+      >
+        <MuiAlert
+          onClose={handleSnackClose}
+          severity={snackSeverity}
+          sx={{ width: "100%" }}
+        >
+          {snackMessage}
+        </MuiAlert>
+      </Snackbar>
     </div>
   );
 };

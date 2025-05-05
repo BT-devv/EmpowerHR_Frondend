@@ -14,8 +14,8 @@ import FileUpload from "../components/FileUpload";
 import TabSelector from "../components/TabSelector";
 import PaginationFooter from "../components/PaginationFooter";
 import ClickOutside from "../components/ClickOutside";
-import avatar from "../assets/avatar.png";
 import UsePermission from "../components/UsePermission";
+import { CircularProgress } from "@mui/material";
 
 // icon
 import { CiSearch } from "react-icons/ci";
@@ -39,6 +39,8 @@ const Employee = () => {
   const navigate = useNavigate();
   const { hasPermission, loading } = UsePermission("user.read");
 
+  const [progress, setProgress] = useState(false);
+
   const [data, setData] = useState([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [isGenderOpen, setIsGenderOpen] = useState(false);
@@ -47,6 +49,7 @@ const Employee = () => {
   const [isPositionOpen, setIsPositionOpen] = useState(false);
   const [isDepartOpen, setIsDepartOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState("general");
+  const [isCredentialOpen, setIsCredentialOpen] = useState(false);
 
   const [errors, setErrors] = useState({});
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -181,6 +184,7 @@ const Employee = () => {
       });
       return;
     }
+    setProgress(true);
 
     try {
       if (selectedAva) {
@@ -208,7 +212,6 @@ const Employee = () => {
       }
 
       if (isFormChanged1()) {
-        const token = localStorage.getItem("token");
         const response = await axios.put(
           apiRoutes.posts.updateUser(selectedEmployee._id),
           formData1,
@@ -227,10 +230,7 @@ const Employee = () => {
             showConfirmButton: false,
             timer: 2000,
           });
-          setTimeout(() => {
-            setIsEditing1(false);
-            window.location.reload();
-          }, 2000);
+          setIsEditing1(false);
         } else {
           alert("Cập nhật thất bại: " + response.data.message);
         }
@@ -242,17 +242,18 @@ const Employee = () => {
             showConfirmButton: false,
             timer: 2000,
           });
-          setTimeout(() => {
-            setIsEditing1(false);
-            window.location.reload();
-          }, 2000);
+          setIsEditing1(false);
         }
       }
     } catch (error) {
       console.error("Lỗi cập nhật:", error);
       alert("Có lỗi xảy ra khi cập nhật: " + error);
+    } finally {
+      setProgress(false);
     }
   };
+
+  const token = localStorage.getItem("token");
 
   const handleChange1 = (e) => {
     setFormData1({ ...formData1, [e.target.name]: e.target.value });
@@ -330,10 +331,18 @@ const Employee = () => {
       });
       return;
     }
+    setProgress(true);
+
     try {
       const response = await axios.put(
         apiRoutes.posts.updateUser(selectedEmployee._id),
-        formData2
+        formData2,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
 
       if (response.data.success) {
@@ -342,7 +351,6 @@ const Employee = () => {
           icon: response.data.success ? "success" : "error",
         }).then(() => {
           setIsEditing2(false);
-          window.location.reload();
         });
       } else {
         alert("Cập nhật thất bại: " + response.data.message);
@@ -350,6 +358,8 @@ const Employee = () => {
     } catch (error) {
       console.error("Lỗi cập nhật:", error);
       alert("Có lỗi xảy ra khi cập nhật.");
+    } finally {
+      setProgress(false);
     }
   };
 
@@ -405,6 +415,8 @@ const Employee = () => {
       alert("Không tìm thấy ID nhân viên!");
       return;
     }
+    setProgress(true);
+
     try {
       const response = await axios.put(
         apiRoutes.posts.updateUser(selectedEmployee._id),
@@ -424,16 +436,15 @@ const Employee = () => {
           showConfirmButton: false,
           timer: 2000,
         });
-        setTimeout(() => {
-          setIsEditing4(false);
-          window.location.reload();
-        }, 2000);
+        setIsEditing4(false);
       } else {
         alert("Cập nhật thất bại: " + response.data.message);
       }
     } catch (error) {
       console.error("Lỗi cập nhật:", error);
       alert("Có lỗi xảy ra khi cập nhật.");
+    } finally {
+      setProgress(false);
     }
   };
 
@@ -473,10 +484,18 @@ const Employee = () => {
       alert("Không tìm thấy ID nhân viên!");
       return;
     }
+    setProgress(true);
+
     try {
       const response = await axios.put(
         apiRoutes.posts.updateUser(selectedEmployee.employeeID),
-        formData3
+        formData3,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
 
       if (response.data.success) {
@@ -488,6 +507,8 @@ const Employee = () => {
     } catch (error) {
       console.error("Lỗi cập nhật:", error);
       alert("Có lỗi xảy ra khi cập nhật.");
+    } finally {
+      setProgress(false);
     }
   };
 
@@ -707,6 +728,63 @@ const Employee = () => {
     return isValid;
   };
 
+  const handleUploadFiles = async () => {
+    if (selectedFiles.avatar) {
+      await handleUpdate("avatar");
+    }
+    if (selectedFiles.photoID) {
+      await handleUpdate("photoID");
+    }
+    if (selectedFiles.certificate) {
+      await handleUpdate("certificate");
+    }
+    if (selectedFiles.graduationCertificate) {
+      await handleUpdate("graduationCertificate");
+    }
+  };
+
+  const handleUpdate = async (fileType) => {
+    const selectedFile = selectedFiles[fileType];
+    setProgress(true);
+    try {
+      const formData = new FormData();
+      formData.append("employeeID", selectedEmployee.employeeID);
+      formData.append(fileType, selectedFile);
+
+      const uploadRes = await axios.post(apiRoutes.file.uploadfile, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (uploadRes.status === 200) {
+        Swal.fire({
+          text: `Tải lên ${fileType} thành công.`,
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+        setSelectedFiles({
+          avatar: null,
+          photoID: null,
+          certificate: null,
+          graduationCertificate: null,
+          order: null,
+        });
+        setIsCredentialOpen(!isCredentialOpen);
+      }
+    } catch (error) {
+      console.error("Upload failed:", error);
+      Swal.fire({
+        text: `Tải lên ${fileType} thất bại.`,
+        icon: "error",
+        showConfirmButton: true,
+      });
+    } finally {
+      setProgress(false);
+    }
+  };
+
   const handleCreate = async () => {
     // Form validation
     if (!validateFields()) {
@@ -738,8 +816,7 @@ const Employee = () => {
       status: status ? "Active" : "Inactive",
       city: city,
     };
-    prompt("Copy nội dung sau:", JSON.stringify(newUserData, null, 2));
-    const token = localStorage.getItem("token");
+    setProgress(true);
     try {
       const response = await axios.post(
         apiRoutes.posts.createUser,
@@ -772,11 +849,11 @@ const Employee = () => {
           showConfirmButton: false,
           timer: 2000,
         });
+        setModalIsOpen(false);
 
-        setTimeout(() => {
-          setModalIsOpen(false);
-          window.location.reload();
-        }, 1000);
+        // setTimeout(() => {
+        //   window.location.reload();
+        // }, 1000);
       } else {
         Swal.fire({
           text: message,
@@ -833,13 +910,14 @@ const Employee = () => {
           icon: "error",
         });
       }
+    } finally {
+      setProgress(false);
     }
   };
 
   // Search
   const handleSearch = async (e) => {
     const keyword = e.target.value;
-    const token = localStorage.getItem("token");
 
     if (keyword.trim() === "") {
       axios
@@ -852,6 +930,7 @@ const Employee = () => {
         .then((res) => setData(res.data));
       return;
     }
+    setProgress(true);
 
     try {
       const response = await axios.get(
@@ -867,13 +946,22 @@ const Employee = () => {
     } catch (error) {
       console.error("Lỗi khi tìm kiếm:", error);
       setData([]);
+    } finally {
+      setProgress(false);
     }
   };
 
   // Delete user
   const verifyDelete = async (id) => {
+    setProgress(true);
+
     try {
-      const response = await axios.delete(apiRoutes.user.profile(id));
+      const response = await axios.delete(apiRoutes.user.profile(id), {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       const { success, message } = response.data;
       if (success) {
@@ -883,9 +971,9 @@ const Employee = () => {
           showConfirmButton: false,
           timer: 2000,
         });
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+        // setTimeout(() => {
+        //   window.location.reload();
+        // }, 1000);
       } else {
         Swal.fire({
           text: message,
@@ -895,6 +983,8 @@ const Employee = () => {
       }
     } catch (error) {
       console.log("Failed to delete the profile: " + error.message);
+    } finally {
+      setProgress(false);
     }
   };
 
@@ -988,6 +1078,8 @@ const Employee = () => {
 
   const handleUpload = async (fileType) => {
     const selectedFile = selectedFiles[fileType];
+    setProgress(true);
+
     try {
       const formData = new FormData();
       formData.append("employeeID", iDNext);
@@ -1009,6 +1101,8 @@ const Employee = () => {
         icon: "error",
         showConfirmButton: true,
       });
+    } finally {
+      setProgress(false);
     }
   };
 
@@ -1022,6 +1116,18 @@ const Employee = () => {
 
   return (
     <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">
+      {progress && (
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <CircularProgress size={80} style={{ color: "#069855" }} />
+        </div>
+      )}
       {selectedEmployee ? (
         <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">
           <div className="bg-white ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-[70px] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] flex items-center">
@@ -1083,20 +1189,20 @@ const Employee = () => {
               ) : (
                 <img
                   alt="avatar"
-                  src={
-                    apiRoutes.file.avatar(selectedEmployee.avatar)
-                      ? apiRoutes.file.avatar(selectedEmployee.avatar)
-                      : avatar
-                  }
+                  src={apiRoutes.file.avatar(selectedEmployee.avatar)}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "src/assets/avatar.png";
+                  }}
                   className="w-[230px] h-[230px] object-cover border border-gray-300"
                 />
               )}
 
-              <div className="ml-[3%] w-full mr-[2%] mt-[-1%]">
-                <div className="flex flex-end items-center">
+              <div className="ml-[3%] w-full">
+                <div className="flex justify-between items-center">
                   <p className="text-[20px] font-bold">Personal Information</p>
                   {isEditing1 ? (
-                    <div className="flex space-x-2 ml-[70%]">
+                    <div className="flex space-x-2 mr-[3%]">
                       <IoBookmarkOutline
                         onClick={handleSaveClick1}
                         className="w-[25px] h-[25px] cursor-pointer hover:text-[#069855]"
@@ -1108,7 +1214,7 @@ const Employee = () => {
                     </div>
                   ) : (
                     <BiEdit
-                      className="w-[25px] h-[25px] ml-[73%] text-[#069855] cursor-pointer"
+                      className="w-[25px] h-[25px] mr-[4%] text-[#069855] cursor-pointer"
                       onClick={handleEditClick1}
                     />
                   )}
@@ -1842,105 +1948,300 @@ const Employee = () => {
               <div className="flex items-center justify-between">
                 <p className="text-[20px] font-bold">Credential</p>
                 <div className="flex items-center justify-center">
-                  <button
-                    type="submit"
-                    className="ml-[-70%] bg-[#2EB67D] text-white outline-none w-fit text-[16px] caret-transparent focus:outline-none flex items-center"
-                    // onClick={handleSubmit}
-                  >
-                    <GoPlus className="w-[25px] h-[25px] mr-2" />
-                    Credential
-                  </button>
+                  {isCredentialOpen ? (
+                    <button
+                      type="button"
+                      className="ml-[-70%] bg-[#2EB67D] text-white outline-none w-fit text-[16px] caret-transparent focus:outline-none flex items-center"
+                      onClick={() => {
+                        if (isCredentialOpen) {
+                          handleUploadFiles();
+                        }
+                      }}
+                    >
+                      <GoPlus className="w-[25px] h-[25px] mr-2" />
+                      Save
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsCredentialOpen(!isCredentialOpen);
+                      }}
+                      className="ml-[-70%] bg-[#2EB67D] text-white outline-none w-fit text-[16px] caret-transparent focus:outline-none flex items-center"
+                    >
+                      <GoPlus className="w-[25px] h-[25px] mr-2" />
+                      Credential
+                    </button>
+                  )}
                 </div>
               </div>
               {/* table*/}
-              <div className="text-[14px] ml-[15px] border-l border-b border-r w-fit mb-5">
-                <table className="rounded-[5px] mt-[2%] bg-white overflow-hidden w-auto caret-transparent border-gray-200 border">
-                  <thead>
-                    <tr className="bg-[#010101] text-left">
-                      <th className="px-5 py-3 caret-transparent text-white font-normal">
-                        Credential
-                      </th>
-                      <th className="px-1 py-3 caret-transparent text-white font-normal">
-                        Upload Date
-                      </th>
-                      <th className="px-5 py-3 caret-transparent text-white font-normal">
-                        Documents
-                      </th>
-                      <th className="px-5 py-3 caret-transparent text-white font-normal">
-                        Expiry day
-                      </th>
-                      <th className="px-5 py-3 caret-transparent text-white font-normal">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      { key: "photoID", label: "Photo ID" },
-                      { key: "certificate", label: "Certificate" },
-                      {
-                        key: "graduationCertificate",
-                        label: "Graduation Certificate",
-                      },
-                      { key: "order", label: "Order" },
-                    ]
-                      .filter((field) => selectedEmployee[field.key])
-                      .map((field) => (
-                        <tr key={field.key} className="cursor-pointer">
-                          <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
-                            <div className="text-left w-[200px]">
-                              {field.label}
-                            </div>
-                          </td>
-
-                          <td className="px-1 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
-                            <div className="text-left w-[240px]">--</div>
-                          </td>
-                          <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
-                            <div className="w-[200px]">
-                              {fileInfos[field.key] && (
-                                <a
-                                  href={apiRoutes.file.file(
-                                    selectedEmployee[field.key]
-                                  )}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                >
-                                  Download {field.label}
-                                </a>
-                              )}
-                            </div>
-                          </td>
-
-                          <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
-                            <div className="text-left w-[200px]">--</div>
-                          </td>
-
-                          <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
-                            <div className="text-left w-[90px]">
-                              <FaRegTrashCan className="w-[25px] h-[25px] text-red-400" />
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    {![
-                      "photoID",
-                      "certificate",
-                      "graduationCertificate",
-                      "order",
-                    ].some((key) => selectedEmployee[key]) && (
-                      <tr>
-                        <td
-                          colSpan={5}
-                          className="text-center text-gray-400 py-5 border-b border-gray-200 w-[calc(100vw-430px)] text-[15px]"
-                        >
-                          No file data available
+              {isCredentialOpen ? (
+                <div className="text-[14px] ml-[15px] border-l border-b border-r w-fit mb-5">
+                  <table className="rounded-[5px] mt-[2%] bg-white overflow-hidden w-[calc(100vw-500px)] caret-transparent border-gray-200 border">
+                    <thead>
+                      <tr className="bg-[#010101] text-left">
+                        <th className="px-5 py-3 caret-transparent text-white font-normal">
+                          Credential
+                        </th>
+                        <th className="px-1 py-3 caret-transparent text-white font-normal"></th>
+                        <th className="px-5 py-3 caret-transparent text-white font-normal">
+                          Documents
+                        </th>
+                        <th className="px-5 py-3 caret-transparent text-white font-normal">
+                          Expiry day
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="cursor-pointer">
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]  ">Photo ID</div>
+                        </td>
+                        <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
+                          <FileUpload
+                            fileType="photoID"
+                            selectedEmployee={selectedEmployee}
+                            setSelectedFile={(file) =>
+                              setSelectedFiles((prev) => ({
+                                ...prev,
+                                photoID: file,
+                              }))
+                            }
+                          />
+                        </td>
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]  ">
+                            {" "}
+                            {selectedFiles.photoID && (
+                              <a
+                                href={URL.createObjectURL(
+                                  selectedFiles.photoID
+                                )}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                              >
+                                Preview Photo ID
+                              </a>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]  ">--</div>
                         </td>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                      <tr className="cursor-pointer">
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]  ">
+                            Certificate
+                          </div>
+                        </td>
+                        <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
+                          <FileUpload
+                            fileType="certificate"
+                            selectedEmployee={selectedEmployee}
+                            setSelectedFile={(file) =>
+                              setSelectedFiles((prev) => ({
+                                ...prev,
+                                certificate: file,
+                              }))
+                            }
+                          />
+                        </td>
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]  ">
+                            {selectedFiles.certificate && (
+                              <a
+                                href={URL.createObjectURL(
+                                  selectedFiles.certificate
+                                )}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                              >
+                                Preview Certificate
+                              </a>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]  ">--</div>
+                        </td>
+                      </tr>
+                      <tr className="cursor-pointer">
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]  ">
+                            Graduation Certificate
+                          </div>
+                        </td>
+                        <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
+                          <FileUpload
+                            fileType="graduationCertificate"
+                            selectedEmployee={selectedEmployee}
+                            setSelectedFile={(file) =>
+                              setSelectedFiles((prev) => ({
+                                ...prev,
+                                graduationCertificate: file,
+                              }))
+                            }
+                          />
+                        </td>
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]  ">
+                            {selectedFiles.graduationCertificate && (
+                              <a
+                                href={URL.createObjectURL(
+                                  selectedFiles.graduationCertificate
+                                )}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                              >
+                                Preview Graduation Certificate
+                              </a>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]  ">--</div>
+                        </td>
+                      </tr>
+                      <tr className="cursor-pointer">
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px] ">Order</div>
+                        </td>
+                        <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
+                          <FileUpload
+                            fileType="order"
+                            selectedEmployee={selectedEmployee}
+                            setSelectedFile={(file) =>
+                              setSelectedFiles((prev) => ({
+                                ...prev,
+                                order: file,
+                              }))
+                            }
+                          />
+                        </td>
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]">
+                            {selectedFiles.order && (
+                              <a
+                                href={URL.createObjectURL(selectedFiles.order)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                              >
+                                Preview Order
+                              </a>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]">--</div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-[14px] ml-[15px] border-l border-b border-r w-fit mb-5">
+                  <table className="rounded-[5px] mt-[2%] bg-white overflow-hidden w-[calc(100vw-500px)] caret-transparent border-gray-200 border">
+                    <thead>
+                      <tr className="bg-[#010101] text-left">
+                        <th className="px-5 py-3 caret-transparent text-white font-normal">
+                          Credential
+                        </th>
+                        <th className="px-1 py-3 caret-transparent text-white font-normal">
+                          Upload Date
+                        </th>
+                        <th className="px-5 py-3 caret-transparent text-white font-normal">
+                          Documents
+                        </th>
+                        <th className="px-5 py-3 caret-transparent text-white font-normal">
+                          Expiry day
+                        </th>
+                        <th className="px-5 py-3 caret-transparent text-white font-normal">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { key: "photoID", label: "Photo ID" },
+                        { key: "certificate", label: "Certificate" },
+                        {
+                          key: "graduationCertificate",
+                          label: "Graduation Certificate",
+                        },
+                        { key: "order", label: "Order" },
+                      ]
+                        .filter((field) => selectedEmployee[field.key])
+                        .map((field) => (
+                          <tr key={field.key} className="cursor-pointer">
+                            <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
+                              <div className="text-left w-[200px]">
+                                {field.label}
+                              </div>
+                            </td>
+
+                            <td className="px-1 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
+                              <div className="text-left w-[240px]">--</div>
+                            </td>
+                            <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
+                              <div className="w-[200px]">
+                                {fileInfos[field.key] && (
+                                  <a
+                                    href={apiRoutes.file.file(
+                                      selectedEmployee[field.key]
+                                    )}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    Download {field.label}
+                                  </a>
+                                )}
+                              </div>
+                            </td>
+
+                            <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
+                              <div className="text-left w-[200px]">--</div>
+                            </td>
+
+                            <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
+                              <div className="text-left w-[90px]">
+                                <FaRegTrashCan className="w-[25px] h-[25px] text-red-400" />
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      {![
+                        "photoID",
+                        "certificate",
+                        "graduationCertificate",
+                        "order",
+                      ].some((key) => selectedEmployee[key]) && (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className="text-center text-gray-400 py-5 border-b border-gray-200 w-[calc(100vw-430px)] text-[15px]"
+                          >
+                            No file data available
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -3009,7 +3310,7 @@ const Employee = () => {
                         key={item._id}
                         className="hover:bg-[rgba(0,84,232,0.03)] text-[15px]"
                       >
-                        <td className="truncate px-1 py-6 border-b border-gray-200 text-[#252C58]">
+                        <td className="truncate px-1 py-6 border-b border-gray-200 text-[#252C58] text-left">
                           {item.employeeID}
                         </td>
                         <td className="px-6 py-6 border-b border-gray-200 text-[#252C58] truncate text-left">

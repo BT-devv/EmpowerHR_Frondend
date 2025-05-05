@@ -10,6 +10,8 @@ import dayjs from "dayjs";
 import ClickOutside from "../components/ClickOutside";
 import avatar from "../assets/avatar.png";
 import Swal from "sweetalert2";
+import { CircularProgress } from "@mui/material";
+import FileUpload from "../components/FileUpload";
 
 // icon
 import { IoIosArrowDown } from "react-icons/io";
@@ -23,33 +25,23 @@ import { FaRegTrashCan } from "react-icons/fa6";
 const EmployeeDetail = () => {
   const { id } = useParams();
   const [employee, setEmployee] = useState(null);
-
+  const [loading, setLoading] = useState(false);
   const [isGenderOpen, setIsGenderOpen] = useState(false);
-  const [isRoleOpen, setIsRoleOpen] = useState(false);
-  const [isTypeOpen, setIsTypeOpen] = useState(false);
-  const [isPositionOpen, setIsPositionOpen] = useState(false);
-  const [isDepartOpen, setIsDepartOpen] = useState(false);
-
-  const [department, setDepartment] = useState("Department");
-  const [jobTitle, setJobTitle] = useState("Position");
 
   // fields
   const [fileInfos, setFileInfos] = useState({});
-  const [filteredJobTitles, setFilteredJobTitles] = useState([]);
 
   const fileInputRef = useRef(null);
   const [preview, setPreview] = useState(null);
   const [selectedAva, setSelectedAva] = useState(null);
+  const [isCredentialOpen, setIsCredentialOpen] = useState(false);
 
   const genderData = ["Male", "Female", "Other"];
-  const typeData = ["Fulltime", "Partime", "Collab", "Intern"];
-
-  const [departData, setDepartData] = useState([]);
-  const [positionData, setPositionData] = useState([]);
   const [roleData, setRoleData] = useState([]);
 
   const token = localStorage.getItem("token");
 
+  // edit form 1
   const [isEditing1, setIsEditing1] = useState(false);
 
   const [formData1, setFormData1] = useState(() => ({
@@ -124,7 +116,7 @@ const EmployeeDetail = () => {
       });
       return;
     }
-
+    setLoading(true);
     try {
       if (selectedAva) {
         const formData = new FormData();
@@ -170,10 +162,7 @@ const EmployeeDetail = () => {
             showConfirmButton: false,
             timer: 2000,
           });
-          setTimeout(() => {
-            setIsEditing1(false);
-            window.location.reload();
-          }, 2000);
+          setIsEditing1(false);
         } else {
           alert("Cập nhật thất bại: " + response.data.message);
         }
@@ -185,15 +174,14 @@ const EmployeeDetail = () => {
             showConfirmButton: false,
             timer: 2000,
           });
-          setTimeout(() => {
-            setIsEditing1(false);
-            window.location.reload();
-          }, 2000);
+          setIsEditing1(false);
         }
       }
     } catch (error) {
       console.error("Lỗi cập nhật:", error);
       alert("Có lỗi xảy ra khi cập nhật: " + error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -273,85 +261,11 @@ const EmployeeDetail = () => {
       });
       return;
     }
+    setLoading(true);
     try {
       const response = await axios.put(
         apiRoutes.posts.updateUser(employee._id),
-        formData2
-      );
-
-      if (response.data.success) {
-        Swal.fire({
-          text: response.data.message,
-          icon: response.data.success ? "success" : "error",
-        }).then(() => {
-          setIsEditing2(false);
-          window.location.reload();
-        });
-      } else {
-        alert("Cập nhật thất bại: " + response.data.message);
-      }
-    } catch (error) {
-      console.error("Lỗi cập nhật:", error);
-      alert("Có lỗi xảy ra khi cập nhật.");
-    }
-  };
-
-  const handleChange2 = (e) => {
-    setFormData2({ ...setFormData2, [e.target.name]: e.target.value });
-  };
-
-  // edit employee 4
-  const [isEditing4, setIsEditing4] = useState(false);
-
-  const [formData4, setFormData4] = useState(() => ({
-    employeeType: employee?.employeeType || "",
-    department: employee?.department || "",
-    jobTitle: employee?.jobTitle || "",
-    role: employee?.role || "",
-    joiningDate: employee?.joiningDate || "",
-    endDate: employee?.endDate || "",
-  }));
-
-  useEffect(() => {
-    if (employee) {
-      setFormData4({
-        employeeType: employee.employeeType || "",
-        department: employee.department || "",
-        position: employee.jobTitle || "",
-        role: employee.role || "",
-        joiningDate: employee.joiningDate || "",
-        endDate: employee.endDate || "",
-      });
-    }
-  }, [employee]);
-
-  const handleEditClick4 = () => {
-    setIsEditing4(true);
-  };
-
-  const handleCancelClick4 = () => {
-    setIsEditing4(false);
-    setFormData4({
-      employeeType: employee.type,
-      department: employee.department,
-      jobTitle: employee.jobTitle,
-      role: employee.role,
-      joiningDate: employee.joiningDate,
-      endDate: employee.endDate,
-    });
-  };
-
-  const handleSaveClick4 = async () => {
-    const token = localStorage.getItem("token");
-
-    if (!employee?.employeeID) {
-      alert("Không tìm thấy ID nhân viên!");
-      return;
-    }
-    try {
-      const response = await axios.put(
-        apiRoutes.posts.updateUser(employee._id),
-        formData4,
+        formData2,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -367,17 +281,20 @@ const EmployeeDetail = () => {
           showConfirmButton: false,
           timer: 2000,
         });
-        setTimeout(() => {
-          setIsEditing4(false);
-          window.location.reload();
-        }, 2000);
+        setIsEditing2(false);
       } else {
         alert("Cập nhật thất bại: " + response.data.message);
       }
     } catch (error) {
       console.error("Lỗi cập nhật:", error);
       alert("Có lỗi xảy ra khi cập nhật.");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleChange2 = (e) => {
+    setFormData2({ ...setFormData2, [e.target.name]: e.target.value });
   };
 
   // edit employee 3
@@ -388,6 +305,14 @@ const EmployeeDetail = () => {
     bankAccountNumber: employee?.bankAccountNumber || "",
     bankAccountName: employee?.bankAccountName || "",
   }));
+
+  const isFormChanged3 = () => {
+    return (
+      formData3.bankName !== employee.bankName ||
+      formData3.bankAccountNumber !== employee.bankAccountNumber ||
+      formData3.bankAccountName !== employee.bankAccountName
+    );
+  };
 
   useEffect(() => {
     if (employee) {
@@ -417,21 +342,47 @@ const EmployeeDetail = () => {
       alert("Không tìm thấy ID nhân viên!");
       return;
     }
+    if (!isFormChanged3()) {
+      Swal.fire({
+        text: "Không có thay đổi nào cần lưu.",
+        icon: "info",
+        showConfirmButton: false,
+        timer: 1500,
+      }).then(() => {
+        setIsEditing2(false);
+      });
+      return;
+    }
+    setLoading(true);
     try {
       const response = await axios.put(
-        apiRoutes.posts.updateUser(employee.employeeID),
-        formData3
+        apiRoutes.posts.updateUser(employee._id),
+        formData3,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
 
       if (response.data.success) {
-        alert("Cập nhật thành công!");
-        setIsEditing3(false);
+        Swal.fire({
+          text: response.data.message,
+          icon: response.data.success ? "success" : "error",
+          showConfirmButton: false,
+          timer: 2000,
+        }).then(() => {
+          setIsEditing3(false);
+        });
       } else {
         alert("Cập nhật thất bại: " + response.data.message);
       }
     } catch (error) {
       console.error("Lỗi cập nhật:", error);
       alert("Có lỗi xảy ra khi cập nhật.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -439,18 +390,77 @@ const EmployeeDetail = () => {
     setFormData3({ ...formData3, [e.target.name]: e.target.value });
   };
 
+  const handleUploadFiles = async () => {
+    if (selectedFiles.avatar) {
+      await handleUpdate("avatar");
+    }
+    if (selectedFiles.photoID) {
+      await handleUpdate("photoID");
+    }
+    if (selectedFiles.certificate) {
+      await handleUpdate("certificate");
+    }
+    if (selectedFiles.graduationCertificate) {
+      await handleUpdate("graduationCertificate");
+    }
+  };
+
+  const [selectedFiles, setSelectedFiles] = useState({
+    avatar: null,
+    photoID: null,
+    certificate: null,
+    graduationCertificate: null,
+    order: null,
+  });
+
+  const handleUpdate = async (fileType) => {
+    const selectedFile = selectedFiles[fileType];
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("employeeID", employee.employeeID);
+      formData.append(fileType, selectedFile);
+
+      const uploadRes = await axios.post(apiRoutes.file.uploadfile, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (uploadRes.status === 200) {
+        Swal.fire({
+          text: `Tải lên ${fileType} thành công.`,
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+        setSelectedFiles({
+          avatar: null,
+          photoID: null,
+          certificate: null,
+          graduationCertificate: null,
+          order: null,
+        });
+        setIsCredentialOpen(!isCredentialOpen);
+      }
+    } catch (error) {
+      console.error("Upload failed:", error);
+      Swal.fire({
+        text: `Tải lên ${fileType} thất bại.`,
+        icon: "error",
+        showConfirmButton: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Get data dropdown
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const [departments, positions, roles] = await Promise.all([
-          axios.get(apiRoutes.department.getAllDepartment),
-          axios.get(apiRoutes.jobtitle.getAllJobtitle),
-          axios.get(apiRoutes.role.getRole),
-        ]);
+        const [roles] = await Promise.all([axios.get(apiRoutes.role.getRole)]);
 
-        setDepartData(departments.data);
-        setPositionData(positions.data);
         setRoleData(roles.data);
       } catch (error) {
         console.error("Failed to fetch options:", error);
@@ -462,33 +472,6 @@ const EmployeeDetail = () => {
 
   // Dropdown selection of gender
   const toggleGenderDropdown = () => setIsGenderOpen(!isGenderOpen);
-
-  // Dropdown selection of role
-  const toggleRoleDropdown = () => setIsRoleOpen(!isRoleOpen);
-
-  // Dropdown selection of type
-  const toggleTypeDropdown = () => setIsTypeOpen(!isTypeOpen);
-
-  // Dropdown selection of department
-  const toggleDepartDropdown = () => setIsDepartOpen(!isDepartOpen);
-  const handleOptionClick4 = (selectedDeptName) => {
-    setDepartment(selectedDeptName);
-    setJobTitle("Position");
-
-    const selectedDept = departData.find(
-      (dept) => dept.name === selectedDeptName
-    );
-    if (selectedDept) {
-      const jobIds = selectedDept.jobtitle;
-      const filtered = positionData.filter((job) => jobIds.includes(job._id));
-      setFilteredJobTitles(filtered);
-    } else {
-      setFilteredJobTitles([]);
-    }
-
-    setIsDepartOpen(false);
-    setIsDepartOpen(false);
-  };
 
   useEffect(() => {
     const fetchFileInfos = async () => {
@@ -536,9 +519,6 @@ const EmployeeDetail = () => {
     setPreview(URL.createObjectURL(file));
   };
 
-  // Dropdown selection of position
-  const togglePossitionDropdown = () => setIsPositionOpen(!isPositionOpen);
-
   // Format date of birth
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -567,6 +547,18 @@ const EmployeeDetail = () => {
 
   return (
     <div className="flex flex-col bg-[#F5F6FA] w-auto h-full relative">
+      {loading && (
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <CircularProgress size={80} style={{ color: "#069855" }} />
+        </div>
+      )}
       <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-full text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
         <div className="flex ml-[2%] mt-[2%] mb-[2%]">
           {isEditing1 ? (
@@ -1019,253 +1011,46 @@ const EmployeeDetail = () => {
         <div className="ml-[2%]">
           <div className="flex items-center justify-between mt-[2%]">
             <p className="text-[20px] font-bold">Employee Access</p>
-            {isEditing4 ? (
-              <div className="flex space-x-2 mr-[2%]">
-                <IoBookmarkOutline
-                  onClick={handleSaveClick4}
-                  className="w-[25px] h-[25px] cursor-pointer hover:text-[#069855]"
-                />
-                <IoCloseCircleOutline
-                  onClick={handleCancelClick4}
-                  className="w-[25px] h-[25px] cursor-pointer hover:text-[#069855]"
-                />
-              </div>
-            ) : (
-              <BiEdit
-                className="w-[25px] h-[25px] mr-[3%] text-[#069855] cursor-pointer"
-                onClick={handleEditClick4}
-              />
-            )}
           </div>
           <div>
             <div className="grid grid-cols-4 mt-[2%]">
               <div>
                 <p className="text-[#828282]">Employee Type</p>
-                {isEditing4 ? (
-                  <ClickOutside setIsOpen={setIsTypeOpen}>
-                    <div className="relative">
-                      <div
-                        className="inline-flex w-[260px] border-gray-200 border-1 h-[42px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
-                        onClick={toggleTypeDropdown}
-                      >
-                        <span className="text-[15px]">
-                          {formData4.employeeType}
-                        </span>
-                        <IoIosArrowDown />
-                      </div>
-                    </div>
-                    {isTypeOpen && (
-                      <div className="absolute z-10 mt-2 w-[260px] bg-white rounded-md shadow-lg border border-gray-200">
-                        <ul className="py-1">
-                          {typeData.map((option, index) => (
-                            <li
-                              key={index}
-                              onClick={() => {
-                                setFormData4((prev) => ({
-                                  ...prev,
-                                  employeeType: option,
-                                }));
-                                setIsTypeOpen(false);
-                              }}
-                              className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
-                            >
-                              {option}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </ClickOutside>
-                ) : (
-                  <p className="w-fit font-bold">{employee.employeeType}</p>
-                )}
+                <p className="w-fit font-bold">{employee.employeeType}</p>
               </div>
               <div>
                 <p className="text-[#828282]">Department</p>
-                {isEditing4 ? (
-                  <ClickOutside setIsOpen={setIsDepartOpen}>
-                    <div className="relative">
-                      <div
-                        className="inline-flex w-[260px] border-gray-200 border-1 h-[42px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
-                        onClick={toggleDepartDropdown}
-                      >
-                        <span className="text-[15px]">
-                          {formData4.department}
-                        </span>
-                        <IoIosArrowDown />
-                      </div>
-                    </div>
-                    {isDepartOpen && (
-                      <div className="absolute z-10 mt-2 w-[260px] bg-white rounded-md shadow-lg border border-gray-200">
-                        <ul className="py-1">
-                          {departData.map((option, index) => (
-                            <li
-                              key={index}
-                              onClick={() => {
-                                setFormData4((prev) => ({
-                                  ...prev,
-                                  department: option.name,
-                                }));
-                                handleOptionClick4(option.name);
-                              }}
-                              className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
-                            >
-                              {option.name}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </ClickOutside>
-                ) : (
-                  <p className="w-fit font-bold">{employee.department}</p>
-                )}
+                <p className="w-fit font-bold">{employee.department}</p>
               </div>
               <div>
                 <p className="text-[#828282]">Position</p>
-                {isEditing4 ? (
-                  <ClickOutside setIsOpen={setIsPositionOpen}>
-                    <div className="relative">
-                      <div
-                        className="inline-flex w-[260px] border-gray-200 border-1 h-[42px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
-                        onClick={togglePossitionDropdown}
-                      >
-                        <span className="text-[15px]">
-                          {formData4?.jobTitle || "Not Value"}
-                        </span>
-                        <IoIosArrowDown />
-                      </div>
-                    </div>
-                    {isPositionOpen && (
-                      <div className="absolute z-10 mt-2 w-[260px] bg-white rounded-md shadow-lg border border-gray-200">
-                        <ul className="py-1">
-                          {filteredJobTitles.map((option, index) => (
-                            <li
-                              key={index}
-                              onClick={() => {
-                                setFormData4((prev) => ({
-                                  ...prev,
-                                  jobTitle: option.name,
-                                }));
-                                setIsPositionOpen(false);
-                              }}
-                              className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
-                            >
-                              {option.name}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </ClickOutside>
-                ) : (
-                  <p className="w-fit font-bold">{employee.jobTitle}</p>
-                )}
+                <p className="w-fit font-bold">{employee.jobTitle}</p>
               </div>
               <div>
                 <p className="text-[#828282]">Role</p>
-                {isEditing4 ? (
-                  <ClickOutside setIsOpen={setIsRoleOpen}>
-                    <div className="relative">
-                      <div
-                        className="inline-flex w-[260px] border-gray-200 border-1 h-[42px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
-                        onClick={toggleRoleDropdown}
-                      >
-                        <span className="text-[15px]">
-                          {formData4.role?.name || "Select Role"}
-                        </span>
-                        <IoIosArrowDown />
-                      </div>
-                    </div>
-                    {isRoleOpen && (
-                      <div className="absolute capitalize z-10 mt-2 w-[260px] bg-white rounded-md shadow-lg border border-gray-200">
-                        <ul className="py-1">
-                          {roleData.map((option, index) => (
-                            <li
-                              key={index}
-                              onClick={() => {
-                                setFormData4((prev) => ({
-                                  ...prev,
-                                  role: option,
-                                }));
-                                setIsRoleOpen(false);
-                              }}
-                              className="block capitalize px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
-                            >
-                              {option.name}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </ClickOutside>
-                ) : (
-                  <p className="w-fit font-bold capitalize">
-                    {roleData.find((r) => r._id === employee.role)?.name ||
-                      "--"}
-                  </p>
-                )}
+                <p className="w-fit font-bold capitalize">
+                  {roleData.find((r) => r._id === employee.role)?.name || "--"}
+                </p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 mt-[3%] mb-[3%]">
               <div>
                 <p className="text-[#828282]">Joining Date</p>
-                {isEditing4 ? (
-                  <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <DatePicker
-                      value={
-                        formData4.joiningDate
-                          ? dayjs(formData4.joiningDate)
-                          : null
-                      }
-                      onChange={(newDate) =>
-                        setFormData4((prev) => ({
-                          ...prev,
-                          joiningDate: newDate ? newDate.toISOString() : "",
-                        }))
-                      }
-                      renderInput={(params) => (
-                        <TextField {...params} fullWidth />
-                      )}
-                      slotProps={{ textField: { size: "small" } }}
-                    />
-                  </LocalizationProvider>
-                ) : (
-                  <p className="mt-2 font-bold">
-                    {formatDate(employee.joiningDate) === "NaN/NaN/NaN"
-                      ? "--"
-                      : formatDate(employee.joiningDate)}
-                  </p>
-                )}
+                <p className="mt-2 font-bold">
+                  {formatDate(employee.joiningDate) === "NaN/NaN/NaN"
+                    ? "--"
+                    : formatDate(employee.joiningDate)}
+                </p>
               </div>
               <div>
                 <p className="text-[#828282]">End Date</p>
-                {isEditing4 ? (
-                  <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <DatePicker
-                      value={
-                        formData4.endDate ? dayjs(formData4.endDate) : null
-                      }
-                      onChange={(newDate) =>
-                        setFormData4((prev) => ({
-                          ...prev,
-                          endDate: newDate ? newDate.toISOString() : "",
-                        }))
-                      }
-                      renderInput={(params) => (
-                        <TextField {...params} fullWidth />
-                      )}
-                      slotProps={{ textField: { size: "small" } }}
-                    />
-                  </LocalizationProvider>
-                ) : (
-                  <p className="mt-2 font-bold">
-                    {formatDate(employee.endDate) === "NaN/NaN/NaN"
-                      ? "--"
-                      : formatDate(employee.endDate)}
-                  </p>
-                )}
+
+                <p className="mt-2 font-bold">
+                  {formatDate(employee.endDate) === "NaN/NaN/NaN"
+                    ? "--"
+                    : formatDate(employee.endDate)}
+                </p>
               </div>
             </div>
           </div>
@@ -1276,101 +1061,294 @@ const EmployeeDetail = () => {
           <div className="flex items-center justify-between">
             <p className="text-[20px] font-bold">Credential</p>
             <div className="flex items-center justify-center">
-              <button
-                type="submit"
-                className="ml-[-70%] bg-[#2EB67D] text-white outline-none w-fit text-[16px] caret-transparent focus:outline-none flex items-center"
-                // onClick={handleSubmit}
-              >
-                <GoPlus className="w-[25px] h-[25px] mr-2" />
-                Credential
-              </button>
+              {isCredentialOpen ? (
+                <button
+                  type="button"
+                  className="ml-[-70%] bg-[#2EB67D] text-white outline-none w-fit text-[16px] caret-transparent focus:outline-none flex items-center"
+                  onClick={() => {
+                    if (isCredentialOpen) {
+                      handleUploadFiles();
+                    }
+                  }}
+                >
+                  <GoPlus className="w-[25px] h-[25px] mr-2" />
+                  Save
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCredentialOpen(!isCredentialOpen);
+                  }}
+                  className="ml-[-70%] bg-[#2EB67D] text-white outline-none w-fit text-[16px] caret-transparent focus:outline-none flex items-center"
+                >
+                  <GoPlus className="w-[25px] h-[25px] mr-2" />
+                  Credential
+                </button>
+              )}
             </div>
           </div>
           {/* table*/}
-          <div className="text-[14px] ml-[15px] border-l border-b border-r mb-5">
-            <table className="rounded-[5px] mt-[2%] bg-white overflow-hidden w-[calc(100vw-500px)] caret-transparent border-gray-200 border">
-              <thead>
-                <tr className="bg-[#010101] text-left">
-                  <th className="px-5 py-3 caret-transparent text-white font-normal">
-                    Credential
-                  </th>
-                  <th className="px-1 py-3 caret-transparent text-white font-normal">
-                    Upload Date
-                  </th>
-                  <th className="px-5 py-3 caret-transparent text-white font-normal">
-                    Documents
-                  </th>
-                  <th className="px-5 py-3 caret-transparent text-white font-normal">
-                    Expiry day
-                  </th>
-                  <th className="px-5 py-3 caret-transparent text-white font-normal">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { key: "photoID", label: "Photo ID" },
-                  { key: "certificate", label: "Certificate" },
-                  {
-                    key: "graduationCertificate",
-                    label: "Graduation Certificate",
-                  },
-                  { key: "order", label: "Order" },
-                ]
-                  .filter((field) => employee[field.key])
-                  .map((field) => (
-                    <tr key={field.key} className="cursor-pointer">
-                      <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
-                        <div className="text-left w-[200px]">{field.label}</div>
-                      </td>
-
-                      <td className="px-1 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
-                        <div className="text-left w-[240px]">--</div>
-                      </td>
-                      <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
-                        <div className="w-[200px]">
-                          {fileInfos[field.key] && (
-                            <a
-                              href={apiRoutes.file.file(employee[field.key])}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              Download {field.label}
-                            </a>
-                          )}
-                        </div>
-                      </td>
-
-                      <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
-                        <div className="text-left w-[200px]">--</div>
-                      </td>
-
-                      <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
-                        <div className="text-left w-[90px]">
-                          <FaRegTrashCan className="w-[25px] h-[25px] text-red-400" />
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                {![
-                  "photoID",
-                  "certificate",
-                  "graduationCertificate",
-                  "order",
-                ].some((key) => employee[key]) && (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="text-center text-gray-400 py-5 border-b border-gray-200 w-[calc(100vw-430px)] text-[15px]"
-                    >
-                      No file data available
+          {isCredentialOpen ? (
+            <div className="text-[14px] ml-[15px] border-l border-b border-r w-fit mb-5">
+              <table className="rounded-[5px] mt-[2%] bg-white overflow-hidden w-[calc(100vw-500px)] caret-transparent border-gray-200 border">
+                <thead>
+                  <tr className="bg-[#010101] text-left">
+                    <th className="px-5 py-3 caret-transparent text-white font-normal">
+                      Credential
+                    </th>
+                    <th className="px-1 py-3 caret-transparent text-white font-normal"></th>
+                    <th className="px-5 py-3 caret-transparent text-white font-normal">
+                      Documents
+                    </th>
+                    <th className="px-5 py-3 caret-transparent text-white font-normal">
+                      Expiry day
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="cursor-pointer">
+                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                      <div className="text-left w-[240px]  ">Photo ID</div>
+                    </td>
+                    <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
+                      <FileUpload
+                        fileType="photoID"
+                        selectedEmployee={employee}
+                        setSelectedFile={(file) =>
+                          setSelectedFiles((prev) => ({
+                            ...prev,
+                            photoID: file,
+                          }))
+                        }
+                      />
+                    </td>
+                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                      <div className="text-left w-[240px]  ">
+                        {" "}
+                        {selectedFiles.photoID && (
+                          <a
+                            href={URL.createObjectURL(selectedFiles.photoID)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                          >
+                            Preview Photo ID
+                          </a>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                      <div className="text-left w-[240px]  ">--</div>
                     </td>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  <tr className="cursor-pointer">
+                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                      <div className="text-left w-[240px]  ">Certificate</div>
+                    </td>
+                    <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
+                      <FileUpload
+                        fileType="certificate"
+                        selectedEmployee={employee}
+                        setSelectedFile={(file) =>
+                          setSelectedFiles((prev) => ({
+                            ...prev,
+                            certificate: file,
+                          }))
+                        }
+                      />
+                    </td>
+                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                      <div className="text-left w-[240px]  ">
+                        {selectedFiles.certificate && (
+                          <a
+                            href={URL.createObjectURL(
+                              selectedFiles.certificate
+                            )}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                          >
+                            Preview Certificate
+                          </a>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                      <div className="text-left w-[240px]  ">--</div>
+                    </td>
+                  </tr>
+                  <tr className="cursor-pointer">
+                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                      <div className="text-left w-[240px]  ">
+                        Graduation Certificate
+                      </div>
+                    </td>
+                    <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
+                      <FileUpload
+                        fileType="graduationCertificate"
+                        selectedEmployee={employee}
+                        setSelectedFile={(file) =>
+                          setSelectedFiles((prev) => ({
+                            ...prev,
+                            graduationCertificate: file,
+                          }))
+                        }
+                      />
+                    </td>
+                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                      <div className="text-left w-[240px]  ">
+                        {selectedFiles.graduationCertificate && (
+                          <a
+                            href={URL.createObjectURL(
+                              selectedFiles.graduationCertificate
+                            )}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                          >
+                            Preview Graduation Certificate
+                          </a>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                      <div className="text-left w-[240px]  ">--</div>
+                    </td>
+                  </tr>
+                  <tr className="cursor-pointer">
+                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                      <div className="text-left w-[240px] ">Order</div>
+                    </td>
+                    <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
+                      <FileUpload
+                        fileType="order"
+                        selectedEmployee={employee}
+                        setSelectedFile={(file) =>
+                          setSelectedFiles((prev) => ({
+                            ...prev,
+                            order: file,
+                          }))
+                        }
+                      />
+                    </td>
+                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                      <div className="text-left w-[240px]">
+                        {selectedFiles.order && (
+                          <a
+                            href={URL.createObjectURL(selectedFiles.order)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                          >
+                            Preview Order
+                          </a>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                      <div className="text-left w-[240px]">--</div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-[14px] ml-[15px] border-l border-b border-r w-fit mb-5">
+              <table className="rounded-[5px] mt-[2%] bg-white overflow-hidden w-[calc(100vw-500px)] caret-transparent border-gray-200 border">
+                <thead>
+                  <tr className="bg-[#010101] text-left">
+                    <th className="px-5 py-3 caret-transparent text-white font-normal">
+                      Credential
+                    </th>
+                    <th className="px-1 py-3 caret-transparent text-white font-normal">
+                      Upload Date
+                    </th>
+                    <th className="px-5 py-3 caret-transparent text-white font-normal">
+                      Documents
+                    </th>
+                    <th className="px-5 py-3 caret-transparent text-white font-normal">
+                      Expiry day
+                    </th>
+                    <th className="px-5 py-3 caret-transparent text-white font-normal">
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { key: "photoID", label: "Photo ID" },
+                    { key: "certificate", label: "Certificate" },
+                    {
+                      key: "graduationCertificate",
+                      label: "Graduation Certificate",
+                    },
+                    { key: "order", label: "Order" },
+                  ]
+                    .filter((field) => employee[field.key])
+                    .map((field) => (
+                      <tr key={field.key} className="cursor-pointer">
+                        <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
+                          <div className="text-left w-[200px]">
+                            {field.label}
+                          </div>
+                        </td>
+
+                        <td className="px-1 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]">--</div>
+                        </td>
+                        <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
+                          <div className="w-[200px]">
+                            {fileInfos[field.key] && (
+                              <a
+                                href={apiRoutes.file.file(employee[field.key])}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                Download {field.label}
+                              </a>
+                            )}
+                          </div>
+                        </td>
+
+                        <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
+                          <div className="text-left w-[200px]">--</div>
+                        </td>
+
+                        <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
+                          <div className="text-left w-[90px]">
+                            <FaRegTrashCan className="w-[25px] h-[25px] text-red-400" />
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  {![
+                    "photoID",
+                    "certificate",
+                    "graduationCertificate",
+                    "order",
+                  ].some((key) => employee[key]) && (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="text-center text-gray-400 py-5 border-b border-gray-200 w-[calc(100vw-430px)] text-[15px]"
+                      >
+                        No file data available
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>

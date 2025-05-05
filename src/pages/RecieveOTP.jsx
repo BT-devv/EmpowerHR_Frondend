@@ -4,11 +4,15 @@ import { useState } from "react";
 import axios from "axios";
 import apiRoutes from "../../apiRoutes";
 import Swal from "sweetalert2";
+import { CircularProgress } from "@mui/material";
+
 // icon
 import { IoIosArrowRoundBack } from "react-icons/io";
 
 const RecieveOPT = () => {
   const navigate = useNavigate();
+
+  const [progress, setProgress] = useState(false);
 
   const [otp, setOtp] = useState(Array(6).fill(""));
   const [otpError, setOtpError] = useState("");
@@ -44,6 +48,7 @@ const RecieveOPT = () => {
     if (!isValid) {
       return;
     }
+    setProgress(true);
 
     try {
       const response = await axios.post(apiRoutes.user.verify, {
@@ -76,11 +81,25 @@ const RecieveOPT = () => {
           timer: 2000,
         });
       }
+    } finally {
+      setProgress(false);
     }
   };
 
   return (
     <div className="flex bg-gray-600 w-screen h-screen overflow-hidden ">
+      {progress && (
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <CircularProgress size={80} style={{ color: "#069855" }} />
+        </div>
+      )}
       {/* Form */}
       <div className="bg-white rounded-tr-[25px] rounded-br-[25px] z-[2] w-[60%]">
         <IoIosArrowRoundBack
@@ -124,8 +143,7 @@ const RecieveOPT = () => {
               email inbox, including the spam folder. If the code still hasn’t
               arrived, you can request a new one after 30 seconds or tap
               <span className="text-[#2EB67D] cursor-pointer border-b-[2px] border-[#2EB67D] ">
-                {" "}
-                'Resend OTP'{" "}
+                {`Resend OTP`}
               </span>
               to receive a new code.
             </p>

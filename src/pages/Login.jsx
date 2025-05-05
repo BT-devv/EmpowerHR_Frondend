@@ -4,11 +4,13 @@ import logo from "../assets/logoapp.png";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
+import { CircularProgress } from "@mui/material";
 import { FaRegEye } from "react-icons/fa";
 import { FaRegEyeSlash } from "react-icons/fa";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [progress, setProgress] = useState(false);
 
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -62,6 +64,7 @@ const Login = () => {
     if (!isValid) {
       return;
     }
+    setProgress(true);
     try {
       const response = await axios.post(apiRoutes.auth.login, {
         emailCompany: email,
@@ -118,11 +121,25 @@ const Login = () => {
           timer: 2000,
         });
       }
+    } finally {
+      setProgress(false);
     }
   };
 
   return (
     <div className="flex md:flex-row bg-gray-600 w-screen h-screen">
+      {progress && (
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <CircularProgress size={80} style={{ color: "#069855" }} />
+        </div>
+      )}
       <div className="relative w-1/2 flex justify-center items-center">
         <img
           alt="logo"

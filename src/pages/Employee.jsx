@@ -51,6 +51,9 @@ const Employee = () => {
   const [isDepartOpen, setIsDepartOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState("general");
   const [isCredentialOpen, setIsCredentialOpen] = useState(false);
+  const [departID, setDepartID] = useState("");
+  const [roleID, setRoleID] = useState("");
+  const [jobID, setJobID] = useState("");
 
   const [errors, setErrors] = useState({});
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -424,37 +427,37 @@ const Employee = () => {
       return;
     }
     setProgress(true);
+    console.log(formData4);
+    // try {
+    //   const response = await axios.put(
+    //     apiRoutes.posts.updateUser(selectedEmployee._id),
+    //     formData4,
+    //     {
+    //       headers: {
+    //         Authorization: `Bearer ${token}`,
+    //         "Content-Type": "application/json",
+    //       },
+    //     }
+    //   );
 
-    try {
-      const response = await axios.put(
-        apiRoutes.posts.updateUser(selectedEmployee._id),
-        formData4,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.data.success) {
-        Swal.fire({
-          text: response.data.message,
-          icon: "success",
-          showConfirmButton: false,
-          timer: 2000,
-          timerProgressBar: true,
-        });
-        setIsEditing4(false);
-      } else {
-        alert("Cập nhật thất bại: " + response.data.message);
-      }
-    } catch (error) {
-      console.error("Lỗi cập nhật:", error);
-      alert("Có lỗi xảy ra khi cập nhật.");
-    } finally {
-      setProgress(false);
-    }
+    //   if (response.data.success) {
+    //     Swal.fire({
+    //       text: response.data.message,
+    //       icon: "success",
+    //       showConfirmButton: false,
+    //       timer: 2000,
+    //       timerProgressBar: true,
+    //     });
+    //     setIsEditing4(false);
+    //   } else {
+    //     alert("Cập nhật thất bại: " + response.data.message);
+    //   }
+    // } catch (error) {
+    //   console.error("Lỗi cập nhật:", error);
+    //   alert("Có lỗi xảy ra khi cập nhật.");
+    // } finally {
+    //   setProgress(false);
+    // }
   };
 
   // edit employee 3
@@ -535,6 +538,16 @@ const Employee = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentPage, selectedEmployee]);
+
+  const getDepartmentName = (id) => {
+    const dept = departData.find((d) => d._id === id);
+    return dept ? dept.name : "Unknown";
+  };
+
+  const getJobName = (id) => {
+    const job = positionData.find((d) => d._id === id);
+    return job ? job.name : "Unknown";
+  };
 
   // Get data dropdown
   useEffect(() => {
@@ -798,7 +811,7 @@ const Employee = () => {
   };
 
   const handleCreate = async () => {
-    // Form validation
+    // // Form validation
     if (!validateFields()) {
       return;
     }
@@ -820,9 +833,9 @@ const Employee = () => {
       bankName: bankName,
       bankAccountName: accountName,
       bankAccountNumber: bankAccountNumber,
-      department: department,
-      role: role,
-      jobTitle: jobTitle,
+      department: departID,
+      role: roleID,
+      jobTitle: jobID,
       joiningDate: joiningDate,
       endDate: endDate,
       status: status ? "Active" : "Inactive",
@@ -1148,10 +1161,11 @@ const Employee = () => {
   };
 
   const handleTabSelect = async (key) => {
-    setSelectedTab(key);
-
     if (key !== "general") {
       alert();
+    }
+    if (key === "general") {
+      setSelectedTab(key);
     }
   };
 
@@ -1820,9 +1834,8 @@ const Employee = () => {
                                   onClick={() => {
                                     setFormData4((prev) => ({
                                       ...prev,
-                                      department: option.name, // Cập nhật department khi chọn
+                                      department: option.name,
                                     }));
-                                    handleOptionClick4(option.name); // Gọi hàm lọc job title khi chọn department
                                   }}
                                   className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
                                 >
@@ -1835,7 +1848,9 @@ const Employee = () => {
                       </ClickOutside>
                     ) : (
                       <p className="w-fit font-bold">
-                        {selectedEmployee.department}
+                        {departData.find(
+                          (r) => r._id === selectedEmployee.department
+                        )?.name || "--"}
                       </p>
                     )}
                   </div>
@@ -1878,7 +1893,9 @@ const Employee = () => {
                       </ClickOutside>
                     ) : (
                       <p className="w-fit font-bold">
-                        {selectedEmployee.jobTitle}
+                        {positionData.find(
+                          (r) => r._id === selectedEmployee.jobTitle
+                        )?.name || "--"}
                       </p>
                     )}
                   </div>
@@ -2952,6 +2969,7 @@ const Employee = () => {
                                       key={index}
                                       onClick={() => {
                                         handleOptionClick4(option.name);
+                                        setDepartID(option._id);
                                         setErrors({});
                                       }}
                                       className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
@@ -2997,7 +3015,8 @@ const Employee = () => {
                                     <li
                                       key={index}
                                       onClick={() => {
-                                        setJobTitle(option.name); // hoặc setFormData4({...}) nếu đang dùng formData
+                                        setJobTitle(option.name);
+                                        setJobID(option._id);
                                         setIsPositionOpen(false);
                                       }}
                                       className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
@@ -3045,6 +3064,7 @@ const Employee = () => {
                                       key={index}
                                       onClick={() => {
                                         handleOptionClick2(option.name);
+                                        setRoleID(option._id);
                                         setErrors({});
                                       }}
                                       className="block capitalize px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
@@ -3366,10 +3386,10 @@ const Employee = () => {
                           {`${item.firstName} ${item.lastName}`}
                         </td>
                         <td className="px-4 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%] truncate text-left">
-                          {item.jobTitle}
+                          {getJobName(item.jobTitle)}
                         </td>
                         <td className="px-3 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%] truncate text-left">
-                          {item.department}
+                          {getDepartmentName(item.department)}
                         </td>
                         <td className="px-3 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%] truncate">
                           <div className="truncate text-left w-[260px]">

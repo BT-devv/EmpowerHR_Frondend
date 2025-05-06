@@ -6,6 +6,32 @@ import apiRoutes from "../../apiRoutes";
 const EmployeeChart = () => {
   const [jobTitles, setJobTitles] = useState([]);
   const [jobCounts, setJobCounts] = useState([]);
+  const [jobName, setJobName] = useState([]);
+
+  // Get all jobtitle
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    axios
+      .get(apiRoutes.role.getRole, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then((response) => {
+        setJobName(response.data);
+      })
+      .catch((error) => {
+        if (error.response?.status === 403) {
+          console.warn("Bạn không có quyền xem user.");
+        }
+      });
+  }, []);
+
+  const getJobName = (id) => {
+    const job = jobName.find((d) => d._id === id);
+    return job ? job.name : "Unknown";
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -23,8 +49,10 @@ const EmployeeChart = () => {
         const jobMap = {};
 
         users.forEach((user) => {
-          const jobTitle = user.jobTitle;
-          jobMap[jobTitle] = (jobMap[jobTitle] || 0) + 1;
+          const jobTitleId = user.jobTitle;
+          const jobTitleName = getJobName(jobTitleId);
+
+          jobMap[jobTitleName] = (jobMap[jobTitleName] || 0) + 1;
         });
 
         setJobTitles(Object.keys(jobMap));

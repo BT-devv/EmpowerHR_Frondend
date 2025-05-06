@@ -38,6 +38,8 @@ const EmployeeDetail = () => {
 
   const genderData = ["Male", "Female", "Other"];
   const [roleData, setRoleData] = useState([]);
+  const [departData, setDepartData] = useState([]);
+  const [positionData, setPositionData] = useState([]);
 
   const token = localStorage.getItem("token");
 
@@ -471,8 +473,14 @@ const EmployeeDetail = () => {
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const [roles] = await Promise.all([axios.get(apiRoutes.role.getRole)]);
+        const [departments, positions, roles] = await Promise.all([
+          axios.get(apiRoutes.department.getAllDepartment),
+          axios.get(apiRoutes.jobtitle.getAllJobtitle),
+          axios.get(apiRoutes.role.getRole),
+        ]);
 
+        setDepartData(departments.data);
+        setPositionData(positions.data);
         setRoleData(roles.data);
       } catch (error) {
         console.error("Failed to fetch options:", error);
@@ -1032,11 +1040,17 @@ const EmployeeDetail = () => {
               </div>
               <div>
                 <p className="text-[#828282]">Department</p>
-                <p className="w-fit font-bold">{employee.department}</p>
+                <p className="w-fit font-bold">
+                  {departData.find((r) => r._id === employee.department)
+                    ?.name || "--"}
+                </p>
               </div>
               <div>
                 <p className="text-[#828282]">Position</p>
-                <p className="w-fit font-bold">{employee.jobTitle}</p>
+                <p className="w-fit font-bold">
+                  {positionData.find((r) => r._id === employee.jobTitle)
+                    ?.name || "--"}
+                </p>
               </div>
               <div>
                 <p className="text-[#828282]">Role</p>

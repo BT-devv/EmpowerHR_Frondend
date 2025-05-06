@@ -124,10 +124,18 @@ const Payroll = () => {
     setDepartment("Department");
     setJobTitle("Position");
     setSelectedJobTitles([]);
+    setAmount("");
+    setNameBase("");
   };
 
   const closeModalAddSalary = () => {
     setModalAddSalaryIsOpen(false);
+    setSelectedEmployee(null);
+    setBonus("");
+    setAdvance("");
+    setSubtraction("");
+    setMonth(null);
+    setYear(null);
   };
 
   const token = localStorage.getItem("token");
@@ -243,10 +251,11 @@ const Payroll = () => {
   };
 
   const handleTabSelect = async (key) => {
-    setSelectedTab(key);
-
     if (key === "payslip") {
       alert();
+    }
+    if (key === "payroll" || key === "payitems") {
+      setSelectedTab(key);
     }
   };
 
@@ -319,7 +328,7 @@ const Payroll = () => {
 
       if (response.status === 201) {
         Swal.fire({
-          text: "Add Salary Successfully",
+          text: "Add Base Salary Successfully",
           icon: "success",
           timer: 2000,
           timerProgressBar: true,
@@ -329,7 +338,7 @@ const Payroll = () => {
         setModalAddSalaryIsOpen(false);
       } else {
         Swal.fire({
-          text: "Add Salary Fail",
+          text: "Add Base Salary Fail",
           icon: "error",
           timer: 2000,
           showConfirmButton: false,
@@ -368,7 +377,7 @@ const Payroll = () => {
       year,
     };
     setProgress(true);
-
+    console.log(formData);
     try {
       const response = await axios.post(
         apiRoutes.payroll.createPayroll,
@@ -394,6 +403,7 @@ const Payroll = () => {
         });
       }
     } catch (error) {
+      console.log(error);
       if (error.response) {
         Swal.fire({
           text: error.response.data.message,

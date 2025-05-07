@@ -102,7 +102,7 @@ const AbsenceForm = () => {
       type,
     };
 
-    if (type === "Full Time") {
+    if (type === "Full Day") {
       formData = {
         ...formData,
         dateFrom,
@@ -123,51 +123,52 @@ const AbsenceForm = () => {
       };
     }
     setProgress(true);
-    try {
-      const response = await axios.post(apiRoutes.absence.request, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      const { success, message } = response.data;
-      if (success) {
-        Swal.fire({
-          text: message,
-          icon: "success",
-          timer: 2000,
-          showConfirmButton: false,
-          timerProgressBar: true,
-        });
-        setLineManagers([]);
-        setTeammates([]);
-        setDateFrom("");
-        setDateTo("");
-        setType("");
-        setDayType("Select Day Type");
-        setReason("");
-      } else {
-        Swal.fire({
-          text: message,
-          icon: "error",
-          timer: 2000,
-          showConfirmButton: false,
-          timerProgressBar: true,
-        });
-      }
-    } catch (error) {
-      console.log(error);
-      Swal.fire({
-        text:
-          error.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại!",
-        icon: "error",
-        timer: 2000,
-        showConfirmButton: false,
-        timerProgressBar: true,
-      });
-    } finally {
-      setProgress(false);
-    }
+    console.log(formData);
+    // try {
+    //   const response = await axios.post(apiRoutes.absence.request, formData, {
+    //     headers: {
+    //       Authorization: `Bearer ${token}`,
+    //       "Content-Type": "application/json",
+    //     },
+    //   });
+    //   const { success, message } = response.data;
+    //   if (success) {
+    //     Swal.fire({
+    //       text: message,
+    //       icon: "success",
+    //       timer: 2000,
+    //       showConfirmButton: false,
+    //       timerProgressBar: true,
+    //     });
+    //     setLineManagers([]);
+    //     setTeammates([]);
+    //     setDateFrom("");
+    //     setDateTo("");
+    //     setType("");
+    //     setDayType("Select Day Type");
+    //     setReason("");
+    //   } else {
+    //     Swal.fire({
+    //       text: message,
+    //       icon: "error",
+    //       timer: 2000,
+    //       showConfirmButton: false,
+    //       timerProgressBar: true,
+    //     });
+    //   }
+    // } catch (error) {
+    //   console.log(error);
+    //   Swal.fire({
+    //     text:
+    //       error.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại!",
+    //     icon: "error",
+    //     timer: 2000,
+    //     showConfirmButton: false,
+    //     timerProgressBar: true,
+    //   });
+    // } finally {
+    //   setProgress(false);
+    // }
   };
 
   // Dropdown selection of type

@@ -142,6 +142,7 @@ const Payroll = () => {
   const decodedToken = jwtDecode(token);
 
   const [datausers, setDatausers] = useState([]);
+
   // Get all users
   useEffect(() => {
     axios
@@ -184,7 +185,7 @@ const Payroll = () => {
     setIsNameOpen(false);
   };
 
-  useEffect(() => {
+  const fetchPayroll = () => {
     axios
       .get(apiRoutes.payroll.getAllPayrolls)
       .then((response) => {
@@ -195,6 +196,11 @@ const Payroll = () => {
           console.warn("Bạn không có quyền xem user.");
         }
       });
+  };
+
+  useEffect(() => {
+    fetchPayroll();
+    fetchBase();
   }, []);
 
   // Update salary
@@ -210,6 +216,7 @@ const Payroll = () => {
       salarySubtraction: subtraction,
       netSalary: netSalary,
     };
+    fetchPayroll();
     setProgress(true);
     try {
       const response = await axios.put(
@@ -274,6 +281,7 @@ const Payroll = () => {
           timer: 2000,
           timerProgressBar: true,
         });
+        fetchPayroll();
       } else {
         Swal.fire({
           text: "Delete Salary Fail",
@@ -291,7 +299,7 @@ const Payroll = () => {
   };
 
   // Get all base salary
-  useEffect(() => {
+  const fetchBase = () => {
     axios
       .get(apiRoutes.basesalary.getAllBaseSalaries)
       .then((response) => {
@@ -302,7 +310,7 @@ const Payroll = () => {
           console.warn("Bạn không có quyền xem user.");
         }
       });
-  }, []);
+  };
 
   // Create Base salary
   const handleCreateBasealary = async () => {
@@ -335,6 +343,7 @@ const Payroll = () => {
 
           showConfirmButton: false,
         });
+        fetchBase();
         setModalAddSalaryIsOpen(false);
       } else {
         Swal.fire({
@@ -377,7 +386,7 @@ const Payroll = () => {
       year,
     };
     setProgress(true);
-    console.log(formData);
+    fetchPayroll();
     try {
       const response = await axios.post(
         apiRoutes.payroll.createPayroll,
@@ -427,7 +436,7 @@ const Payroll = () => {
       jobtitleIds: selectedJobTitles,
     };
     setProgress(true);
-
+    fetchBase();
     try {
       const response = await axios.put(
         apiRoutes.basesalary.updateBaseSalary(id),
@@ -484,6 +493,7 @@ const Payroll = () => {
           timer: 2000,
           timerProgressBar: true,
         });
+        fetchBase();
       } else {
         Swal.fire({
           text: "Delete Base Salary Fail",
@@ -819,7 +829,8 @@ const Payroll = () => {
                         {item.email}
                       </td>
                       <td className="px-5 py-5 border-b border-gray-200 w-[15%]">
-                        {item.department}
+                        {departData.find((r) => r._id === item.department)
+                          ?.name || "--"}
                       </td>
                       <td className="px-5 py-5 border-b border-gray-200 w-[15%]">
                         {item.type}

@@ -10,9 +10,8 @@ const EmployeeChart = () => {
 
   // Get all jobtitle
   useEffect(() => {
-    const token = localStorage.getItem("token");
     axios
-      .get(apiRoutes.role.getRole, {
+      .get(apiRoutes.jobtitle.getAllJobtitle, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -20,6 +19,7 @@ const EmployeeChart = () => {
       })
       .then((response) => {
         setJobName(response.data);
+        console.log(jobName);
       })
       .catch((error) => {
         if (error.response?.status === 403) {
@@ -30,12 +30,15 @@ const EmployeeChart = () => {
 
   const getJobName = (id) => {
     const job = jobName.find((d) => d._id === id);
+    console.log(job);
     return job ? job.name : "Unknown";
   };
 
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!token || jobName.length === 0) return; // Đảm bảo jobName đã được load
 
     axios
       .get(apiRoutes.user.getAll, {
@@ -49,7 +52,7 @@ const EmployeeChart = () => {
         const jobMap = {};
 
         users.forEach((user) => {
-          const jobTitleId = user.jobTitle;
+          const jobTitleId = user.jobtitle;
           const jobTitleName = getJobName(jobTitleId);
 
           jobMap[jobTitleName] = (jobMap[jobTitleName] || 0) + 1;
@@ -61,7 +64,7 @@ const EmployeeChart = () => {
       .catch((error) => {
         console.error("Error fetching user data:", error);
       });
-  }, []);
+  }, [jobName]);
 
   const colors = [
     "#FF6384",

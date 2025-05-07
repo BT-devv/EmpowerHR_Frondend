@@ -209,7 +209,7 @@ const Setting = () => {
   };
 
   // Get all role
-  useEffect(() => {
+  const fetchRole = () => {
     axios
       .get(apiRoutes.role.getRole)
       .then((response) => {
@@ -218,10 +218,10 @@ const Setting = () => {
       .catch((error) => {
         console.error("Error fetching data from API", error);
       });
-  }, []);
+  };
 
   // Get all permission
-  useEffect(() => {
+  const fetchPermission = () => {
     axios
       .get(apiRoutes.permission.getPermission)
       .then((response) => {
@@ -230,10 +230,10 @@ const Setting = () => {
       .catch((error) => {
         console.error("Error fetching data from API", error);
       });
-  }, []);
+  };
 
   // Get all holiday
-  useEffect(() => {
+  const fetchHoliday = () => {
     axios
       .get(apiRoutes.holiday.getAllHolidays)
       .then((response) => {
@@ -242,10 +242,18 @@ const Setting = () => {
       .catch((error) => {
         console.error("Error fetching data from API", error);
       });
+  };
+
+  useEffect(() => {
+    fetchDepartment();
+    fetchHoliday();
+    fetchRole();
+    fetchPermission();
+    fetchJobtitle();
   }, []);
 
   // Get all department
-  useEffect(() => {
+  const fetchDepartment = () => {
     axios
       .get(apiRoutes.department.getAllDepartment)
       .then((response) => {
@@ -254,10 +262,10 @@ const Setting = () => {
       .catch((error) => {
         console.error("Error fetching data from API", error);
       });
-  }, []);
+  };
 
   // Get all jobTitle
-  useEffect(() => {
+  const fetchJobtitle = () => {
     axios
       .get(apiRoutes.jobtitle.getAllJobtitle)
       .then((response) => {
@@ -266,7 +274,7 @@ const Setting = () => {
       .catch((error) => {
         console.error("Error fetching data from API", error);
       });
-  }, []);
+  };
 
   const moduleTitleMap = {
     dashboard: "Dashboard",
@@ -331,6 +339,7 @@ const Setting = () => {
           showConfirmButton: false,
           timerProgressBar: true,
         });
+        fetchRole();
         setModalAddDepart(false);
       } else {
         Swal.fire({
@@ -399,9 +408,9 @@ const Setting = () => {
           icon: "success",
           timer: 2000,
           timerProgressBar: true,
-
           showConfirmButton: false,
         });
+        fetchPermission();
         setModalAddPermission(false);
       } else {
         Swal.fire({
@@ -480,6 +489,7 @@ const Setting = () => {
           showConfirmButton: false,
           timerProgressBar: true,
         });
+        fetchHoliday();
         setModalAddHoliday(false);
       } else {
         Swal.fire({
@@ -532,6 +542,7 @@ const Setting = () => {
           showConfirmButton: false,
           timerProgressBar: true,
         });
+        fetchHoliday();
         setModalEditHoliday(false);
       } else {
         Swal.fire({
@@ -576,6 +587,7 @@ const Setting = () => {
           timer: 2000,
           timerProgressBar: true,
         });
+        fetchHoliday();
       } else {
         Swal.fire({
           text: "Delete Holiday Fail",
@@ -626,6 +638,7 @@ const Setting = () => {
           showConfirmButton: false,
           timerProgressBar: true,
         });
+        fetchRole();
         setModalEditRole(false);
       } else {
         Swal.fire({
@@ -670,6 +683,7 @@ const Setting = () => {
 
           timer: 2000,
         });
+        fetchRole();
       } else {
         Swal.fire({
           text: "Delete Role Fail",
@@ -734,6 +748,7 @@ const Setting = () => {
           showConfirmButton: false,
           timerProgressBar: true,
         });
+        fetchDepartment();
         setModalAddDepart(false);
       } else {
         Swal.fire({
@@ -781,6 +796,7 @@ const Setting = () => {
           showConfirmButton: false,
           timerProgressBar: true,
         });
+        fetchRole();
         setModalEditDepart(false);
       } else {
         Swal.fire({
@@ -827,6 +843,7 @@ const Setting = () => {
           timer: 2000,
           timerProgressBar: true,
         });
+        fetchDepartment();
       } else {
         Swal.fire({
           text: "Delete Department Fail",
@@ -913,6 +930,7 @@ const Setting = () => {
             showConfirmButton: false,
             timerProgressBar: true,
           });
+          fetchJobtitle();
           setModalAddJob(false);
         } else {
           Swal.fire({
@@ -973,6 +991,7 @@ const Setting = () => {
           showConfirmButton: false,
           timerProgressBar: true,
         });
+        fetchJobtitle();
         setModalEditJob(false);
       } else {
         Swal.fire({
@@ -999,6 +1018,7 @@ const Setting = () => {
   };
 
   const token = localStorage.getItem("token");
+
   // Delete Joj
   const verifyDeleteJob = async (id) => {
     setProgress(true);
@@ -1022,6 +1042,7 @@ const Setting = () => {
           timer: 2000,
           timerProgressBar: true,
         });
+        fetchJobtitle();
       } else {
         Swal.fire({
           text: "Delete Job Title Fail",

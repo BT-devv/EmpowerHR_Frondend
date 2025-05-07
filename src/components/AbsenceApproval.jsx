@@ -38,6 +38,7 @@ const AbsenceForm = () => {
       absenceID: selectedEmployee._id,
       status: updateStatus,
     };
+    console.log(data);
     setProgress(true);
     try {
       const response = await axios.put(apiRoutes.absence.updateStatus, data, {
@@ -119,6 +120,7 @@ const AbsenceForm = () => {
           showConfirmButton: false,
           timerProgressBar: true,
         });
+        fetchPending();
         setIsModalReject(false);
         setIsDetailModalOpen(false);
       } else {
@@ -173,7 +175,7 @@ const AbsenceForm = () => {
   };
 
   // Get all pending
-  useEffect(() => {
+  const fetchPending = () => {
     axios
       .get(apiRoutes.absence.listPending, {
         headers: {
@@ -193,6 +195,10 @@ const AbsenceForm = () => {
       .catch((error) => {
         console.error("Error fetching data from API", error);
       });
+  };
+
+  useEffect(() => {
+    fetchPending();
   }, []);
 
   return (

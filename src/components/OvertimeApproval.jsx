@@ -35,7 +35,7 @@ const OvertimeApproval = () => {
   const decodedToken = jwtDecode(token);
 
   // Get all pending
-  useEffect(() => {
+  const fetchPending = () => {
     if (!data) return;
     axios
       .get(apiRoutes.overtime.listPending, {
@@ -55,6 +55,10 @@ const OvertimeApproval = () => {
       .catch((error) => {
         console.error("Error fetching data from API", error);
       });
+  };
+
+  useEffect(() => {
+    fetchPending();
   }, []);
 
   // Page navigation
@@ -101,7 +105,6 @@ const OvertimeApproval = () => {
       status: updateStatus,
     };
     setProgress(true);
-
     try {
       const response = await axios.put(apiRoutes.overtime.updateStatus, data, {
         headers: {
@@ -117,6 +120,7 @@ const OvertimeApproval = () => {
           timer: 2000,
           showConfirmButton: false,
         });
+        fetchPending();
         setIsModalReject(false);
         setIsDetailModalOpen(false);
       } else {
@@ -159,7 +163,6 @@ const OvertimeApproval = () => {
       rejectReason: reasonReject,
     };
     setProgress(true);
-
     try {
       const response = await axios.put(apiRoutes.overtime.updateStatus, data, {
         headers: {
@@ -175,12 +178,9 @@ const OvertimeApproval = () => {
           timer: 2000,
           showConfirmButton: false,
         });
+        fetchPending();
         setIsModalReject(false);
         setIsDetailModalOpen(false);
-
-        // setTimeout(() => {
-        //   window.location.reload();
-        // }, 2000);
       } else {
         Swal.fire({
           text: message,

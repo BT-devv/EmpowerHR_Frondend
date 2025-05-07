@@ -384,7 +384,7 @@ const Employee = () => {
   const [formData4, setFormData4] = useState(() => ({
     employeeType: selectedEmployee?.employeeType || "",
     department: selectedEmployee?.department || "",
-    jobTitle: selectedEmployee?.jobTitle || "",
+    jobtitle: selectedEmployee?.jobtitle || "",
     role: selectedEmployee?.role || "",
     joiningDate: selectedEmployee?.joiningDate || "",
     endDate: selectedEmployee?.endDate || "",
@@ -395,7 +395,7 @@ const Employee = () => {
       setFormData4({
         employeeType: selectedEmployee.employeeType || "",
         department: selectedEmployee.department || "",
-        position: selectedEmployee.jobTitle || "",
+        jobtitle: selectedEmployee.jobtitle || "",
         role: selectedEmployee.role || "",
         joiningDate: selectedEmployee.joiningDate || "",
         endDate: selectedEmployee.endDate || "",
@@ -412,7 +412,7 @@ const Employee = () => {
     setFormData4({
       employeeType: selectedEmployee.type,
       department: selectedEmployee.department,
-      jobTitle: selectedEmployee.jobTitle,
+      jobtitle: selectedEmployee.jobtitle,
       role: selectedEmployee.role,
       joiningDate: selectedEmployee.joiningDate,
       endDate: selectedEmployee.endDate,
@@ -427,37 +427,36 @@ const Employee = () => {
       return;
     }
     setProgress(true);
-    console.log(formData4);
-    // try {
-    //   const response = await axios.put(
-    //     apiRoutes.posts.updateUser(selectedEmployee._id),
-    //     formData4,
-    //     {
-    //       headers: {
-    //         Authorization: `Bearer ${token}`,
-    //         "Content-Type": "application/json",
-    //       },
-    //     }
-    //   );
+    try {
+      const response = await axios.put(
+        apiRoutes.posts.updateUser(selectedEmployee._id),
+        formData4,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-    //   if (response.data.success) {
-    //     Swal.fire({
-    //       text: response.data.message,
-    //       icon: "success",
-    //       showConfirmButton: false,
-    //       timer: 2000,
-    //       timerProgressBar: true,
-    //     });
-    //     setIsEditing4(false);
-    //   } else {
-    //     alert("Cập nhật thất bại: " + response.data.message);
-    //   }
-    // } catch (error) {
-    //   console.error("Lỗi cập nhật:", error);
-    //   alert("Có lỗi xảy ra khi cập nhật.");
-    // } finally {
-    //   setProgress(false);
-    // }
+      if (response.data.success) {
+        Swal.fire({
+          text: response.data.message,
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
+        setIsEditing4(false);
+      } else {
+        alert("Cập nhật thất bại: " + response.data.message);
+      }
+    } catch (error) {
+      console.error("Lỗi cập nhật:", error);
+      alert("Có lỗi xảy ra khi cập nhật.");
+    } finally {
+      setProgress(false);
+    }
   };
 
   // edit employee 3
@@ -543,7 +542,10 @@ const Employee = () => {
     const dept = departData.find((d) => d._id === id);
     return dept ? dept.name : "Unknown";
   };
-
+  const getRoleName = (id) => {
+    const role = roleData.find((d) => d._id === id);
+    return role ? role.name : "Unknown";
+  };
   const getJobName = (id) => {
     const job = positionData.find((d) => d._id === id);
     return job ? job.name : "Unknown";
@@ -599,6 +601,8 @@ const Employee = () => {
     const selectedDept = departData.find(
       (dept) => dept.name === selectedDeptName
     );
+    console.log(selectedDept);
+
     if (selectedDept) {
       const jobIds = selectedDept.jobtitle;
       const filtered = positionData.filter((job) => jobIds.includes(job._id));
@@ -606,8 +610,6 @@ const Employee = () => {
     } else {
       setFilteredJobTitles([]);
     }
-
-    setIsDepartOpen(false);
     setIsDepartOpen(false);
   };
 
@@ -624,8 +626,7 @@ const Employee = () => {
   };
 
   // Get all users
-  useEffect(() => {
-    const token = localStorage.getItem("token");
+  const fetchUsers = () => {
     axios
       .get(apiRoutes.user.getAll, {
         headers: {
@@ -641,6 +642,10 @@ const Employee = () => {
           console.warn("Bạn không có quyền xem user.");
         }
       });
+  };
+
+  useEffect(() => {
+    fetchUsers();
   }, []);
 
   // form validation
@@ -835,12 +840,13 @@ const Employee = () => {
       bankAccountNumber: bankAccountNumber,
       department: departID,
       role: roleID,
-      jobTitle: jobID,
+      jobtitle: jobID,
       joiningDate: joiningDate,
       endDate: endDate,
       status: status ? "Active" : "Inactive",
       city: city,
     };
+    console.log(newUserData);
     setProgress(true);
     try {
       const response = await axios.post(
@@ -876,10 +882,7 @@ const Employee = () => {
           timerProgressBar: true,
         });
         setModalIsOpen(false);
-
-        // setTimeout(() => {
-        //   window.location.reload();
-        // }, 1000);
+        fetchUsers();
       } else {
         Swal.fire({
           text: message,
@@ -1021,9 +1024,7 @@ const Employee = () => {
           timer: 2000,
           timerProgressBar: true,
         });
-        // setTimeout(() => {
-        //   window.location.reload();
-        // }, 1000);
+        fetchUsers();
       } else {
         Swal.fire({
           text: message,
@@ -1820,7 +1821,7 @@ const Employee = () => {
                             onClick={toggleDepartDropdown}
                           >
                             <span className="text-[15px]">
-                              {formData4.department}
+                              {getDepartmentName(formData4.department)}
                             </span>
                             <IoIosArrowDown />
                           </div>
@@ -1834,8 +1835,9 @@ const Employee = () => {
                                   onClick={() => {
                                     setFormData4((prev) => ({
                                       ...prev,
-                                      department: option.name,
+                                      department: option._id,
                                     }));
+                                    handleOptionClick4(option);
                                   }}
                                   className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
                                 >
@@ -1864,7 +1866,7 @@ const Employee = () => {
                             onClick={togglePossitionDropdown}
                           >
                             <span className="text-[15px]">
-                              {formData4?.jobTitle}
+                              {getJobName(formData4.jobtitle)}
                             </span>
                             <IoIosArrowDown />
                           </div>
@@ -1878,7 +1880,7 @@ const Employee = () => {
                                   onClick={() => {
                                     setFormData4((prev) => ({
                                       ...prev,
-                                      jobTitle: option.name,
+                                      jobtitle: option._id,
                                     }));
                                     setIsPositionOpen(false);
                                   }}
@@ -1894,7 +1896,7 @@ const Employee = () => {
                     ) : (
                       <p className="w-fit font-bold">
                         {positionData.find(
-                          (r) => r._id === selectedEmployee.jobTitle
+                          (r) => r._id === selectedEmployee.jobtitle
                         )?.name || "--"}
                       </p>
                     )}
@@ -1909,7 +1911,7 @@ const Employee = () => {
                             onClick={toggleRoleDropdown}
                           >
                             <span className="text-[15px]">
-                              {formData4.role?.name || "Select Role"}
+                              {getRoleName(formData4.role)}
                             </span>
                             <IoIosArrowDown />
                           </div>
@@ -1923,7 +1925,7 @@ const Employee = () => {
                                   onClick={() => {
                                     setFormData4((prev) => ({
                                       ...prev,
-                                      role: option,
+                                      role: option._id,
                                     }));
                                     setIsRoleOpen(false);
                                   }}
@@ -3386,7 +3388,7 @@ const Employee = () => {
                           {`${item.firstName} ${item.lastName}`}
                         </td>
                         <td className="px-4 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%] truncate text-left">
-                          {getJobName(item.jobTitle)}
+                          {getJobName(item.jobtitle)}
                         </td>
                         <td className="px-3 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%] truncate text-left">
                           {getDepartmentName(item.department)}

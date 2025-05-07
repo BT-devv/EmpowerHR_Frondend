@@ -1048,7 +1048,7 @@ const EmployeeDetail = () => {
               <div>
                 <p className="text-[#828282]">Position</p>
                 <p className="w-fit font-bold">
-                  {positionData.find((r) => r._id === employee.jobTitle)
+                  {positionData.find((r) => r._id === employee.jobtitle)
                     ?.name || "--"}
                 </p>
               </div>

@@ -12,6 +12,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import TextField from "@mui/material/TextField";
 import { jwtDecode } from "jwt-decode";
 import { CircularProgress } from "@mui/material";
+import dayjs from "dayjs";
 
 // icon
 import { IoIosArrowDown } from "react-icons/io";
@@ -71,16 +72,8 @@ const OvertimeForm = () => {
       });
       return;
     }
-    const formattedStartTime = new Date(startTime).toLocaleTimeString("vi-VN", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-    const formattedEndTime = new Date(endTime).toLocaleTimeString("vi-VN", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
+    const formattedStartTime = dayjs(startTime).format("HH:mm");
+    const formattedEndTime = dayjs(endTime).format("HH:mm");
 
     const formData = {
       projectManager,
@@ -89,8 +82,8 @@ const OvertimeForm = () => {
       endTime: formattedEndTime,
       reason,
     };
+    console.log(formData);
     setProgress(true);
-
     try {
       const response = await axios.post(apiRoutes.overtime.request, formData, {
         headers: {
@@ -105,13 +98,12 @@ const OvertimeForm = () => {
           icon: "success",
           timer: 2000,
           timerProgressBar: true,
-
           showConfirmButton: false,
         });
         setprojectManager("");
-        setDate("");
-        setStartTime("");
-        setEndTime("");
+        setDate(null);
+        setStartTime(null);
+        setEndTime(null);
         setReason("");
       } else {
         Swal.fire({
@@ -212,7 +204,7 @@ const OvertimeForm = () => {
             <p className="mb-2">Date</p>
             <DatePicker
               value={date}
-              onChange={setDate}
+              onChange={(newValue) => setDate(newValue)}
               format="DD/MM/YYYY"
               renderInput={(params) => <TextField {...params} fullWidth />}
               className="border-gray-200 rounded-[5px] border-[1px] w-[97%] h-[40px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
@@ -227,10 +219,10 @@ const OvertimeForm = () => {
             <p className="mb-2">From</p>
             <TimePicker
               value={startTime}
-              onChange={setStartTime}
+              onChange={(newValue) => setStartTime(newValue)}
               views={["hours", "minutes"]}
               format="hh:mm"
-              renderInput={(params) => <TextField {...params} fullWdth />}
+              renderInput={(params) => <TextField {...params} fullWidth />}
               className="border-gray-200 rounded-[5px] border-[1px] w-[95%] h-[40px] mt-[5px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
             />
           </div>
@@ -238,7 +230,7 @@ const OvertimeForm = () => {
             <p className="mb-2">To</p>
             <TimePicker
               value={endTime}
-              onChange={setEndTime}
+              onChange={(newValue) => setEndTime(newValue)}
               views={["hours", "minutes"]}
               format="hh:mm"
               renderInput={(params) => <TextField {...params} fullWidth />}

@@ -19,6 +19,8 @@ const Dashboard = () => {
   const { hasPermission, loading } = UsePermission("dashboard.read");
 
   const [data, setData] = useState([]);
+  const [job, setJob] = useState([]);
+  const [depart, setDepart] = useState([]);
   const [user, setUser] = useState([]);
   const [totalWFOLate, setTotalWFOLate] = useState("");
 
@@ -73,6 +75,25 @@ const Dashboard = () => {
           console.warn("Bạn không có quyền xem user.");
         }
       });
+  }, []);
+
+  // Get data dropdown
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        const [departments, positions] = await Promise.all([
+          axios.get(apiRoutes.department.getAllDepartment),
+          axios.get(apiRoutes.jobtitle.getAllJobtitle),
+        ]);
+
+        setDepart(departments.data);
+        setJob(positions.data);
+      } catch (error) {
+        console.error("Failed to fetch options:", error);
+      }
+    };
+
+    fetchOptions();
   }, []);
 
   // Get all attendance
@@ -285,7 +306,10 @@ const Dashboard = () => {
                               <div className="ml-3">
                                 <p className="font-bold text-[13px]">{`${item.firstName} ${item.lastName}`}</p>
                                 <p className="text-[13px] mt-1 font-light">
-                                  {item.jobTitle}
+                                  {
+                                    job.find((r) => r._id === item.jobtitle)
+                                      ?.name
+                                  }
                                 </p>
                               </div>
                             </div>
@@ -296,7 +320,10 @@ const Dashboard = () => {
                             <div
                               className={`text-center p-3 rounded-[6px] w-fit h-[40px] flex items-center justify-center ${getRandomColorBg()}`}
                             >
-                              {item.jobTitle}
+                              {
+                                depart.find((r) => r._id === item.department)
+                                  ?.name
+                              }
                             </div>
                           </td>
                         </tr>

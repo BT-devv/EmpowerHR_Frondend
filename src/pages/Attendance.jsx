@@ -21,6 +21,7 @@ const Attendance = () => {
   // Get date
   const currentDate = format(new Date(), "dd MMM, yyyy");
   const [data, setData] = useState([]);
+  const [depart, setDepart] = useState([]);
 
   // Get all users
   useEffect(() => {
@@ -43,6 +44,25 @@ const Attendance = () => {
       });
   }, []);
 
+  // Get all department
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    axios
+      .get(apiRoutes.department.getAllDepartment, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then((response) => {
+        setDepart(response.data);
+      })
+      .catch((error) => {
+        if (error.response?.status === 403) {
+          console.warn("Bạn không có quyền xem user.");
+        }
+      });
+  }, []);
   // Format date
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -232,7 +252,7 @@ const Attendance = () => {
                       </div>
                     </td>
                     <td className="px-3 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%]">
-                      IT Department
+                      {item.department}
                     </td>
                     <td className="px-3 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%]">
                       <div className="truncate text-left w-[100px] ">

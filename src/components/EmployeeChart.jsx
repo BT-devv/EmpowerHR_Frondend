@@ -19,7 +19,6 @@ const EmployeeChart = () => {
       })
       .then((response) => {
         setJobName(response.data);
-        console.log(jobName);
       })
       .catch((error) => {
         if (error.response?.status === 403) {
@@ -30,7 +29,6 @@ const EmployeeChart = () => {
 
   const getJobName = (id) => {
     const job = jobName.find((d) => d._id === id);
-    console.log(job);
     return job ? job.name : "Unknown";
   };
 

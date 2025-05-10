@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import apiRoutes from "../../apiRoutes";
 import PaginationFooter from "../components/PaginationFooter";
 import UsePermission from "../components/UsePermission";
+import SortableHeader from "../components/SortableHeader";
+import Modal from "react-modal";
 
 // icon
 import { PiClock } from "react-icons/pi";
@@ -14,6 +16,9 @@ import { FaArrowTrendUp } from "react-icons/fa6";
 import { CiSearch } from "react-icons/ci";
 import { CiCalendarDate } from "react-icons/ci";
 import { VscSettings } from "react-icons/vsc";
+import { IoIosArrowRoundBack } from "react-icons/io";
+
+Modal.setAppElement("#root");
 
 const Attendance = () => {
   const navigate = useNavigate();
@@ -22,6 +27,26 @@ const Attendance = () => {
   const currentDate = format(new Date(), "dd MMM, yyyy");
   const [data, setData] = useState([]);
   const [depart, setDepart] = useState([]);
+
+  const [showFilterModal, setShowFilterModal] = useState(false);
+
+  const [filters, setFilters] = useState({
+    name: "",
+    department: "",
+    status: "",
+    fromDate: "",
+    toDate: "",
+  });
+
+  const clearFilters = () => {
+    setFilters({
+      name: "",
+      department: "",
+      status: "",
+      fromDate: "",
+      toDate: "",
+    });
+  };
 
   // Get all users
   useEffect(() => {
@@ -63,6 +88,7 @@ const Attendance = () => {
         }
       });
   }, []);
+
   // Format date
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -87,12 +113,65 @@ const Attendance = () => {
     }
   };
 
+  const isFiltering =
+    filters.name ||
+    filters.department ||
+    filters.status ||
+    filters.fromDate ||
+    filters.toDate;
+
+  const filteredData = isFiltering
+    ? data.filter((item) => {
+        const name = item.name?.toLowerCase() || "";
+        const department = item.department?.toLowerCase() || "";
+        const status = item.status || "";
+        const nameMatch = name.includes(filters.name.toLowerCase());
+        const departmentMatch = department.includes(
+          filters.department.toLowerCase()
+        );
+        const statusMatch = filters.status ? status === filters.status : true;
+
+        const itemDate = new Date(item.date);
+        const fromDate = filters.fromDate ? new Date(filters.fromDate) : null;
+        const toDate = filters.toDate ? new Date(filters.toDate) : null;
+        const dateMatch =
+          (!fromDate || itemDate >= fromDate) &&
+          (!toDate || itemDate <= toDate);
+
+        return nameMatch && departmentMatch && statusMatch && dateMatch;
+      })
+    : data;
+
   // Page navigation
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+
+  const requestSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedItems = useMemo(() => {
+    const sorted = [...currentItems];
+    if (sortConfig.key) {
+      sorted.sort((a, b) => {
+        const aVal = a[sortConfig.key]?.toString().toLowerCase() || "";
+        const bVal = b[sortConfig.key]?.toString().toLowerCase() || "";
+        return sortConfig.direction === "asc"
+          ? aVal.localeCompare(bVal)
+          : bVal.localeCompare(aVal);
+      });
+    }
+    return sorted;
+  }, [currentItems, sortConfig]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -196,49 +275,166 @@ const Attendance = () => {
           </div>
 
           {/* Button View */}
-          <div className="flex items-center justify-center h-[50px] px-4 text-white font-normal rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]">
+          <div
+            onClick={() => setShowFilterModal(true)}
+            className="flex items-center justify-center h-[50px] px-4 text-white font-normal rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px] cursor-pointer"
+          >
             <VscSettings className="w-[25px] h-[25px]" />
-            <p className="ml-2 caret-transparent">View Attendance</p>
+            <p className="ml-2 caret-transparent">Filter</p>
           </div>
         </div>
+
+        <Modal
+          isOpen={showFilterModal}
+          onRequestClose={() => setShowFilterModal(false)}
+          shouldCloseOnOverlayClick={false}
+          className="bg-white rounded-[20px] shadow-lg w-auto max-w-[40%] p-12 transition-all duration-500 max-h-[85%] overflow-y-auto no-scrollbar mt-10"
+          overlayClassName="fixed inset-0 bg-[#A8C1B7] bg-opacity-50 flex justify-center items-center"
+        >
+          <div className="flex flex-col mt-[-3%]">
+            <div className="flex items-center mb-2">
+              <IoIosArrowRoundBack
+                className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
+                onClick={() => setShowFilterModal(false)}
+              />
+              <p className="text-[20px] font-bold ">Filters</p>
+            </div>
+            <div className="bg-gray-300 w-[110%] h-0.5 mt-[1%] mb-[1%] ml-[-5%]"></div>
+          </div>
+          <input
+            type="text"
+            placeholder="Input Employee Name"
+            value={filters.name}
+            onChange={(e) => setFilters({ ...filters, name: e.target.value })}
+            className="mt-5 mb-3 w-full border px-3 py-2 rounded h-[50px]"
+          />
+
+          <select
+            value={depart}
+            onChange={(e) => setDepart(e.target.value)}
+            className="w-full border px-3 py-2 rounded-md h-[50px] mb-3"
+          >
+            <option value="">All Department</option>
+            {depart.map((dept) => (
+              <option key={dept.id} value={dept.id}>
+                {dept.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={filters.status}
+            onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+            className="mb-3 w-full border px-3 py-2 rounded h-[50px]"
+          >
+            <option value="">All Status</option>
+            <option value="Work from office">Work from office</option>
+            <option value="Work from home">Work from home</option>
+            <option value="absent">Absent</option>
+            <option value="late">Late</option>
+          </select>
+
+          <div className="flex gap-2 mb-3">
+            <input
+              type="date"
+              value={filters.fromDate}
+              onChange={(e) =>
+                setFilters({ ...filters, fromDate: e.target.value })
+              }
+              className="flex-1 border px-2 py-1 rounded h-[50px]"
+            />
+            <input
+              type="date"
+              value={filters.toDate}
+              onChange={(e) =>
+                setFilters({ ...filters, toDate: e.target.value })
+              }
+              className="flex-1 border px-2 py-1 rounded h-[50px]"
+            />
+          </div>
+          <div className="flex justify-end">
+            <p
+              onClick={() => {
+                setShowFilterModal(false);
+                clearFilters();
+              }}
+              className="mt-1 -mb-10 text-red-500 w-fit ml-[10px] cursor-pointer"
+            >
+              Clear Filter
+            </p>
+          </div>
+        </Modal>
+
         {/* list */}
         {data.length > 0 ? (
           <div className="mt-[20px] text-[14px] ml-[15px]">
             <table className="border-collapse bg-white w-[calc(100vw-400px)]">
               <thead>
                 <tr className="border-gray-300 border-t border-b-2 text-left">
-                  <th className="px-1 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                    ID
-                  </th>
-                  <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                    Employee
-                  </th>
-                  <th className="px-3 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                    Department
-                  </th>
-                  <th className="px-3 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                    Date
-                  </th>
+                  <SortableHeader
+                    label="ID"
+                    sortKey="employeeID"
+                    sortConfig={sortConfig}
+                    onSort={requestSort}
+                    className="px-1 py-5 border-b border-gray-300 text-gray-500"
+                  />
+                  <SortableHeader
+                    label="Employee"
+                    sortKey="firstName"
+                    sortConfig={sortConfig}
+                    onSort={requestSort}
+                    className="px-5 py-5 border-b border-gray-300 text-gray-500"
+                  />
+                  <SortableHeader
+                    label="Department"
+                    sortKey="department"
+                    sortConfig={sortConfig}
+                    onSort={requestSort}
+                    className="px-1 py-5 border-b border-gray-300 text-gray-500"
+                  />
+                  <SortableHeader
+                    label="Date"
+                    sortKey="date"
+                    sortConfig={sortConfig}
+                    onSort={requestSort}
+                    className="px-5 py-5 border-b border-gray-300 text-gray-500"
+                  />
                   <th className="px-3 py-5 border-b border-gray-300 caret-transparent text-gray-500">
                     Status
                   </th>
-                  <th className="px-3 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                    Check-in
-                  </th>
+                  <SortableHeader
+                    label="Check-in"
+                    sortKey="checkIn"
+                    sortConfig={sortConfig}
+                    onSort={requestSort}
+                    className="px-5 py-5 border-b border-gray-300 text-gray-500"
+                  />
                   <th className="px-0 py-5 border-b border-gray-300 caret-transparent"></th>
-                  <th className="px-3 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                    Check-out
-                  </th>
-                  <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                    Overtime
-                  </th>
-                  <th className="px-3 py-5 border-b border-gray-300 caret-transparent text-gray-500 truncate">
-                    Work hours
-                  </th>
+                  <SortableHeader
+                    label="Check-out"
+                    sortKey="checkOut"
+                    sortConfig={sortConfig}
+                    onSort={requestSort}
+                    className="px-5 py-5 border-b border-gray-300 text-gray-500"
+                  />
+                  <SortableHeader
+                    label="Overtime"
+                    sortKey="overtimeHours"
+                    sortConfig={sortConfig}
+                    onSort={requestSort}
+                    className="px-5 py-5 border-b border-gray-300 text-gray-500"
+                  />
+                  <SortableHeader
+                    label="Work hours"
+                    sortKey="workingHours"
+                    sortConfig={sortConfig}
+                    onSort={requestSort}
+                    className="px-5 py-5 border-b border-gray-300 text-gray-500"
+                  />
                 </tr>
               </thead>
               <tbody>
-                {currentItems.map((item) => (
+                {sortedItems.map((item) => (
                   <tr
                     key={item._id}
                     className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer text-[15px]"
@@ -359,7 +555,7 @@ const Attendance = () => {
         <PaginationFooter
           currentPage={currentPage}
           setCurrentPage={setCurrentPage}
-          totalItems={data.length}
+          totalItems={filteredData.length}
           itemsPerPage={itemsPerPage}
           setItemsPerPage={setItemsPerPage}
         />

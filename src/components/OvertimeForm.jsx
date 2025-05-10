@@ -100,7 +100,7 @@ const OvertimeForm = () => {
           timerProgressBar: true,
           showConfirmButton: false,
         });
-        setprojectManager("");
+        setprojectManager([]);
         setDate(null);
         setStartTime(null);
         setEndTime(null);

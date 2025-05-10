@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import apiRoutes from "../../apiRoutes";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -16,7 +16,8 @@ import PaginationFooter from "../components/PaginationFooter";
 import ClickOutside from "../components/ClickOutside";
 import UsePermission from "../components/UsePermission";
 import { CircularProgress } from "@mui/material";
-import alert from "../components/Alert";
+import alert1 from "../components/Alert";
+import SortableHeader from "../components/SortableHeader";
 
 // icon
 import { CiSearch } from "react-icons/ci";
@@ -52,7 +53,6 @@ const Employee = () => {
   const [selectedTab, setSelectedTab] = useState("general");
   const [isCredentialOpen, setIsCredentialOpen] = useState(false);
   const [departID, setDepartID] = useState("");
-  const [roleID, setRoleID] = useState("");
   const [jobID, setJobID] = useState("");
 
   const [errors, setErrors] = useState({});
@@ -105,6 +105,49 @@ const Employee = () => {
   const [positionData, setPositionData] = useState([]);
   const [roleData, setRoleData] = useState([]);
   const [filteredJobTitles, setFilteredJobTitles] = useState([]);
+
+  const [showFilterModal, setShowFilterModal] = useState(false);
+
+  const [filters, setFilters] = useState({
+    name: "",
+    status: "",
+    department: "",
+    jobtitle: "",
+  });
+
+  const clearFilters = () => {
+    setFilters({
+      name: "",
+      jobtitle: "",
+      status: "",
+      department: "",
+    });
+  };
+
+  const isFiltering =
+    filters.name ||
+    filters.date ||
+    filters.status ||
+    filters.department ||
+    filters.jobtitle;
+
+  const filteredData = isFiltering
+    ? data.filter((item) => {
+        const name = item.name?.toLowerCase() || "";
+        const nameMatch =
+          !filters.name || name.includes(filters.name.toLowerCase());
+        const statusMatch = filters.status
+          ? item.status === filters.status
+          : true;
+        const departmentMatch =
+          !filters.department ||
+          item.department?.toString() === filters.department;
+        const jobtitleMatch =
+          !filters.jobtitle || item.jobtitle?.toString() === filters.jobtitle;
+
+        return nameMatch && statusMatch && departmentMatch && jobtitleMatch;
+      })
+    : data;
 
   // Edit employee 1
   const [isEditing1, setIsEditing1] = useState(false);
@@ -532,7 +575,7 @@ const Employee = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -541,10 +584,6 @@ const Employee = () => {
   const getDepartmentName = (id) => {
     const dept = departData.find((d) => d._id === id);
     return dept ? dept.name : "Unknown";
-  };
-  const getRoleName = (id) => {
-    const role = roleData.find((d) => d._id === id);
-    return role ? role.name : "Unknown";
   };
   const getJobName = (id) => {
     const job = positionData.find((d) => d._id === id);
@@ -601,8 +640,6 @@ const Employee = () => {
     const selectedDept = departData.find(
       (dept) => dept.name === selectedDeptName
     );
-    console.log(selectedDept);
-
     if (selectedDept) {
       const jobIds = selectedDept.jobtitle;
       const filtered = positionData.filter((job) => jobIds.includes(job._id));
@@ -839,7 +876,7 @@ const Employee = () => {
       bankAccountName: accountName,
       bankAccountNumber: bankAccountNumber,
       department: departID,
-      role: roleID,
+      role: role,
       jobtitle: jobID,
       joiningDate: joiningDate,
       endDate: endDate,
@@ -1161,9 +1198,33 @@ const Employee = () => {
     }
   };
 
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+
+  const requestSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedItems = useMemo(() => {
+    const sorted = [...currentItems];
+    if (sortConfig.key) {
+      sorted.sort((a, b) => {
+        const aVal = a[sortConfig.key]?.toString().toLowerCase() || "";
+        const bVal = b[sortConfig.key]?.toString().toLowerCase() || "";
+        return sortConfig.direction === "asc"
+          ? aVal.localeCompare(bVal)
+          : bVal.localeCompare(aVal);
+      });
+    }
+    return sorted;
+  }, [currentItems, sortConfig]);
+
   const handleTabSelect = async (key) => {
     if (key !== "general") {
-      alert();
+      alert1();
     }
     if (key === "general") {
       setSelectedTab(key);
@@ -1837,7 +1898,7 @@ const Employee = () => {
                                       ...prev,
                                       department: option._id,
                                     }));
-                                    handleOptionClick4(option);
+                                    handleOptionClick4(option.name);
                                   }}
                                   className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
                                 >
@@ -1911,7 +1972,7 @@ const Employee = () => {
                             onClick={toggleRoleDropdown}
                           >
                             <span className="text-[15px]">
-                              {getRoleName(formData4.role)}
+                              {formData4.role}
                             </span>
                             <IoIosArrowDown />
                           </div>
@@ -1925,7 +1986,7 @@ const Employee = () => {
                                   onClick={() => {
                                     setFormData4((prev) => ({
                                       ...prev,
-                                      role: option._id,
+                                      role: option.name,
                                     }));
                                     setIsRoleOpen(false);
                                   }}
@@ -1940,8 +2001,7 @@ const Employee = () => {
                       </ClickOutside>
                     ) : (
                       <p className="w-fit font-bold capitalize">
-                        {roleData.find((r) => r._id === selectedEmployee.role)
-                          ?.name || "--"}
+                        {selectedEmployee.role}
                       </p>
                     )}
                   </div>
@@ -2370,12 +2430,103 @@ const Employee = () => {
               </div>
 
               {/* Filter Button */}
-              <div className="relative flex items-center min-w-[100px] sm:min-w-[120px]">
-                <BiFilterAlt className="absolute left-4 w-[20px] h-[20px] text-[#2EB67D]" />
-                <div className="h-[50px] w-full pl-12 rounded-[12px] border-2 bg-gray-200 border-gray-300 text-[#252C5880] text-[15px] flex items-center font-light">
-                  Filter
-                </div>
+              <div
+                onClick={() => setShowFilterModal(true)}
+                className="flex items-center justify-center h-[50px] px-4 text-white font-normal rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px] cursor-pointer"
+              >
+                <BiFilterAlt className="w-[25px] h-[25px]" />
+                <p className="ml-2 caret-transparent">Filter</p>
               </div>
+
+              <Modal
+                isOpen={showFilterModal}
+                onRequestClose={() => setShowFilterModal(false)}
+                shouldCloseOnOverlayClick={false}
+                className="bg-white rounded-[20px] shadow-lg w-auto max-w-[40%] p-12 transition-all duration-500 max-h-[85%] overflow-y-auto no-scrollbar mt-10"
+                overlayClassName="fixed inset-0 bg-[#A8C1B7] bg-opacity-50 flex justify-center items-center"
+              >
+                <div className="flex flex-col mt-[-3%]">
+                  <div className="flex items-center mb-2">
+                    <IoIosArrowRoundBack
+                      className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
+                      onClick={() => setShowFilterModal(false)}
+                    />
+                    <p className="text-[20px] font-bold ">Filters</p>
+                  </div>
+                  <div className="bg-gray-300 w-[110%] h-0.5 mt-[1%] mb-[1%] ml-[-5%]"></div>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Input Employee Name"
+                  value={filters.name}
+                  onChange={(e) =>
+                    setFilters({ ...filters, name: e.target.value })
+                  }
+                  className="mt-5 mb-3 w-full border px-3 py-2 rounded h-[50px]"
+                />
+
+                <select
+                  value={filters.department}
+                  onChange={(e) => {
+                    const selectedValue = e.target.value;
+                    setFilters((prev) => ({
+                      ...prev,
+                      department: selectedValue,
+                    }));
+                  }}
+                  className="w-full border px-3 py-2 rounded-md h-[50px] mb-3"
+                >
+                  <option value="">All Department</option>
+                  {departData.map((dept) => (
+                    <option key={dept._id} value={dept._id}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={filters.jobtitle}
+                  onChange={(e) => {
+                    const selectedValue = e.target.value;
+                    setFilters((prev) => ({
+                      ...prev,
+                      jobtitle: selectedValue,
+                    }));
+                  }}
+                  className="w-full border px-3 py-2 rounded-md h-[50px] mb-3"
+                >
+                  <option value="">All Position</option>
+                  {positionData.map((job) => (
+                    <option key={job._id} value={job._id}>
+                      {job.name}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={filters.status}
+                  onChange={(e) =>
+                    setFilters({ ...filters, status: e.target.value })
+                  }
+                  className="mb-3 w-full border px-3 py-2 rounded h-[50px]"
+                >
+                  <option value="">All Status</option>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+
+                <div className="flex justify-end">
+                  <p
+                    onClick={() => {
+                      setShowFilterModal(false);
+                      clearFilters();
+                    }}
+                    className="mt-1 -mb-10 text-red-500 w-fit ml-[10px] cursor-pointer"
+                  >
+                    Clear Filter
+                  </p>
+                </div>
+              </Modal>
 
               {/* Create Employee Button */}
               <div>
@@ -3066,7 +3217,7 @@ const Employee = () => {
                                       key={index}
                                       onClick={() => {
                                         handleOptionClick2(option.name);
-                                        setRoleID(option._id);
+
                                         setErrors({});
                                       }}
                                       className="block capitalize px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
@@ -3352,31 +3503,56 @@ const Employee = () => {
                 <table className="border-collapse mt-[2%] bg-white w-[calc(100vw-400px)] caret-transparent ">
                   <thead>
                     <tr className="border-gray-300 border-t border-b-2 text-left">
-                      <th className="px-2 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        ID
-                      </th>
-                      <th className="px-6 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        Employee
-                      </th>
-                      <th className="px-4 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        Position
-                      </th>
-                      <th className="px-3 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        Department
-                      </th>
-                      <th className="px-3 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        Email Company
-                      </th>
-                      <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                        Status
-                      </th>
+                      <SortableHeader
+                        label="ID"
+                        sortKey="employeeID"
+                        sortConfig={sortConfig}
+                        onSort={requestSort}
+                        className="px-2 py-5 border-b border-gray-300 text-gray-500"
+                      />
+                      <SortableHeader
+                        label="Employee"
+                        sortKey="firstName"
+                        sortConfig={sortConfig}
+                        onSort={requestSort}
+                        className="px-6 py-5 border-b border-gray-300 text-gray-500"
+                      />
+                      <SortableHeader
+                        label="Position"
+                        sortKey="jobtitle"
+                        sortConfig={sortConfig}
+                        onSort={requestSort}
+                        className="px-4 py-5 border-b border-gray-300 text-gray-500"
+                      />
+                      <SortableHeader
+                        label="Department"
+                        sortKey="department"
+                        sortConfig={sortConfig}
+                        onSort={requestSort}
+                        className="px-4 py-5 border-b border-gray-300 text-gray-500"
+                      />
+                      <SortableHeader
+                        label="Email Company"
+                        sortKey="emailCompany"
+                        sortConfig={sortConfig}
+                        onSort={requestSort}
+                        className="px-4 py-5 border-b border-gray-300 text-gray-500"
+                      />
+                      <SortableHeader
+                        label="Status"
+                        sortKey="status"
+                        sortConfig={sortConfig}
+                        onSort={requestSort}
+                        className="px-4 py-5 border-b border-gray-300 text-gray-500"
+                      />
+
                       <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
                         Action
                       </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {currentItems.map((item) => (
+                    {sortedItems.map((item) => (
                       <tr
                         key={item._id}
                         className="hover:bg-[rgba(0,84,232,0.03)] text-[15px]"
@@ -3492,7 +3668,7 @@ const Employee = () => {
             <PaginationFooter
               currentPage={currentPage}
               setCurrentPage={setCurrentPage}
-              totalItems={data.length}
+              totalItems={filteredData.length}
               itemsPerPage={itemsPerPage}
               setItemsPerPage={setItemsPerPage}
             />

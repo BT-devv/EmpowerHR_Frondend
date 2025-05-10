@@ -1,5 +1,5 @@
 import PaginationFooter from "../components/PaginationFooter";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import apiRoutes from "../../apiRoutes";
 import { format } from "date-fns";
@@ -7,6 +7,7 @@ import Modal from "react-modal";
 import { jwtDecode } from "jwt-decode";
 import Swal from "sweetalert2";
 import { CircularProgress } from "@mui/material";
+import SortableHeader from "./SortableHeader";
 
 // icon
 import { CiSearch } from "react-icons/ci";
@@ -31,6 +32,38 @@ const OvertimeApproval = () => {
   const [reasonBorder, setReasonBorder] = useState(false);
   const [reasonError, setReasonError] = useState("");
 
+  const [showFilterModal, setShowFilterModal] = useState(false);
+
+  const [filters, setFilters] = useState({
+    name: "",
+    date: "",
+  });
+
+  const clearFilters = () => {
+    setFilters({
+      name: "",
+      date: "",
+    });
+  };
+
+  const isFiltering = filters.name || filters.date;
+
+  const filteredData = isFiltering
+    ? data.filter((item) => {
+        const name = item.name?.toLowerCase() || "";
+        const itemDate = new Date(item.date);
+
+        const nameMatch =
+          !filters.name || name.includes(filters.name.toLowerCase());
+
+        const filterDate = filters.date ? new Date(filters.date) : null;
+        const dateMatch =
+          !filterDate || itemDate.toDateString() === filterDate.toDateString();
+
+        return nameMatch && dateMatch;
+      })
+    : data;
+
   const token = localStorage.getItem("token");
   const decodedToken = jwtDecode(token);
 
@@ -45,8 +78,9 @@ const OvertimeApproval = () => {
         },
       })
       .then((response) => {
-        setData(response.data);
         const allRequests = response.data.data;
+        setData(allRequests);
+
         const filtered = allRequests.filter(
           (req) => req.projectManager === decodedToken.employeeID
         );
@@ -66,7 +100,7 @@ const OvertimeApproval = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItemsPending = dataPending.slice(
+  const currentItemsPending = filteredData.slice(
     indexOfFirstItem,
     indexOfLastItem
   );
@@ -200,6 +234,30 @@ const OvertimeApproval = () => {
     }
   };
 
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+
+  const requestSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedItems = useMemo(() => {
+    const sorted = [...currentItemsPending];
+    if (sortConfig.key) {
+      sorted.sort((a, b) => {
+        const aVal = a[sortConfig.key]?.toString().toLowerCase() || "";
+        const bVal = b[sortConfig.key]?.toString().toLowerCase() || "";
+        return sortConfig.direction === "asc"
+          ? aVal.localeCompare(bVal)
+          : bVal.localeCompare(aVal);
+      });
+    }
+    return sorted;
+  }, [currentItemsPending, sortConfig]);
+
   return (
     <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-auto ml-[3%] rounded-[15px] mt-[2%] mb-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)] ">
       {progress && (
@@ -241,10 +299,56 @@ const OvertimeApproval = () => {
         </div>
 
         {/* Filter Button */}
-        <div className="flex items-center justify-center min-w-[120px] sm:min-w-[140px] h-[50px] px-4 text-white font-normal rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]">
+        <div
+          onClick={() => setShowFilterModal(true)}
+          className="flex items-center justify-center min-w-[120px] sm:min-w-[140px] h-[50px] px-4 text-white font-normal rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]"
+        >
           <VscSettings className="text-white w-[25px] h-[25px]" />
           <p className="ml-2">Filter</p>
         </div>
+        <Modal
+          isOpen={showFilterModal}
+          onRequestClose={() => setShowFilterModal(false)}
+          shouldCloseOnOverlayClick={false}
+          className="bg-white rounded-[20px] shadow-lg w-auto max-w-[40%] p-12 transition-all duration-500 max-h-[85%] overflow-y-auto no-scrollbar mt-10"
+          overlayClassName="fixed inset-0 bg-[#A8C1B7] bg-opacity-50 flex justify-center items-center"
+        >
+          <div className="flex flex-col mt-[-3%]">
+            <div className="flex items-center mb-2">
+              <IoIosArrowRoundBack
+                className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
+                onClick={() => setShowFilterModal(false)}
+              />
+              <p className="text-[20px] font-bold ">Filters</p>
+            </div>
+            <div className="bg-gray-300 w-[110%] h-0.5 mt-[1%] mb-[1%] ml-[-5%]"></div>
+          </div>
+          <input
+            type="text"
+            placeholder="Input Employee Name"
+            value={filters.name}
+            onChange={(e) => setFilters({ ...filters, name: e.target.value })}
+            className="mt-5 mb-3 w-full border px-3 py-2 rounded h-[50px]"
+          />
+          <input
+            type="date"
+            value={filters.date}
+            onChange={(e) => setFilters({ ...filters, date: e.target.value })}
+            className="flex-1 w-full border px-2 py-1 rounded h-[50px]"
+          />
+
+          <div className="flex justify-end">
+            <p
+              onClick={() => {
+                setShowFilterModal(false);
+                clearFilters();
+              }}
+              className="mt-1 -mb-10 text-red-500 w-fit ml-[10px] cursor-pointer"
+            >
+              Clear Filter
+            </p>
+          </div>
+        </Modal>
       </div>
       {/* List */}
       {dataPending.length > 0 ? (
@@ -252,28 +356,44 @@ const OvertimeApproval = () => {
           <table className="border-collapse bg-white overflow-hidden w-[calc(100vw-400px)] ">
             <thead>
               <tr className="border-gray-300 border-t border-b-2 text-left">
-                <th className="px-1 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                  ID
-                </th>
-                <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                  Employee
-                </th>
-                <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                  Date
-                </th>
-                <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
+                <SortableHeader
+                  label="ID"
+                  sortKey="employeeID"
+                  sortConfig={sortConfig}
+                  onSort={requestSort}
+                  className="px-1 py-5 border-b border-gray-300 text-gray-500"
+                />
+                <SortableHeader
+                  label="Employee"
+                  sortKey="firstName"
+                  sortConfig={sortConfig}
+                  onSort={requestSort}
+                  className="px-5 py-5 border-b border-gray-300 text-gray-500"
+                />
+                <SortableHeader
+                  label="Date"
+                  sortKey="date"
+                  sortConfig={sortConfig}
+                  onSort={requestSort}
+                  className="px-5 py-5 border-b border-gray-300 text-gray-500"
+                />
+                <th className="px-3 py-5 border-b border-gray-300 caret-transparent text-gray-500">
                   Status
                 </th>
-                <th className="px-14 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                  Overtime
-                </th>
+                <SortableHeader
+                  label="Overtime"
+                  sortKey="duration"
+                  sortConfig={sortConfig}
+                  onSort={requestSort}
+                  className="px-5 py-5 border-b border-gray-300 text-gray-500"
+                />
                 <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
                   Action
                 </th>
               </tr>
             </thead>
             <tbody>
-              {currentItemsPending.map((item) => (
+              {sortedItems.map((item) => (
                 <tr
                   key={item._id}
                   className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer text-[15px]"
@@ -523,7 +643,7 @@ const OvertimeApproval = () => {
       <PaginationFooter
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
-        totalItems={dataPending.length}
+        totalItems={filteredData.length}
         itemsPerPage={itemsPerPage}
         setItemsPerPage={setItemsPerPage}
       />

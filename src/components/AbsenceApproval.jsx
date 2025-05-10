@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Modal from "react-modal";
 import PaginationFooter from "./PaginationFooter";
 import Swal from "sweetalert2";
@@ -7,6 +7,7 @@ import axios from "axios";
 import apiRoutes from "../../apiRoutes";
 import { jwtDecode } from "jwt-decode";
 import { CircularProgress } from "@mui/material";
+import SortableHeader from "../components/SortableHeader";
 
 // icon
 import { CiSearch } from "react-icons/ci";
@@ -30,8 +31,46 @@ const AbsenceForm = () => {
   const [reasonBorder, setReasonBorder] = useState(false);
   const [reasonError, setReasonError] = useState("");
 
+  const [showFilterModal, setShowFilterModal] = useState(false);
+
+  const [filters, setFilters] = useState({
+    name: "",
+    createdAt: "",
+  });
+
+  const clearFilters = () => {
+    setFilters({
+      name: "",
+      createdAt: "",
+    });
+  };
+
+  const isFiltering = filters.name || filters.createdAt;
+
+  const filteredData = isFiltering
+    ? dataPending.filter((item) => {
+        const name = item.name?.toLowerCase() || "";
+        const itemDate = new Date(item.createdAt);
+
+        const nameMatch =
+          !filters.name || name.includes(filters.name.toLowerCase());
+
+        const filterDate = filters.createdAt
+          ? new Date(filters.createdAt)
+          : null;
+        const dateMatch =
+          !filterDate || itemDate.toDateString() === filterDate.toDateString();
+
+        return nameMatch && dateMatch;
+      })
+    : dataPending;
+
   const token = localStorage.getItem("token");
   const decodedToken = jwtDecode(token);
+
+  useEffect(() => {
+    fetchPending();
+  }, []);
 
   const handleApprove = async () => {
     const data = {
@@ -120,9 +159,9 @@ const AbsenceForm = () => {
           showConfirmButton: false,
           timerProgressBar: true,
         });
-        fetchPending();
         setIsModalReject(false);
         setIsDetailModalOpen(false);
+        fetchPending();
       } else {
         Swal.fire({
           text: message,
@@ -152,10 +191,34 @@ const AbsenceForm = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItemsPending = dataPending.slice(
+  const currentItemsPending = filteredData.slice(
     indexOfFirstItem,
     indexOfLastItem
   );
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+
+  const requestSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedItems = useMemo(() => {
+    const sorted = [...currentItemsPending];
+    if (sortConfig.key) {
+      sorted.sort((a, b) => {
+        const aVal = a[sortConfig.key]?.toString().toLowerCase() || "";
+        const bVal = b[sortConfig.key]?.toString().toLowerCase() || "";
+        return sortConfig.direction === "asc"
+          ? aVal.localeCompare(bVal)
+          : bVal.localeCompare(aVal);
+      });
+    }
+    return sorted;
+  }, [currentItemsPending, sortConfig]);
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentPage]);
@@ -197,10 +260,6 @@ const AbsenceForm = () => {
       });
   };
 
-  useEffect(() => {
-    fetchPending();
-  }, []);
-
   return (
     <div className="flex flex-col bg-[#FFFFFF] w-[calc(100vw-340px)] h-auto ml-[3%] rounded-[15px] mt-[2%] mb-[2%] items-start p-[10px] shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
       {progress && (
@@ -241,10 +300,58 @@ const AbsenceForm = () => {
         </div>
 
         {/* Filter Button */}
-        <div className="flex items-center justify-center min-w-[120px] sm:min-w-[140px] h-[50px] px-4 text-white font-normal rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]">
+        <div
+          onClick={() => setShowFilterModal(true)}
+          className="flex items-center justify-center min-w-[120px] sm:min-w-[140px] h-[50px] px-4 text-white font-normal rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px]"
+        >
           <VscSettings className="text-white w-[25px] h-[25px]" />
           <p className="ml-2">Filter</p>
         </div>
+        <Modal
+          isOpen={showFilterModal}
+          onRequestClose={() => setShowFilterModal(false)}
+          shouldCloseOnOverlayClick={false}
+          className="bg-white rounded-[20px] shadow-lg w-auto max-w-[40%] p-12 transition-all duration-500 max-h-[85%] overflow-y-auto no-scrollbar mt-10"
+          overlayClassName="fixed inset-0 bg-[#A8C1B7] bg-opacity-50 flex justify-center items-center"
+        >
+          <div className="flex flex-col mt-[-3%]">
+            <div className="flex items-center mb-2">
+              <IoIosArrowRoundBack
+                className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
+                onClick={() => setShowFilterModal(false)}
+              />
+              <p className="text-[20px] font-bold ">Filters</p>
+            </div>
+            <div className="bg-gray-300 w-[110%] h-0.5 mt-[1%] mb-[1%] ml-[-5%]"></div>
+          </div>
+          <input
+            type="text"
+            placeholder="Input Employee Name"
+            value={filters.name}
+            onChange={(e) => setFilters({ ...filters, name: e.target.value })}
+            className="mt-5 mb-3 w-full border px-3 py-2 rounded h-[50px]"
+          />
+          <input
+            type="date"
+            value={filters.createdAt}
+            onChange={(e) =>
+              setFilters({ ...filters, createdAt: e.target.value })
+            }
+            className="flex-1 w-full border px-2 py-1 rounded h-[50px]"
+          />
+
+          <div className="flex justify-end">
+            <p
+              onClick={() => {
+                setShowFilterModal(false);
+                clearFilters();
+              }}
+              className="mt-1 -mb-10 text-red-500 w-fit ml-[10px] cursor-pointer"
+            >
+              Clear Filter
+            </p>
+          </div>
+        </Modal>
       </div>
       {/* List */}
       {dataPending.length > 0 ? (
@@ -252,15 +359,27 @@ const AbsenceForm = () => {
           <table className="border-collapse bg-white overflow-hidden w-[calc(100vw-400px)] ">
             <thead>
               <tr className="border-gray-300 border-t border-b-2 text-left">
-                <th className="px-1 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                  ID
-                </th>
-                <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                  Employee
-                </th>
-                <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                  Date
-                </th>
+                <SortableHeader
+                  label="ID"
+                  sortKey="employeeID"
+                  sortConfig={sortConfig}
+                  onSort={requestSort}
+                  className="px-1 py-5 border-b border-gray-300 text-gray-500"
+                />
+                <SortableHeader
+                  label="Employee"
+                  sortKey="firstName"
+                  sortConfig={sortConfig}
+                  onSort={requestSort}
+                  className="px-5 py-5 border-b border-gray-300 text-gray-500"
+                />
+                <SortableHeader
+                  label="Date"
+                  sortKey="createdAt"
+                  sortConfig={sortConfig}
+                  onSort={requestSort}
+                  className="px-5 py-5 border-b border-gray-300 text-gray-500"
+                />
                 <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
                   Status
                 </th>
@@ -273,7 +392,7 @@ const AbsenceForm = () => {
               </tr>
             </thead>
             <tbody>
-              {currentItemsPending.map((item) => (
+              {sortedItems.map((item) => (
                 <tr
                   key={item._id}
                   className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer text-[15px]"
@@ -529,7 +648,7 @@ const AbsenceForm = () => {
       <PaginationFooter
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
-        totalItems={dataPending.length}
+        totalItems={filteredData.length}
         itemsPerPage={itemsPerPage}
         setItemsPerPage={setItemsPerPage}
       />

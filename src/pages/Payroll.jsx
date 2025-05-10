@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Modal from "react-modal";
 import TabSelector from "../components/TabSelector";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +15,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { jwtDecode } from "jwt-decode";
 import { CircularProgress } from "@mui/material";
 import alert from "../components/Alert";
+import SortableHeader from "../components/SortableHeader";
 
 // icon
 import { CiSearch } from "react-icons/ci";
@@ -34,7 +35,6 @@ const Payroll = () => {
   const [payroll, setPayroll] = useState([]);
   const [baseSalary, setBaseSalary] = useState([]);
   const [data, setData] = useState([]);
-
   const [selectedTab, setSelectedTab] = useState("payroll");
   const [selectedTab2, setSelectedTab2] = useState("base");
   const [modalSalaryIsOpen, setModalSalaryIsOpen] = useState(false);
@@ -76,6 +76,67 @@ const Payroll = () => {
   const [bonus, setBonus] = useState("");
   const [month, setMonth] = useState(null);
   const [year, setYear] = useState(null);
+
+  const mergedData = payroll.map((salary) => {
+    const user = data.find((emp) => emp.employeeID === salary.employeeID);
+    const employeeName = user ? `${user.firstName} ${user.lastName}` : "";
+    return {
+      ...salary,
+      employeeName,
+      email: user?.emailPersonal || "",
+      department: user?.department || "",
+      type: user?.employeeType || "",
+      joiningDate: user?.joiningDate || "",
+    };
+  });
+  const [showFilterModal, setShowFilterModal] = useState(false);
+
+  const [filters, setFilters] = useState({
+    employeeName: "",
+    joiningDate: "",
+    type: "",
+    department: "",
+  });
+
+  const clearFilters = () => {
+    setFilters({
+      employeeName: "",
+      joiningDate: "",
+      type: "",
+      department: "",
+    });
+  };
+
+  const isFiltering =
+    filters.employeeName ||
+    filters.joiningDate ||
+    filters.type ||
+    filters.department;
+
+  const filteredData = isFiltering
+    ? mergedData.filter((item) => {
+        const name = item.employeeName?.toLowerCase() || "";
+        const nameMatch =
+          !filters.employeeName ||
+          name.includes(filters.employeeName.toLowerCase());
+
+        const itemDate = item.joiningDate ? new Date(item.joiningDate) : null;
+        const filterDate = filters.joiningDate
+          ? new Date(filters.joiningDate)
+          : null;
+        const dateMatch =
+          !filterDate ||
+          (itemDate && itemDate.toDateString() === filterDate.toDateString());
+        const departmentMatch =
+          !filters.department ||
+          item.department?.toString() === filters.department;
+        const typeMatch =
+          !filters.type ||
+          String(item.type).toLowerCase() === filters.type.toLowerCase();
+
+        return nameMatch && dateMatch && departmentMatch && typeMatch;
+      })
+    : mergedData;
 
   useEffect(() => {
     if (selectedEmployee1) {
@@ -159,23 +220,11 @@ const Payroll = () => {
         );
 
         setDatausers(filteredUser);
-        console.log(JSON.stringify(data));
       })
       .catch((error) => {
         console.error("Error fetching data from API", error);
       });
   }, []);
-
-  const mergedData = payroll.map((salary) => {
-    const user = data.find((emp) => emp.employeeID === salary.employeeID);
-    return {
-      ...salary,
-      email: user?.emailPersonal || "",
-      department: user?.department || "",
-      type: user?.employeeType || "",
-      joiningDate: user?.joiningDate || "",
-    };
-  });
 
   // Dropdown selection of manager name
   const toggleNameDropdown = () => setIsNameOpen(!isNameOpen);
@@ -197,11 +246,6 @@ const Payroll = () => {
         }
       });
   };
-
-  useEffect(() => {
-    fetchPayroll();
-    fetchBase();
-  }, []);
 
   // Update salary
   const handleUpdateSalary = async (id) => {
@@ -311,6 +355,11 @@ const Payroll = () => {
         }
       });
   };
+
+  useEffect(() => {
+    fetchPayroll();
+    fetchBase();
+  }, []);
 
   // Create Base salary
   const handleCreateBasealary = async () => {
@@ -435,8 +484,8 @@ const Payroll = () => {
       departmentId: selectedDepartmentId,
       jobtitleIds: selectedJobTitles,
     };
-    setProgress(true);
     fetchBase();
+    setProgress(true);
     try {
       const response = await axios.put(
         apiRoutes.basesalary.updateBaseSalary(id),
@@ -557,8 +606,68 @@ const Payroll = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  // const currentItems = payroll.slice(indexOfFirstItem, indexOfLastItem);
   const currentItems1 = baseSalary.slice(indexOfFirstItem, indexOfLastItem);
+
+  const [sortConfig1, setSortConfig1] = useState({
+    key: null,
+    direction: "asc",
+  });
+  const [sortConfig2, setSortConfig2] = useState({
+    key: null,
+    direction: "asc",
+  });
+
+  const requestSort1 = (key) => {
+    let direction = "asc";
+    if (sortConfig1.key === key && sortConfig1.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig1({ key, direction });
+  };
+
+  const requestSort2 = (key) => {
+    let direction = "asc";
+    if (sortConfig2.key === key && sortConfig2.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig2({ key, direction });
+  };
+
+  const sortedItems1 = useMemo(() => {
+    const sorted = [...currentItems1];
+    if (sortConfig1.key) {
+      sorted.sort((a, b) => {
+        const aVal = a[sortConfig1.key];
+        const bVal = b[sortConfig1.key];
+
+        if (typeof aVal === "number" && typeof bVal === "number") {
+          return sortConfig1.direction === "asc" ? aVal - bVal : bVal - aVal;
+        }
+
+        const aStr = aVal?.toString().toLowerCase() || "";
+        const bStr = bVal?.toString().toLowerCase() || "";
+
+        return sortConfig1.direction === "asc"
+          ? aStr.localeCompare(bStr)
+          : bStr.localeCompare(aStr);
+      });
+    }
+    return sorted;
+  }, [currentItems1, sortConfig1]);
+
+  const sortedItems2 = useMemo(() => {
+    const sorted = [...filteredData];
+    if (sortConfig2.key) {
+      sorted.sort((a, b) => {
+        const aVal = a[sortConfig2.key]?.toString().toLowerCase() || "";
+        const bVal = b[sortConfig2.key]?.toString().toLowerCase() || "";
+        return sortConfig2.direction === "asc"
+          ? aVal.localeCompare(bVal)
+          : bVal.localeCompare(aVal);
+      });
+    }
+    return sorted;
+  }, [filteredData, sortConfig2]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -620,12 +729,94 @@ const Payroll = () => {
             </div>
 
             {/* Filter Button */}
-            <div className="relative flex items-center min-w-[100px] sm:min-w-[120px]">
-              <BiFilterAlt className="absolute left-4 w-[20px] h-[20px] text-[#2EB67D]" />
-              <div className="h-[50px] w-full pl-12 rounded-[12px] border-2 bg-gray-200 border-gray-300 text-[#252C5880] text-[15px] flex items-center font-light">
-                Filter
-              </div>
+            <div
+              onClick={() => setShowFilterModal(true)}
+              className="flex items-center justify-center h-[50px] px-4 text-white font-normal rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px] cursor-pointer"
+            >
+              <BiFilterAlt className="w-[25px] h-[25px]" />
+              <p className="ml-2 caret-transparent">Filter</p>
             </div>
+            <Modal
+              isOpen={showFilterModal}
+              onRequestClose={() => setShowFilterModal(false)}
+              shouldCloseOnOverlayClick={false}
+              className="bg-white rounded-[20px] shadow-lg w-auto max-w-[40%] p-12 transition-all duration-500 max-h-[85%] overflow-y-auto no-scrollbar mt-10"
+              overlayClassName="fixed inset-0 bg-[#A8C1B7] bg-opacity-50 flex justify-center items-center"
+            >
+              <div className="flex flex-col mt-[-3%]">
+                <div className="flex items-center mb-2">
+                  <IoIosArrowRoundBack
+                    className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
+                    onClick={() => setShowFilterModal(false)}
+                  />
+                  <p className="text-[20px] font-bold ">Filters</p>
+                </div>
+                <div className="bg-gray-300 w-[110%] h-0.5 mt-[1%] mb-[1%] ml-[-5%]"></div>
+              </div>
+              <input
+                type="text"
+                placeholder="Input Employee Name"
+                value={filters.employeeName}
+                onChange={(e) =>
+                  setFilters({ ...filters, employeeName: e.target.value })
+                }
+                className="mt-5 mb-3 w-full border px-3 py-2 rounded h-[50px]"
+              />
+
+              <select
+                value={filters.department}
+                onChange={(e) => {
+                  const selectedValue = e.target.value;
+                  setFilters((prev) => ({
+                    ...prev,
+                    department: selectedValue,
+                  }));
+                }}
+                className="w-full border px-3 py-2 rounded-md h-[50px] mb-3"
+              >
+                <option value="">All Department</option>
+                {departData.map((dept) => (
+                  <option key={dept._id} value={dept._id}>
+                    {dept.name}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={filters.type}
+                onChange={(e) =>
+                  setFilters({ ...filters, type: e.target.value })
+                }
+                className="mb-3 w-full border px-3 py-2 rounded h-[50px]"
+              >
+                <option value="">All Type</option>
+                <option value="Fulltime">Fulltime</option>
+                <option value="Partime">Partime</option>
+                <option value="Collab">Collab</option>
+                <option value="Intern">Intern</option>
+              </select>
+
+              <input
+                type="date"
+                value={filters.joiningDate}
+                onChange={(e) =>
+                  setFilters({ ...filters, joiningDate: e.target.value })
+                }
+                className="flex-1 border px-2 py-1 w-full rounded h-[50px]"
+              />
+
+              <div className="flex justify-end mt-5">
+                <p
+                  onClick={() => {
+                    setShowFilterModal(false);
+                    clearFilters();
+                  }}
+                  className="mt-1 -mb-10 text-red-500 w-fit ml-[10px] cursor-pointer"
+                >
+                  Clear Filter
+                </p>
+              </div>
+            </Modal>
 
             {/* Add Salary */}
             <div
@@ -785,34 +976,54 @@ const Payroll = () => {
               <table className="border-collapse bg-white overflow-hidden w-[calc(100vw-400px)] ">
                 <thead>
                   <tr className="border-gray-300 border-t border-b-2 text-left">
-                    <th className="px-1 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                      ID
-                    </th>
-                    <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                      Employee
-                    </th>
+                    <SortableHeader
+                      label="ID"
+                      sortKey="employeeID"
+                      sortConfig={sortConfig2}
+                      onSort={requestSort2}
+                      className="px-1 py-5 border-b border-gray-300 text-gray-500"
+                    />
+                    <SortableHeader
+                      label="Employee"
+                      sortKey="firstName"
+                      sortConfig={sortConfig2}
+                      onSort={requestSort2}
+                      className="px-5 py-5 border-b border-gray-300 text-gray-500"
+                    />
                     <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
                       Email
                     </th>
-                    <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                      Department
-                    </th>
+                    <SortableHeader
+                      label="Department"
+                      sortKey="department"
+                      sortConfig={sortConfig2}
+                      onSort={requestSort2}
+                      className="px-5 py-5 border-b border-gray-300 text-gray-500"
+                    />
                     <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
                       Employee Type
                     </th>
-                    <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                      Joining Date
-                    </th>
-                    <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                      Salary
-                    </th>
+                    <SortableHeader
+                      label="Joining Date"
+                      sortKey="joiningDate"
+                      sortConfig={sortConfig2}
+                      onSort={requestSort2}
+                      className="px-1 py-5 border-b border-gray-300 text-gray-500"
+                    />
+                    <SortableHeader
+                      label="Salary"
+                      sortKey="total"
+                      sortConfig={sortConfig2}
+                      onSort={requestSort2}
+                      className="px-1 py-5 border-b border-gray-300 text-gray-500"
+                    />
                     <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
                       Action
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {mergedData.map((item) => (
+                  {sortedItems2.map((item) => (
                     <tr
                       key={item._id}
                       className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer text-[15px] text-left"
@@ -1079,7 +1290,7 @@ const Payroll = () => {
           <PaginationFooter
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
-            totalItems={payroll.length}
+            totalItems={filteredData.length}
             itemsPerPage={itemsPerPage}
             setItemsPerPage={setItemsPerPage}
           />
@@ -1304,21 +1515,37 @@ const Payroll = () => {
                   <table className="border-collapse bg-white overflow-hidden w-[calc(100vw-400px)] ">
                     <thead>
                       <tr className="border-gray-300 border-t border-b-2 text-left">
-                        <th className="px-1 py-5 border-b border-gray-300 caret-transparent text-gray-500">
+                        <th className="px-1 py-5 border-b border-gray-300 text-gray-500">
                           No
                         </th>
-                        <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                          Name
-                        </th>
-                        <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                          Department
-                        </th>
-                        <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                          Job Type
-                        </th>
-                        <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
-                          Amount
-                        </th>
+                        <SortableHeader
+                          label="Name"
+                          sortKey="name"
+                          sortConfig={sortConfig1}
+                          onSort={requestSort1}
+                          className="px-1 py-5 border-b border-gray-300 text-gray-500"
+                        />
+                        <SortableHeader
+                          label="Department"
+                          sortKey="department"
+                          sortConfig={sortConfig1}
+                          onSort={requestSort1}
+                          className="px-1 py-5 border-b border-gray-300 text-gray-500"
+                        />
+                        <SortableHeader
+                          label="Jobtitle"
+                          sortKey="department.jobtitle.length"
+                          sortConfig={sortConfig1}
+                          onSort={requestSort1}
+                          className="px-1 py-5 border-b border-gray-300 text-gray-500"
+                        />
+                        <SortableHeader
+                          label="Amount"
+                          sortKey="amount"
+                          sortConfig={sortConfig1}
+                          onSort={requestSort1}
+                          className="px-1 py-5 border-b border-gray-300 text-gray-500"
+                        />
                         <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
                           Unit
                         </th>
@@ -1328,7 +1555,7 @@ const Payroll = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {currentItems1.map((item, index) => (
+                      {sortedItems1.map((item, index) => (
                         <tr
                           key={item._id}
                           className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer text-[15px] font-bold"

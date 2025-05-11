@@ -7,7 +7,8 @@ import PaginationFooter from "../components/PaginationFooter";
 import UsePermission from "../components/UsePermission";
 import SortableHeader from "../components/SortableHeader";
 import Modal from "react-modal";
-
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 // icon
 import { PiClock } from "react-icons/pi";
 import { IoBulbOutline } from "react-icons/io5";
@@ -17,6 +18,10 @@ import { CiSearch } from "react-icons/ci";
 import { CiCalendarDate } from "react-icons/ci";
 import { VscSettings } from "react-icons/vsc";
 import { IoIosArrowRoundBack } from "react-icons/io";
+import { HiOutlineDotsHorizontal } from "react-icons/hi";
+import { FaRegAddressCard } from "react-icons/fa";
+import { IoTrashBinOutline } from "react-icons/io5";
+import { PiExport } from "react-icons/pi";
 
 Modal.setAppElement("#root");
 
@@ -26,9 +31,12 @@ const Attendance = () => {
   // Get date
   const currentDate = format(new Date(), "dd MMM, yyyy");
   const [data, setData] = useState([]);
-  const [depart, setDepart] = useState([]);
+  // const [depart, setDepart] = useState([]);
 
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [moreOptions, setMoreOptions] = useState(null);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
 
   const [filters, setFilters] = useState({
     name: "",
@@ -70,24 +78,24 @@ const Attendance = () => {
   }, []);
 
   // Get all department
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    axios
-      .get(apiRoutes.department.getAllDepartment, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      })
-      .then((response) => {
-        setDepart(response.data);
-      })
-      .catch((error) => {
-        if (error.response?.status === 403) {
-          console.warn("Bạn không có quyền xem user.");
-        }
-      });
-  }, []);
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
+  //   axios
+  //     .get(apiRoutes.department.getAllDepartment, {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //         "Content-Type": "application/json",
+  //       },
+  //     })
+  //     .then((response) => {
+  //       setDepart(response.data);
+  //     })
+  //     .catch((error) => {
+  //       if (error.response?.status === 403) {
+  //         console.warn("Bạn không có quyền xem user.");
+  //       }
+  //     });
+  // }, []);
 
   // Format date
   const formatDate = (dateString) => {
@@ -111,6 +119,10 @@ const Attendance = () => {
       default:
         return status;
     }
+  };
+
+  const closeModal = () => {
+    setModalIsOpen(false);
   };
 
   const isFiltering =
@@ -185,6 +197,37 @@ const Attendance = () => {
   const overtime = data.filter(
     (a) => a.overtime === true || a.workDuration > 8
   ).length;
+
+  const exportAttendanceToExcel = () => {
+    const formattedData = data.map((item) => ({
+      EmployeeID: item.employeeID,
+      Name: item.name,
+      CheckIn: item.checkIn ? item.checkIn : "---",
+      CheckOut: item.checkOut ? item.checkOut : "---",
+      Date: formatDate(item.date),
+      WorkingTime: `${item.workingHours}`,
+      Status: item.status,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(formattedData);
+    const colWidths = Object.keys(formattedData[0]).map((key) => {
+      const maxLength = Math.max(
+        key.length,
+        ...formattedData.map((item) =>
+          item[key] ? item[key].toString().length : 0
+        )
+      );
+      return { wch: maxLength + 2 };
+    });
+    ws["!cols"] = colWidths;
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([excelBuffer], {
+      type: "application/octet-stream",
+    });
+    saveAs(blob, "attendance.xlsx");
+  };
 
   useEffect(() => {
     if (!loading && !hasPermission) {
@@ -273,6 +316,13 @@ const Attendance = () => {
               {currentDate}
             </div>
           </div>
+          <div
+            onClick={() => exportAttendanceToExcel()}
+            className="flex items-center justify-center h-[50px] px-4 text-white font-normal rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px] cursor-pointer"
+          >
+            <PiExport className="w-[25px] h-[25px]" />
+            <p className="ml-2 caret-transparent">Export</p>
+          </div>
 
           {/* Button View */}
           <div
@@ -309,7 +359,7 @@ const Attendance = () => {
             className="mt-5 mb-3 w-full border px-3 py-2 rounded h-[50px]"
           />
 
-          <select
+          {/* <select
             value={depart}
             onChange={(e) => setDepart(e.target.value)}
             className="w-full border px-3 py-2 rounded-md h-[50px] mb-3"
@@ -320,7 +370,7 @@ const Attendance = () => {
                 {dept.name}
               </option>
             ))}
-          </select>
+          </select> */}
 
           <select
             value={filters.status}
@@ -352,16 +402,24 @@ const Attendance = () => {
               className="flex-1 border px-2 py-1 rounded h-[50px]"
             />
           </div>
-          <div className="flex justify-end">
-            <p
-              onClick={() => {
-                setShowFilterModal(false);
-                clearFilters();
-              }}
-              className="mt-1 -mb-10 text-red-500 w-fit ml-[10px] cursor-pointer"
+          <div className="flex justify-end -mb-5">
+            <div>
+              <p
+                onClick={() => {
+                  setShowFilterModal(false);
+                  clearFilters();
+                }}
+                className="mt-1 -mb-10 text-red-500 w-fit ml-[10px] p-3 cursor-pointer"
+              >
+                Clear Filter
+              </p>
+            </div>
+            <button
+              onClick={() => setShowFilterModal(false)}
+              className="mt-1 bg-[#E7F7EF] text-[#097C44] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] ml-[10px]"
             >
-              Clear Filter
-            </p>
+              Save
+            </button>
           </div>
         </Modal>
 
@@ -386,18 +444,11 @@ const Attendance = () => {
                     className="px-5 py-5 border-b border-gray-300 text-gray-500"
                   />
                   <SortableHeader
-                    label="Department"
-                    sortKey="department"
-                    sortConfig={sortConfig}
-                    onSort={requestSort}
-                    className="px-1 py-5 border-b border-gray-300 text-gray-500"
-                  />
-                  <SortableHeader
                     label="Date"
                     sortKey="date"
                     sortConfig={sortConfig}
                     onSort={requestSort}
-                    className="px-5 py-5 border-b border-gray-300 text-gray-500"
+                    className="px-3 py-5 border-b border-gray-300 text-gray-500"
                   />
                   <th className="px-3 py-5 border-b border-gray-300 caret-transparent text-gray-500">
                     Status
@@ -407,7 +458,7 @@ const Attendance = () => {
                     sortKey="checkIn"
                     sortConfig={sortConfig}
                     onSort={requestSort}
-                    className="px-5 py-5 border-b border-gray-300 text-gray-500"
+                    className="px-3 py-5 border-b border-gray-300 text-gray-500"
                   />
                   <th className="px-0 py-5 border-b border-gray-300 caret-transparent"></th>
                   <SortableHeader
@@ -415,7 +466,7 @@ const Attendance = () => {
                     sortKey="checkOut"
                     sortConfig={sortConfig}
                     onSort={requestSort}
-                    className="px-5 py-5 border-b border-gray-300 text-gray-500"
+                    className="px-4 py-5 border-b border-gray-300 text-gray-500"
                   />
                   <SortableHeader
                     label="Overtime"
@@ -429,8 +480,11 @@ const Attendance = () => {
                     sortKey="workingHours"
                     sortConfig={sortConfig}
                     onSort={requestSort}
-                    className="px-5 py-5 border-b border-gray-300 text-gray-500"
+                    className="px-3 py-5 border-b border-gray-300 text-gray-500"
                   />
+                  <th className="px-5 py-5 border-b border-gray-300 caret-transparent text-gray-500">
+                    Action
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -446,9 +500,6 @@ const Attendance = () => {
                       <div className="truncate text-left w-[130px] ">
                         {item.name}
                       </div>
-                    </td>
-                    <td className="px-3 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%]">
-                      {item.department}
                     </td>
                     <td className="px-3 py-6 border-b border-gray-200 text-[#252C58] opacity-[50%]">
                       <div className="truncate text-left w-[100px] ">
@@ -478,9 +529,9 @@ const Attendance = () => {
                         {getStatusDisplay(item.status)}
                       </div>
                     </td>
-                    <td className="px-3 py-6 border-b border-gray-200">
+                    <td className="px-3 py-6 border-b border-gray-200 w-fit">
                       <div
-                        className={`text-center w-[70px] ${
+                        className={`text-center ${
                           item.status === "Work from office"
                             ? "text-[#0764E6] "
                             : ""
@@ -495,12 +546,12 @@ const Attendance = () => {
                         {item.checkIn ? item.checkIn.slice(0, 5) : "00:00"}
                       </div>
                     </td>
-                    <td className="px-0 py-6 border-b border-gray-200 text-gray-400 text-center">
+                    <td className="px-0 py-6 border-b border-gray-200 text-gray-400 text-center w-[4%]">
                       ----
                     </td>
-                    <td className="px-4 py-6 border-b border-gray-200">
+                    <td className="px-4 py-6 border-b border-gray-200 w-fit">
                       <div
-                        className={`text-center w-[70px] ${
+                        className={`text-center ${
                           item.status === "Work from office"
                             ? "text-[#0764E6] "
                             : ""
@@ -533,6 +584,145 @@ const Attendance = () => {
                         {item.workingHours ? item.workingHours : "0m"}
                       </div>
                     </td>
+                    <td className="px-5 py-6 border-b border-gray-200 relative cursor-pointer">
+                      <HiOutlineDotsHorizontal
+                        className="text-[23px]"
+                        onClick={() => {
+                          setMoreOptions(
+                            moreOptions === item.employeeID
+                              ? null
+                              : item.employeeID
+                          );
+                        }}
+                      />
+                    </td>
+                    {moreOptions === item.employeeID && (
+                      <div
+                        className="absolute bg-white right-5 z-10 mt-2 w-[200%] origin-top-right rounded-[20px] focus:outline-none "
+                        role="menu"
+                        aria-orientation="vertical"
+                        aria-labelledby="menu-button"
+                      >
+                        <div className="absolute right-3 z-10 t-[-20px] w-auto origin-top-right rounded-lg shadow-lg bg-white">
+                          <div className="flex flex-col divide-y divide-gray-200">
+                            {/* View Detail */}
+                            <div
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setMoreOptions(null);
+                                setSelectedEmployee(item);
+                                setModalIsOpen(true);
+                              }}
+                              className="flex items-center px-4 py-3 text-[15px] text-gray-700 hover:bg-gray-100 cursor-pointer"
+                            >
+                              <FaRegAddressCard className="w-[20px] h-[20px] text-[#2EB67D] mr-3" />
+                              <span>View detail</span>
+                            </div>
+
+                            {/* Delete */}
+                            <div
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setMoreOptions(null);
+                                // verifyDelete(item._id);
+                              }}
+                              className="flex items-center px-4 py-3 text-[15px] text-gray-700 hover:bg-gray-100 cursor-pointer"
+                            >
+                              <IoTrashBinOutline className="w-[20px] h-[20px] text-[#2EB67D] mr-3" />
+                              <span>Delete</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {selectedEmployee && (
+                      <Modal
+                        isOpen={modalIsOpen}
+                        onRequestClose={() => setModalIsOpen(false)}
+                        shouldCloseOnOverlayClick={false}
+                        className="bg-white mt-10 rounded-[20px] shadow-lg w-auto max-w-[80%] p-12 transition-all duration-500 max-h-[95%] overflow-y-auto no-scrollbar"
+                        overlayClassName="fixed inset-0 bg-[#A8C1B7] bg-opacity-10 flex justify-center items-center"
+                      >
+                        <div className="flex flex-col mt-[-5%] ml-[-5%]">
+                          <div className="flex items-center mb-2">
+                            <IoIosArrowRoundBack
+                              className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
+                              onClick={closeModal}
+                            />
+                            <p className="text-[20px] font-bold ">
+                              Edit Attendance
+                            </p>
+                          </div>
+                          <div className="bg-gray-200 w-[120%] h-0.5 mt-[1%] mb-[1%] ml-[-10%]"></div>
+                          <div className="mt-3">
+                            <div className="flex space-x-8">
+                              <p className="w-[40%] p-3">Work hours</p>
+                              <input
+                                type="text"
+                                name="workingHours"
+                                value={selectedEmployee.workingHours}
+                                onChange={(e) =>
+                                  setSelectedEmployee({
+                                    ...selectedEmployee,
+                                    workingHours: e.target.value,
+                                  })
+                                }
+                                className="border border-gray-300 rounded-md p-3 w-full mt-2 "
+                              />
+                            </div>
+                            <div className="flex space-x-8 p-3">
+                              <p className="w-[40%]">Status</p>
+                              <input
+                                type="text"
+                                name="status"
+                                value={selectedEmployee.status}
+                                onChange={(e) =>
+                                  setSelectedEmployee({
+                                    ...selectedEmployee,
+                                    status: e.target.value,
+                                  })
+                                }
+                                className="border border-gray-300 rounded-md p-3 w-full mt-2 "
+                              />
+                            </div>
+                            <div className="flex space-x-8 p-3">
+                              <p className="w-[40%]">Reason</p>
+                              <textarea
+                                type="text"
+                                name="reason"
+                                value={selectedEmployee.reason}
+                                onChange={(e) =>
+                                  setSelectedEmployee({
+                                    ...selectedEmployee,
+                                    reason: e.target.value,
+                                  })
+                                }
+                                className="border border-gray-300 rounded-md p-3 w-full mt-2 h-[150px]"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex flex-col mt-5 mb-5">
+                            <div className="bg-gray-200 w-[150%] h-0.5 mt-[2%] mb-[1%] ml-[-20%]"></div>
+                            <div className="flex justify-end mr-[10px] mb-[-10%] mt-2">
+                              <button
+                                onClick={closeModal}
+                                className="mt-1 bg-white text-[#FF6262] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] "
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                // onClick={() =>
+                                //   handleUpdateSalary(selectedEmployee._id)
+                                // }
+                                className="mt-1 bg-[#E7F7EF] text-[#097C44] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] ml-[10px]"
+                              >
+                                Save
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </Modal>
+                    )}
                   </tr>
                 ))}
               </tbody>

@@ -18,6 +18,8 @@ import UsePermission from "../components/UsePermission";
 import { CircularProgress } from "@mui/material";
 import alert1 from "../components/Alert";
 import SortableHeader from "../components/SortableHeader";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 // icon
 import { CiSearch } from "react-icons/ci";
@@ -35,6 +37,7 @@ import { IoBookmarkOutline } from "react-icons/io5";
 import { IoCloseCircleOutline } from "react-icons/io5";
 import { BiFilterAlt } from "react-icons/bi";
 import { FaRegTrashCan } from "react-icons/fa6";
+import { PiExport } from "react-icons/pi";
 
 Modal.setAppElement("#root");
 const Employee = () => {
@@ -95,7 +98,7 @@ const Employee = () => {
   const [gender, setGender] = useState("Gender");
   const [employeeType, setEmployeeType] = useState("Employee Type");
   const [department, setDepartment] = useState("Department");
-  const [jobTitle, setJobTitle] = useState("Position");
+  const [jobTitle, setJobTitle] = useState("Jobtitle");
   const [role, setRole] = useState("Role");
 
   const genderData = ["Male", "Female", "Other"];
@@ -611,6 +614,44 @@ const Employee = () => {
     fetchOptions();
   }, []);
 
+  const exportEmployeesToExcel = () => {
+    const formattedData = data.map((item) => ({
+      EmployeeID: item.employeeID,
+      Name: `${item.firstName} ${item.lastName}`,
+      Department: departData.find((d) => d._id === item.department)?.name || "",
+      JobTitle: positionData.find((j) => j._id === item.jobtitle)?.name || "",
+      Alias: item.alias,
+      Gender: item.gender,
+      DateOfBirth: formatDate(item.dateOfBirth),
+      CardNumber: item.idCardNumber,
+      PhoneNumber: item.phoneNumber,
+      EmailCompany: item.emailCompany,
+      EmailPersonal: item.emailPersonal,
+      Address: `${item.address}, ${item.province}, ${item.city}`,
+      Type: item.employeeType,
+      JoiningDate: formatDate(item.joiningDate),
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(formattedData);
+    const colWidths = Object.keys(formattedData[0]).map((key) => {
+      const maxLength = Math.max(
+        key.length,
+        ...formattedData.map((item) =>
+          item[key] ? item[key].toString().length : 0
+        )
+      );
+      return { wch: maxLength + 2 };
+    });
+    ws["!cols"] = colWidths;
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Employees");
+    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([excelBuffer], {
+      type: "application/octet-stream",
+    });
+    saveAs(blob, "employees.xlsx");
+  };
+
   // Dropdown selection of gender
   const toggleGenderDropdown = () => setIsGenderOpen(!isGenderOpen);
   const handleOptionClick1 = (option) => {
@@ -635,7 +676,7 @@ const Employee = () => {
   const toggleDepartDropdown = () => setIsDepartOpen(!isDepartOpen);
   const handleOptionClick4 = (selectedDeptName) => {
     setDepartment(selectedDeptName);
-    setJobTitle("Position");
+    setJobTitle("Jobtitle");
 
     const selectedDept = departData.find(
       (dept) => dept.name === selectedDeptName
@@ -1918,7 +1959,7 @@ const Employee = () => {
                     )}
                   </div>
                   <div>
-                    <p className="text-[#828282]">Position</p>
+                    <p className="text-[#828282]">Jobtitle</p>
                     {isEditing4 ? (
                       <ClickOutside setIsOpen={setIsPositionOpen}>
                         <div className="relative">
@@ -2438,6 +2479,14 @@ const Employee = () => {
                 <p className="ml-2 caret-transparent">Filter</p>
               </div>
 
+              <div
+                onClick={() => exportEmployeesToExcel()}
+                className="flex items-center justify-center h-[50px] px-4 text-white font-normal rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px] cursor-pointer"
+              >
+                <PiExport className="w-[25px] h-[25px]" />
+                <p className="ml-2 caret-transparent">Export</p>
+              </div>
+
               <Modal
                 isOpen={showFilterModal}
                 onRequestClose={() => setShowFilterModal(false)}
@@ -2495,7 +2544,7 @@ const Employee = () => {
                   }}
                   className="w-full border px-3 py-2 rounded-md h-[50px] mb-3"
                 >
-                  <option value="">All Position</option>
+                  <option value="">All Jobtitle</option>
                   {positionData.map((job) => (
                     <option key={job._id} value={job._id}>
                       {job.name}
@@ -2514,17 +2563,24 @@ const Employee = () => {
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
                 </select>
-
-                <div className="flex justify-end">
-                  <p
-                    onClick={() => {
-                      setShowFilterModal(false);
-                      clearFilters();
-                    }}
-                    className="mt-1 -mb-10 text-red-500 w-fit ml-[10px] cursor-pointer"
+                <div className="flex justify-end -mb-5">
+                  <div>
+                    <p
+                      onClick={() => {
+                        setShowFilterModal(false);
+                        clearFilters();
+                      }}
+                      className="mt-1 -mb-10 text-red-500 w-fit ml-[10px] p-3 cursor-pointer"
+                    >
+                      Clear Filter
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowFilterModal(false)}
+                    className="mt-1 bg-[#E7F7EF] text-[#097C44] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] ml-[10px]"
                   >
-                    Clear Filter
-                  </p>
+                    Save
+                  </button>
                 </div>
               </Modal>
 
@@ -2544,954 +2600,972 @@ const Employee = () => {
                   className="bg-white rounded-[20px] shadow-lg w-auto max-w-[80%] p-12 transition-all duration-500 max-h-[85%] overflow-y-auto no-scrollbar mt-10"
                   overlayClassName="fixed inset-0 bg-[#A8C1B7] bg-opacity-50 flex justify-center items-center"
                 >
-                  <div className="flex flex-col mt-[-2%]">
-                    <div className="flex items-center mb-2">
-                      <IoIosArrowRoundBack
-                        className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
-                        onClick={closeModal}
-                      />
-                      <p className="text-[20px] font-bold ">Create Employee</p>
-                    </div>
-                    <div className="bg-gray-300 w-[110%] h-0.5 mt-[1%] mb-[1%] ml-[-5%]"></div>
-                  </div>
-                  <div className="border-gray-200 border-2 rounded-[5px] w-[104%] ml-[-2%]">
-                    <div className="flex mt-[2%]">
-                      {/* avatar */}
-                      <div className="ml-[10px] ">
-                        <FileUpload
-                          fileType="avatar"
-                          selectedEmployee={selectedEmployee}
-                          setSelectedFile={(file) =>
-                            setSelectedFiles((prev) => ({
-                              ...prev,
-                              avatar: file,
-                            }))
-                          }
+                  <div className="sticky top-0 bg-white z-10">
+                    <div className=" flex flex-col mt-[-2%]">
+                      <div className="flex items-center mb-2">
+                        <IoIosArrowRoundBack
+                          className="w-[30px] h-[30px] mr-[1%] cursor-pointer "
+                          onClick={closeModal}
                         />
+                        <p className="text-[20px] font-bold ">
+                          Create Employee
+                        </p>
                       </div>
-                      {/* text 1*/}
-                      <div className="ml-[2%]">
-                        <div className="flex items-center justify-between">
-                          <p className="text-[20px] font-bold">
-                            Personal Information
-                          </p>
-                          <div className="flex items-center space-x-3 ">
-                            <p>{status ? "Active" : "Inactive"}</p>
-                            <div
-                              className={`w-14 h-7 flex items-center rounded-[4px] border border-gray-400 p-1 cursor-pointer transition-all ${
-                                status ? "bg-[#B2CCC1]" : "bg-gray-300"
-                              }`}
-                              onClick={() => setStatus(!status)}
-                            >
+                      <div className="bg-gray-300 w-[110%] h-0.5 mt-[1%] mb-[1%] ml-[-5%]"></div>
+                    </div>
+                  </div>
+                  <div className="overflow-y-auto max-h-[calc(80vh-150px)] px-4">
+                    <div className="border-gray-200 border-2 rounded-[5px] w-[105%] ml-[-2%]">
+                      <div className="flex mt-[2%]">
+                        {/* avatar */}
+                        <div className="ml-[10px] ">
+                          <FileUpload
+                            fileType="avatar"
+                            selectedEmployee={selectedEmployee}
+                            setSelectedFile={(file) =>
+                              setSelectedFiles((prev) => ({
+                                ...prev,
+                                avatar: file,
+                              }))
+                            }
+                          />
+                        </div>
+                        {/* text 1*/}
+                        <div className="ml-[2%]">
+                          <div className="flex items-center justify-between">
+                            <p className="text-[20px] font-bold">
+                              Personal Information
+                            </p>
+                            <div className="flex items-center space-x-3 ">
+                              <p>{status ? "Active" : "Inactive"}</p>
                               <div
-                                className={`w-5 h-5 bg-gray-800 rounded-[4px] transition-all ${
-                                  status ? "translate-x-6" : "translate-x-0"
+                                className={`w-14 h-7 flex items-center rounded-[4px] border border-gray-400 p-1 cursor-pointer transition-all ${
+                                  status ? "bg-[#B2CCC1]" : "bg-gray-300"
                                 }`}
-                              />
+                                onClick={() => setStatus(!status)}
+                              >
+                                <div
+                                  className={`w-5 h-5 bg-gray-800 rounded-[4px] transition-all ${
+                                    status ? "translate-x-6" : "translate-x-0"
+                                  }`}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          {/* fields 1*/}
+                          <div className="flex space-x-5">
+                            <div>
+                              {/* Col 1 */}
+                              <div className="mt-[5%]">
+                                <div className="flex">
+                                  <p>First Name</p>
+                                  <p className="text-[#E03137] ml-1">*</p>
+                                </div>
+                                <input
+                                  type="text"
+                                  className={`border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                    errors.firstName
+                                      ? "border-[2px] border-red-500"
+                                      : ""
+                                  }`}
+                                  value={firstName}
+                                  placeholder="Input First Name"
+                                  onChange={(e) => {
+                                    setFirstName(
+                                      e.target.value.replace(/[0-9]/g, "")
+                                    );
+                                    setErrors({});
+                                  }}
+                                />
+                                {errors.firstName && (
+                                  <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                    {errors.firstName}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="mt-7">
+                                <div className="flex">
+                                  <p>ID Card</p>
+                                  <p className="text-[#E03137] ml-1">*</p>
+                                </div>
+                                <input
+                                  type="text"
+                                  className={`border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                    errors.idCard
+                                      ? "border-[2px] border-red-500"
+                                      : ""
+                                  }`}
+                                  value={idCard}
+                                  maxLength={11}
+                                  placeholder="Input ID Card"
+                                  onChange={(e) => {
+                                    setIdCard(
+                                      e.target.value.replace(/[a-zA-Z]/g, "")
+                                    );
+                                    setErrors({});
+                                  }}
+                                />
+                                {errors.idCard && (
+                                  <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                    {errors.idCard}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div>
+                              {/* Col 2 */}
+                              <div className="mt-[5%]">
+                                <div className="flex">
+                                  <p>Last Name</p>
+                                  <p className="text-[#E03137] ml-1">*</p>
+                                </div>
+                                <input
+                                  type="text"
+                                  className={`border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                    errors.lastName
+                                      ? "border-[2px] border-red-500"
+                                      : ""
+                                  }`}
+                                  value={lastName}
+                                  placeholder="Input Last Name"
+                                  onChange={(e) => {
+                                    setLastName(
+                                      e.target.value.replace(/[0-9]/g, "")
+                                    );
+                                    setErrors({});
+                                  }}
+                                />
+                                {errors.lastName && (
+                                  <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                    {errors.lastName}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="mt-7">
+                                <div className="flex">
+                                  <p>Date of Birth</p>
+                                  <p className="text-[#E03137] ml-1">*</p>
+                                </div>
+                                <LocalizationProvider
+                                  dateAdapter={AdapterDayjs}
+                                >
+                                  <DatePicker
+                                    value={dateOfBirth}
+                                    onChange={(newDate) => {
+                                      setDateOfBirth(newDate);
+                                      setErrors({});
+                                    }}
+                                    format="DD/MM/YYYY"
+                                    slotProps={{
+                                      textField: {
+                                        error: Boolean(errors.dateOfBirth),
+                                      },
+                                    }}
+                                  />
+                                </LocalizationProvider>
+                                {errors.dateOfBirth && (
+                                  <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                    {errors.dateOfBirth}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className=" mr-[10%]">
+                              {/* Col 3 */}
+                              <div className="mt-[5%]">
+                                <div className="flex">
+                                  <p>Alias</p>
+                                  <p className="text-[#E03137] ml-1">*</p>
+                                </div>
+                                <input
+                                  type="text"
+                                  className={`border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                    errors.alias
+                                      ? "border-[2px] border-red-500"
+                                      : ""
+                                  }`}
+                                  value={alias}
+                                  placeholder="Input Alias"
+                                  onChange={(e) => {
+                                    setAlias(
+                                      e.target.value.replace(/[0-9]/g, "")
+                                    );
+                                    setErrors({});
+                                  }}
+                                />
+                                {errors.alias && (
+                                  <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                    {errors.alias}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="mt-7 space-x-5">
+                                <ClickOutside setIsOpen={setIsGenderOpen}>
+                                  <div className="flex">
+                                    <p>Gender</p>
+                                    <p className="text-[#E03137] ml-1">*</p>
+                                  </div>
+                                  <div className="relative">
+                                    <div
+                                      className={`inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 ${
+                                        errors.gender
+                                          ? "border-[2px] border-red-500"
+                                          : ""
+                                      }`}
+                                      onClick={toggleGenderDropdown}
+                                    >
+                                      <span className="text-[15px]">
+                                        {gender}
+                                      </span>
+                                      <IoIosArrowDown />
+                                    </div>
+                                  </div>
+                                  {isGenderOpen && (
+                                    <div className="absolute z-10 mt-2 w-[260px] bg-white rounded-md shadow-lg border border-gray-200">
+                                      <ul className="py-1">
+                                        {genderData.map((option, index) => (
+                                          <li
+                                            key={index}
+                                            onClick={() => {
+                                              handleOptionClick1(option);
+                                              setErrors({});
+                                            }}
+                                            className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                                          >
+                                            {option}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                  {errors.gender && (
+                                    <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                      {errors.gender}
+                                    </p>
+                                  )}
+                                </ClickOutside>
+                              </div>
                             </div>
                           </div>
                         </div>
-                        {/* fields 1*/}
-                        <div className="flex space-x-5">
+                      </div>
+                      {/* Text 2 */}
+                      <div className="mt-[2%] ml-[3%]">
+                        <p className="text-[20px] font-bold">Contact Details</p>
+                        {/* fields 2*/}
+                        <div className="flex space-x-7">
                           <div>
                             {/* Col 1 */}
-                            <div className="mt-[5%]">
+                            <div className="mt-[3%]">
                               <div className="flex">
-                                <p>First Name</p>
+                                <p>Phone Number</p>
                                 <p className="text-[#E03137] ml-1">*</p>
                               </div>
-                              <input
-                                type="text"
-                                className={`border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
-                                  errors.firstName
-                                    ? "border-[2px] border-red-500"
-                                    : ""
-                                }`}
-                                value={firstName}
-                                placeholder="Input First Name"
-                                onChange={(e) => {
-                                  setFirstName(
-                                    e.target.value.replace(/[0-9]/g, "")
-                                  );
-                                  setErrors({});
-                                }}
-                              />
-                              {errors.firstName && (
+                              <div className="relative w-[530px]">
+                                <span className="absolute left-[10px] mt-5 text-[15px]">
+                                  (+84)
+                                </span>
+                                <input
+                                  type="text"
+                                  maxLength={12}
+                                  className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[60px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                    errors.phoneNumber
+                                      ? "border-[2px] border-red-500"
+                                      : ""
+                                  }`}
+                                  value={phoneNumber}
+                                  // placeholder="Input Phone Number"
+                                  onChange={(e) => {
+                                    setPhoneNumber(
+                                      e.target.value.replace(/[a-zA-Z]/g, "")
+                                    );
+                                    setErrors({});
+                                  }}
+                                />
+                              </div>
+                              {errors.phoneNumber && (
                                 <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                                  {errors.firstName}
+                                  {errors.phoneNumber}
                                 </p>
                               )}
                             </div>
                             <div className="mt-7">
                               <div className="flex">
-                                <p>ID Card</p>
+                                <p>Address</p>
                                 <p className="text-[#E03137] ml-1">*</p>
                               </div>
                               <input
                                 type="text"
-                                className={`border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
-                                  errors.idCard
+                                className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                  errors.address
                                     ? "border-[2px] border-red-500"
                                     : ""
                                 }`}
-                                value={idCard}
-                                maxLength={11}
-                                placeholder="Input ID Card"
+                                value={address}
+                                placeholder="Input Address"
                                 onChange={(e) => {
-                                  setIdCard(
-                                    e.target.value.replace(/[a-zA-Z]/g, "")
-                                  );
+                                  setAddress(e.target.value);
                                   setErrors({});
                                 }}
                               />
-                              {errors.idCard && (
+                              {errors.address && (
                                 <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                                  {errors.idCard}
+                                  {errors.address}
+                                </p>
+                              )}
+                            </div>
+                            <div className="mt-7">
+                              <div className="flex">
+                                <p>Province</p>
+                                <p className="text-[#E03137] ml-1">*</p>
+                              </div>
+                              <input
+                                type="text"
+                                className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                  errors.province
+                                    ? "border-[2px] border-red-500"
+                                    : ""
+                                }`}
+                                value={province}
+                                placeholder="Input Province"
+                                onChange={(e) => {
+                                  setProvince(e.target.value);
+                                  setErrors({});
+                                }}
+                              />
+                              {errors.province && (
+                                <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                  {errors.province}
                                 </p>
                               )}
                             </div>
                           </div>
                           <div>
                             {/* Col 2 */}
-                            <div className="mt-[5%]">
+                            <div className="mt-[3%]">
                               <div className="flex">
-                                <p>Last Name</p>
+                                <p>Email Company</p>
                                 <p className="text-[#E03137] ml-1">*</p>
                               </div>
                               <input
                                 type="text"
-                                className={`border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
-                                  errors.lastName
+                                className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                  errors.emailCompany
                                     ? "border-[2px] border-red-500"
                                     : ""
                                 }`}
-                                value={lastName}
-                                placeholder="Input Last Name"
+                                value={emailCompany}
+                                placeholder="Input Email Company"
                                 onChange={(e) => {
-                                  setLastName(
-                                    e.target.value.replace(/[0-9]/g, "")
-                                  );
+                                  setEmailCompany(e.target.value);
                                   setErrors({});
                                 }}
                               />
-                              {errors.lastName && (
+                              {errors.emailCompany && (
                                 <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                                  {errors.lastName}
+                                  {errors.emailCompany}
                                 </p>
                               )}
                             </div>
                             <div className="mt-7">
                               <div className="flex">
-                                <p>Date of Birth</p>
+                                <p>Email Personal </p>
+                                <p className="text-[#E03137] ml-1">*</p>
+                              </div>
+                              <input
+                                type="text"
+                                className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                  errors.emailPersonal
+                                    ? "border-[2px] border-red-500"
+                                    : ""
+                                }`}
+                                value={emailPersonal}
+                                placeholder="Input Email Personal"
+                                onChange={(e) => {
+                                  setEmailPersonal(e.target.value);
+                                  setErrors({});
+                                }}
+                              />
+                              {errors.emailPersonal && (
+                                <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                  {errors.emailPersonal}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex space-x-5">
+                              <div className="mt-7">
+                                <div className="flex">
+                                  <p>Postcode</p>
+                                  <p className="text-[#E03137] ml-1">*</p>
+                                </div>
+                                <input
+                                  type="text"
+                                  className={`border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                    errors.postcode
+                                      ? "border-[2px] border-red-500"
+                                      : ""
+                                  }`}
+                                  value={postcode}
+                                  placeholder="Input Postcode"
+                                  onChange={(e) => {
+                                    setPostcode(e.target.value);
+                                    setErrors({});
+                                  }}
+                                />
+                                {errors.postcode && (
+                                  <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                    {errors.postcode}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="mt-7">
+                                <div className="flex">
+                                  <p>City</p>
+                                  <p className="text-[#E03137] ml-1">*</p>
+                                </div>
+                                <input
+                                  type="text"
+                                  className={`border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
+                                    errors.city
+                                      ? "border-[2px] border-red-500"
+                                      : ""
+                                  }`}
+                                  value={city}
+                                  placeholder="Input City"
+                                  onChange={(e) => {
+                                    setCity(e.target.value);
+                                    setErrors({});
+                                  }}
+                                />
+                                {errors.city && (
+                                  <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                    {errors.city}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Text 3 */}
+                      <div className="mt-[2%] ml-[3%]">
+                        <p className="text-[20px] font-bold">Bank Account</p>
+                        {/* fields 3*/}
+                        <div className="flex space-x-7">
+                          <div>
+                            {/* Col 1 */}
+                            <div className="mt-[3%]">
+                              <p>Bank Name</p>
+                              <input
+                                type="text"
+                                className="border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
+                                value={bankName}
+                                placeholder="Input Bank Name"
+                                onChange={(e) => {
+                                  setBankName(e.target.value);
+                                  setErrors({});
+                                }}
+                              />
+                            </div>
+                            <div className="mt-7">
+                              <div className="flex">
+                                <p>Account Number</p>
+                              </div>
+                              <input
+                                type="text"
+                                maxLength={10}
+                                className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light`}
+                                value={bankAccountNumber}
+                                placeholder="Input Account Number"
+                                onChange={(e) => {
+                                  setbankAccountNumber(e.target.value);
+                                  setErrors({});
+                                }}
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            {/* Col 2 */}
+                            <div className="mt-[3%]">
+                              <div className="flex">
+                                <p>Account Name</p>
+                              </div>
+                              <input
+                                type="text"
+                                className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light`}
+                                value={accountName}
+                                placeholder="Input Account Name"
+                                onChange={(e) => {
+                                  setAccountName(e.target.value);
+                                  setErrors({});
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Text 4 */}
+                      <div className="mt-[2%] ml-[3%]">
+                        <p className="text-[20px] font-bold">Employee Access</p>
+                        {/* fields 4*/}
+                        <div className="flex space-x-5">
+                          {/* Col 1 */}
+                          <div className="mt-7">
+                            <ClickOutside setIsOpen={setIsTypeOpen}>
+                              <div className="flex">
+                                <p>Employee Type</p>
+                                <p className="text-[#E03137] ml-1">*</p>
+                              </div>
+                              <div className="relative">
+                                <div
+                                  className={`inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 ${
+                                    errors.employeeType
+                                      ? "border-[2px] border-red-500"
+                                      : ""
+                                  }`}
+                                  onClick={toggleTypeDropdown}
+                                >
+                                  <span className="text-[15px]">
+                                    {employeeType}
+                                  </span>
+                                  <IoIosArrowDown />
+                                </div>
+                              </div>
+                              {isTypeOpen && (
+                                <div className="absolute z-10 mt-2 w-[260px] bg-white rounded-md shadow-lg border border-gray-200">
+                                  <ul className="py-1">
+                                    {typeData.map((option, index) => (
+                                      <li
+                                        key={index}
+                                        onClick={() => {
+                                          handleOptionClick3(option);
+                                          setErrors({});
+                                        }}
+                                        className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                                      >
+                                        {option}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              {errors.employeeType && (
+                                <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                  {errors.employeeType}
+                                </p>
+                              )}
+                            </ClickOutside>
+                          </div>
+                          <div className="mt-7">
+                            <ClickOutside setIsOpen={setIsDepartOpen}>
+                              <div className="flex">
+                                <p>Department</p>
+                                <p className="text-[#E03137] ml-1">*</p>
+                              </div>
+                              <div className="relative">
+                                <div
+                                  className={`inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 ${
+                                    errors.department
+                                      ? "border-[2px] border-red-500"
+                                      : ""
+                                  }`}
+                                  onClick={toggleDepartDropdown}
+                                >
+                                  <span className="text-[15px]">
+                                    {department}
+                                  </span>
+                                  <IoIosArrowDown />
+                                </div>
+                              </div>
+                              {isDepartOpen && (
+                                <div className="absolute z-10 mt-2 w-[260px] bg-white rounded-md shadow-lg border border-gray-200">
+                                  <ul className="py-1">
+                                    {departData.map((option, index) => (
+                                      <li
+                                        key={index}
+                                        onClick={() => {
+                                          handleOptionClick4(option.name);
+                                          setDepartID(option._id);
+                                          setErrors({});
+                                        }}
+                                        className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                                      >
+                                        {option.name}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {errors.department && (
+                                <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                  {errors.department}
+                                </p>
+                              )}
+                            </ClickOutside>
+                          </div>
+
+                          <div className="mt-7">
+                            <ClickOutside setIsOpen={setIsPositionOpen}>
+                              <div className="flex">
+                                <p>Job title</p>
+                                <p className="text-[#E03137] ml-1">*</p>
+                              </div>
+                              <div className="relative">
+                                <div
+                                  className={`inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 ${
+                                    errors.jobTitle
+                                      ? "border-[2px] border-red-500"
+                                      : ""
+                                  }`}
+                                  onClick={togglePossitionDropdown}
+                                >
+                                  <span className="text-[15px]">
+                                    {jobTitle}
+                                  </span>
+                                  <IoIosArrowDown />
+                                </div>
+                              </div>
+                              {isPositionOpen && (
+                                <div className="absolute z-10 mt-2 w-[260px] bg-white rounded-md shadow-lg border border-gray-200">
+                                  <ul className="py-1">
+                                    {filteredJobTitles.map((option, index) => (
+                                      <li
+                                        key={index}
+                                        onClick={() => {
+                                          setJobTitle(option.name);
+                                          setJobID(option._id);
+                                          setIsPositionOpen(false);
+                                        }}
+                                        className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                                      >
+                                        {option.name}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {errors.jobTitle && (
+                                <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                  {errors.jobTitle}
+                                </p>
+                              )}
+                            </ClickOutside>
+                          </div>
+                          <div className="mt-7">
+                            <ClickOutside setIsOpen={setIsRoleOpen}>
+                              <div className="flex">
+                                <p>Role</p>
+                                <p className="text-[#E03137] ml-1">*</p>
+                              </div>
+                              <div className="relative">
+                                <div
+                                  className={`inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 ${
+                                    errors.role
+                                      ? "border-[2px] border-red-500"
+                                      : ""
+                                  }`}
+                                  onClick={toggleRoleDropdown}
+                                >
+                                  <span className="text-[15px] capitalize">
+                                    {role}
+                                  </span>
+                                  <IoIosArrowDown />
+                                </div>
+                              </div>
+                              {isRoleOpen && (
+                                <div className="absolute z-10 mt-2 w-[260px] bg-white rounded-md shadow-lg border border-gray-200">
+                                  <ul className="py-1">
+                                    {roleData.map((option, index) => (
+                                      <li
+                                        key={index}
+                                        onClick={() => {
+                                          handleOptionClick2(option.name);
+
+                                          setErrors({});
+                                        }}
+                                        className="block capitalize px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                                      >
+                                        {option.name}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {errors.role && (
+                                <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
+                                  {errors.role}
+                                </p>
+                              )}
+                            </ClickOutside>
+                          </div>
+                        </div>
+                        <div>
+                          {/* Col 2 */}
+                          <div className="flex space-x-6">
+                            {/* Col 1 */}
+                            <div className="mt-7">
+                              <div className="flex">
+                                <p>Joining Date</p>
                                 <p className="text-[#E03137] ml-1">*</p>
                               </div>
                               <LocalizationProvider dateAdapter={AdapterDayjs}>
                                 <DatePicker
-                                  value={dateOfBirth}
+                                  value={joiningDate}
                                   onChange={(newDate) => {
-                                    setDateOfBirth(newDate);
+                                    setJoiningDate(newDate);
                                     setErrors({});
                                   }}
                                   format="DD/MM/YYYY"
+                                  className="border-gray-200 rounded-[5px] border-[1px] w-[540px] h-[40px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
                                   slotProps={{
                                     textField: {
-                                      error: Boolean(errors.dateOfBirth),
+                                      error: Boolean(errors.joiningDate),
                                     },
                                   }}
                                 />
                               </LocalizationProvider>
-                              {errors.dateOfBirth && (
-                                <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                                  {errors.dateOfBirth}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <div className=" mr-[10%]">
-                            {/* Col 3 */}
-                            <div className="mt-[5%]">
-                              <div className="flex">
-                                <p>Alias</p>
-                                <p className="text-[#E03137] ml-1">*</p>
-                              </div>
-                              <input
-                                type="text"
-                                className={`border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
-                                  errors.alias
-                                    ? "border-[2px] border-red-500"
-                                    : ""
-                                }`}
-                                value={alias}
-                                placeholder="Input Alias"
-                                onChange={(e) => {
-                                  setAlias(
-                                    e.target.value.replace(/[0-9]/g, "")
-                                  );
-                                  setErrors({});
-                                }}
-                              />
-                              {errors.alias && (
-                                <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                                  {errors.alias}
-                                </p>
-                              )}
-                            </div>
-                            <div className="mt-7 space-x-5">
-                              <ClickOutside setIsOpen={setIsGenderOpen}>
-                                <div className="flex">
-                                  <p>Gender</p>
-                                  <p className="text-[#E03137] ml-1">*</p>
-                                </div>
-                                <div className="relative">
-                                  <div
-                                    className={`inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 ${
-                                      errors.gender
-                                        ? "border-[2px] border-red-500"
-                                        : ""
-                                    }`}
-                                    onClick={toggleGenderDropdown}
-                                  >
-                                    <span className="text-[15px]">
-                                      {gender}
-                                    </span>
-                                    <IoIosArrowDown />
-                                  </div>
-                                </div>
-                                {isGenderOpen && (
-                                  <div className="absolute z-10 mt-2 w-[260px] bg-white rounded-md shadow-lg border border-gray-200">
-                                    <ul className="py-1">
-                                      {genderData.map((option, index) => (
-                                        <li
-                                          key={index}
-                                          onClick={() => {
-                                            handleOptionClick1(option);
-                                            setErrors({});
-                                          }}
-                                          className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
-                                        >
-                                          {option}
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                )}
-                                {errors.gender && (
-                                  <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                                    {errors.gender}
-                                  </p>
-                                )}
-                              </ClickOutside>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Text 2 */}
-                    <div className="mt-[2%] ml-[3%]">
-                      <p className="text-[20px] font-bold">Contact Details</p>
-                      {/* fields 2*/}
-                      <div className="flex space-x-7">
-                        <div>
-                          {/* Col 1 */}
-                          <div className="mt-[3%]">
-                            <div className="flex">
-                              <p>Phone Number</p>
-                              <p className="text-[#E03137] ml-1">*</p>
-                            </div>
-                            <div className="relative w-[530px]">
-                              <span className="absolute left-[10px] mt-5 text-[15px]">
-                                (+84)
-                              </span>
-                              <input
-                                type="text"
-                                maxLength={12}
-                                className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[60px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
-                                  errors.phoneNumber
-                                    ? "border-[2px] border-red-500"
-                                    : ""
-                                }`}
-                                value={phoneNumber}
-                                // placeholder="Input Phone Number"
-                                onChange={(e) => {
-                                  setPhoneNumber(
-                                    e.target.value.replace(/[a-zA-Z]/g, "")
-                                  );
-                                  setErrors({});
-                                }}
-                              />
-                            </div>
-                            {errors.phoneNumber && (
-                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                                {errors.phoneNumber}
-                              </p>
-                            )}
-                          </div>
-                          <div className="mt-7">
-                            <div className="flex">
-                              <p>Address</p>
-                              <p className="text-[#E03137] ml-1">*</p>
-                            </div>
-                            <input
-                              type="text"
-                              className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
-                                errors.address
-                                  ? "border-[2px] border-red-500"
-                                  : ""
-                              }`}
-                              value={address}
-                              placeholder="Input Address"
-                              onChange={(e) => {
-                                setAddress(e.target.value);
-                                setErrors({});
-                              }}
-                            />
-                            {errors.address && (
-                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                                {errors.address}
-                              </p>
-                            )}
-                          </div>
-                          <div className="mt-7">
-                            <div className="flex">
-                              <p>Province</p>
-                              <p className="text-[#E03137] ml-1">*</p>
-                            </div>
-                            <input
-                              type="text"
-                              className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
-                                errors.province
-                                  ? "border-[2px] border-red-500"
-                                  : ""
-                              }`}
-                              value={province}
-                              placeholder="Input Province"
-                              onChange={(e) => {
-                                setProvince(e.target.value);
-                                setErrors({});
-                              }}
-                            />
-                            {errors.province && (
-                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                                {errors.province}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <div>
-                          {/* Col 2 */}
-                          <div className="mt-[3%]">
-                            <div className="flex">
-                              <p>Email Company</p>
-                              <p className="text-[#E03137] ml-1">*</p>
-                            </div>
-                            <input
-                              type="text"
-                              className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
-                                errors.emailCompany
-                                  ? "border-[2px] border-red-500"
-                                  : ""
-                              }`}
-                              value={emailCompany}
-                              placeholder="Input Email Company"
-                              onChange={(e) => {
-                                setEmailCompany(e.target.value);
-                                setErrors({});
-                              }}
-                            />
-                            {errors.emailCompany && (
-                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                                {errors.emailCompany}
-                              </p>
-                            )}
-                          </div>
-                          <div className="mt-7">
-                            <div className="flex">
-                              <p>Email Personal </p>
-                              <p className="text-[#E03137] ml-1">*</p>
-                            </div>
-                            <input
-                              type="text"
-                              className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
-                                errors.emailPersonal
-                                  ? "border-[2px] border-red-500"
-                                  : ""
-                              }`}
-                              value={emailPersonal}
-                              placeholder="Input Email Personal"
-                              onChange={(e) => {
-                                setEmailPersonal(e.target.value);
-                                setErrors({});
-                              }}
-                            />
-                            {errors.emailPersonal && (
-                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                                {errors.emailPersonal}
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex space-x-5">
-                            <div className="mt-7">
-                              <div className="flex">
-                                <p>Postcode</p>
-                                <p className="text-[#E03137] ml-1">*</p>
-                              </div>
-                              <input
-                                type="text"
-                                className={`border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
-                                  errors.postcode
-                                    ? "border-[2px] border-red-500"
-                                    : ""
-                                }`}
-                                value={postcode}
-                                placeholder="Input Postcode"
-                                onChange={(e) => {
-                                  setPostcode(e.target.value);
-                                  setErrors({});
-                                }}
-                              />
-                              {errors.postcode && (
-                                <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                                  {errors.postcode}
+                              {errors.joiningDate && (
+                                <p className="text-red-500 text-[12px] mt-6 mb-[-25px] caret-transparent">
+                                  {errors.joiningDate}
                                 </p>
                               )}
                             </div>
                             <div className="mt-7">
-                              <div className="flex">
-                                <p>City</p>
-                                <p className="text-[#E03137] ml-1">*</p>
-                              </div>
-                              <input
-                                type="text"
-                                className={`border-gray-200 rounded-[5px] border-[1px] w-[260px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light ${
-                                  errors.city
-                                    ? "border-[2px] border-red-500"
-                                    : ""
-                                }`}
-                                value={city}
-                                placeholder="Input City"
-                                onChange={(e) => {
-                                  setCity(e.target.value);
-                                  setErrors({});
-                                }}
-                              />
-                              {errors.city && (
-                                <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                                  {errors.city}
-                                </p>
-                              )}
+                              <p>End Date</p>
+                              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <DatePicker
+                                  value={endDate}
+                                  format="DD/MM/YYYY"
+                                  onChange={(newDate) => {
+                                    setEndDate(newDate);
+                                    setErrors({});
+                                  }}
+                                  className="border-gray-200 rounded-[5px] border-[1px] w-[540px] h-[40px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
+                                  renderInput={(params) => (
+                                    <TextField {...params} />
+                                  )}
+                                />
+                              </LocalizationProvider>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                    {/* Text 3 */}
-                    <div className="mt-[2%] ml-[3%]">
-                      <p className="text-[20px] font-bold">Bank Account</p>
-                      {/* fields 3*/}
-                      <div className="flex space-x-7">
-                        <div>
-                          {/* Col 1 */}
-                          <div className="mt-[3%]">
-                            <p>Bank Name</p>
-                            <input
-                              type="text"
-                              className="border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
-                              value={bankName}
-                              placeholder="Input Bank Name"
-                              onChange={(e) => {
-                                setBankName(e.target.value);
-                                setErrors({});
-                              }}
-                            />
-                          </div>
-                          <div className="mt-7">
-                            <div className="flex">
-                              <p>Account Number</p>
-                            </div>
-                            <input
-                              type="text"
-                              maxLength={10}
-                              className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light`}
-                              value={bankAccountNumber}
-                              placeholder="Input Account Number"
-                              onChange={(e) => {
-                                setbankAccountNumber(e.target.value);
-                                setErrors({});
-                              }}
-                            />
-                          </div>
+                      {/* Text 5 */}
+                      <div className="mt-[3%] ml-[3%]">
+                        <p className="text-[20px] font-bold">Credential</p>
+                        {/* table*/}
+                        <div className="text-[14px] ml-[15px] border-l border-b border-r w-[95%] mb-5">
+                          <table className="rounded-[5px] mt-[2%] bg-white overflow-hidden caret-transparent border-gray-200 border">
+                            <thead>
+                              <tr className="bg-[#010101] text-left">
+                                <th className="px-5 py-3 caret-transparent text-white font-normal">
+                                  Credential
+                                </th>
+                                <th className="px-1 py-3 caret-transparent text-white font-normal"></th>
+                                <th className="px-5 py-3 caret-transparent text-white font-normal">
+                                  Documents
+                                </th>
+                                <th className="px-5 py-3 caret-transparent text-white font-normal">
+                                  Expiry day
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr className="cursor-pointer">
+                                <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                                  <div className="text-left w-[240px]  ">
+                                    Photo ID
+                                  </div>
+                                </td>
+                                <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
+                                  <FileUpload
+                                    fileType="photoID"
+                                    selectedEmployee={selectedEmployee}
+                                    setSelectedFile={(file) =>
+                                      setSelectedFiles((prev) => ({
+                                        ...prev,
+                                        photoID: file,
+                                      }))
+                                    }
+                                  />
+                                </td>
+                                <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                                  <div className="text-left w-[240px]  ">
+                                    {" "}
+                                    {selectedFiles.photoID && (
+                                      <a
+                                        href={URL.createObjectURL(
+                                          selectedFiles.photoID
+                                        )}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                        }}
+                                      >
+                                        Preview Photo ID
+                                      </a>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                                  <div className="text-left w-[240px]  ">
+                                    --
+                                  </div>
+                                </td>
+                              </tr>
+                              <tr className="cursor-pointer">
+                                <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                                  <div className="text-left w-[240px]  ">
+                                    Certificate
+                                  </div>
+                                </td>
+                                <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
+                                  <FileUpload
+                                    fileType="certificate"
+                                    selectedEmployee={selectedEmployee}
+                                    setSelectedFile={(file) =>
+                                      setSelectedFiles((prev) => ({
+                                        ...prev,
+                                        certificate: file,
+                                      }))
+                                    }
+                                  />
+                                </td>
+                                <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                                  <div className="text-left w-[240px]  ">
+                                    {selectedFiles.certificate && (
+                                      <a
+                                        href={URL.createObjectURL(
+                                          selectedFiles.certificate
+                                        )}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                        }}
+                                      >
+                                        Preview Certificate
+                                      </a>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                                  <div className="text-left w-[240px]  ">
+                                    --
+                                  </div>
+                                </td>
+                              </tr>
+                              <tr className="cursor-pointer">
+                                <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                                  <div className="text-left w-[240px]  ">
+                                    Graduation Certificate
+                                  </div>
+                                </td>
+                                <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
+                                  <FileUpload
+                                    fileType="graduationCertificate"
+                                    selectedEmployee={selectedEmployee}
+                                    setSelectedFile={(file) =>
+                                      setSelectedFiles((prev) => ({
+                                        ...prev,
+                                        graduationCertificate: file,
+                                      }))
+                                    }
+                                  />
+                                </td>
+                                <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                                  <div className="text-left w-[240px]  ">
+                                    {selectedFiles.graduationCertificate && (
+                                      <a
+                                        href={URL.createObjectURL(
+                                          selectedFiles.graduationCertificate
+                                        )}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                        }}
+                                      >
+                                        Preview Graduation Certificate
+                                      </a>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                                  <div className="text-left w-[240px]  ">
+                                    --
+                                  </div>
+                                </td>
+                              </tr>
+                              <tr className="cursor-pointer">
+                                <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                                  <div className="text-left w-[240px] ">
+                                    Order
+                                  </div>
+                                </td>
+                                <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
+                                  <FileUpload
+                                    fileType="order"
+                                    selectedEmployee={selectedEmployee}
+                                    setSelectedFile={(file) =>
+                                      setSelectedFiles((prev) => ({
+                                        ...prev,
+                                        order: file,
+                                      }))
+                                    }
+                                  />
+                                </td>
+                                <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                                  <div className="text-left w-[240px]">
+                                    {selectedFiles.order && (
+                                      <a
+                                        href={URL.createObjectURL(
+                                          selectedFiles.order
+                                        )}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                        }}
+                                      >
+                                        Preview Order
+                                      </a>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                                  <div className="text-left w-[240px]">--</div>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
                         </div>
-                        <div>
-                          {/* Col 2 */}
-                          <div className="mt-[3%]">
-                            <div className="flex">
-                              <p>Account Name</p>
-                            </div>
-                            <input
-                              type="text"
-                              className={`border-gray-200 rounded-[5px] border-[1px] w-[530px] h-[50px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light`}
-                              value={accountName}
-                              placeholder="Input Account Name"
-                              onChange={(e) => {
-                                setAccountName(e.target.value);
-                                setErrors({});
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Text 4 */}
-                    <div className="mt-[2%] ml-[3%]">
-                      <p className="text-[20px] font-bold">Employee Access</p>
-                      {/* fields 4*/}
-                      <div className="flex space-x-5">
-                        {/* Col 1 */}
-                        <div className="mt-7">
-                          <ClickOutside setIsOpen={setIsTypeOpen}>
-                            <div className="flex">
-                              <p>Employee Type</p>
-                              <p className="text-[#E03137] ml-1">*</p>
-                            </div>
-                            <div className="relative">
-                              <div
-                                className={`inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 ${
-                                  errors.employeeType
-                                    ? "border-[2px] border-red-500"
-                                    : ""
-                                }`}
-                                onClick={toggleTypeDropdown}
-                              >
-                                <span className="text-[15px]">
-                                  {employeeType}
-                                </span>
-                                <IoIosArrowDown />
-                              </div>
-                            </div>
-                            {isTypeOpen && (
-                              <div className="absolute z-10 mt-2 w-[260px] bg-white rounded-md shadow-lg border border-gray-200">
-                                <ul className="py-1">
-                                  {typeData.map((option, index) => (
-                                    <li
-                                      key={index}
-                                      onClick={() => {
-                                        handleOptionClick3(option);
-                                        setErrors({});
-                                      }}
-                                      className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
-                                    >
-                                      {option}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                            {errors.employeeType && (
-                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                                {errors.employeeType}
-                              </p>
-                            )}
-                          </ClickOutside>
-                        </div>
-                        <div className="mt-7">
-                          <ClickOutside setIsOpen={setIsDepartOpen}>
-                            <div className="flex">
-                              <p>Department</p>
-                              <p className="text-[#E03137] ml-1">*</p>
-                            </div>
-                            <div className="relative">
-                              <div
-                                className={`inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 ${
-                                  errors.department
-                                    ? "border-[2px] border-red-500"
-                                    : ""
-                                }`}
-                                onClick={toggleDepartDropdown}
-                              >
-                                <span className="text-[15px]">
-                                  {department}
-                                </span>
-                                <IoIosArrowDown />
-                              </div>
-                            </div>
-                            {isDepartOpen && (
-                              <div className="absolute z-10 mt-2 w-[260px] bg-white rounded-md shadow-lg border border-gray-200">
-                                <ul className="py-1">
-                                  {departData.map((option, index) => (
-                                    <li
-                                      key={index}
-                                      onClick={() => {
-                                        handleOptionClick4(option.name);
-                                        setDepartID(option._id);
-                                        setErrors({});
-                                      }}
-                                      className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
-                                    >
-                                      {option.name}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-
-                            {errors.department && (
-                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                                {errors.department}
-                              </p>
-                            )}
-                          </ClickOutside>
-                        </div>
-
-                        <div className="mt-7">
-                          <ClickOutside setIsOpen={setIsPositionOpen}>
-                            <div className="flex">
-                              <p>Job title</p>
-                              <p className="text-[#E03137] ml-1">*</p>
-                            </div>
-                            <div className="relative">
-                              <div
-                                className={`inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 ${
-                                  errors.jobTitle
-                                    ? "border-[2px] border-red-500"
-                                    : ""
-                                }`}
-                                onClick={togglePossitionDropdown}
-                              >
-                                <span className="text-[15px]">{jobTitle}</span>
-                                <IoIosArrowDown />
-                              </div>
-                            </div>
-                            {isPositionOpen && (
-                              <div className="absolute z-10 mt-2 w-[260px] bg-white rounded-md shadow-lg border border-gray-200">
-                                <ul className="py-1">
-                                  {filteredJobTitles.map((option, index) => (
-                                    <li
-                                      key={index}
-                                      onClick={() => {
-                                        setJobTitle(option.name);
-                                        setJobID(option._id);
-                                        setIsPositionOpen(false);
-                                      }}
-                                      className="block px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
-                                    >
-                                      {option.name}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-
-                            {errors.jobTitle && (
-                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                                {errors.jobTitle}
-                              </p>
-                            )}
-                          </ClickOutside>
-                        </div>
-                        <div className="mt-7">
-                          <ClickOutside setIsOpen={setIsRoleOpen}>
-                            <div className="flex">
-                              <p>Role</p>
-                              <p className="text-[#E03137] ml-1">*</p>
-                            </div>
-                            <div className="relative">
-                              <div
-                                className={`inline-flex w-[260px] border-gray-200 border-1 h-[50px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400  hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 ${
-                                  errors.role
-                                    ? "border-[2px] border-red-500"
-                                    : ""
-                                }`}
-                                onClick={toggleRoleDropdown}
-                              >
-                                <span className="text-[15px] capitalize">
-                                  {role}
-                                </span>
-                                <IoIosArrowDown />
-                              </div>
-                            </div>
-                            {isRoleOpen && (
-                              <div className="absolute z-10 mt-2 w-[260px] bg-white rounded-md shadow-lg border border-gray-200">
-                                <ul className="py-1">
-                                  {roleData.map((option, index) => (
-                                    <li
-                                      key={index}
-                                      onClick={() => {
-                                        handleOptionClick2(option.name);
-
-                                        setErrors({});
-                                      }}
-                                      className="block capitalize px-4 py-2 text-[15px] text-gray-700 cursor-pointer hover:bg-gray-100"
-                                    >
-                                      {option.name}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-
-                            {errors.role && (
-                              <p className="text-red-500 text-[12px] mt-2 mb-[-25px] caret-transparent">
-                                {errors.role}
-                              </p>
-                            )}
-                          </ClickOutside>
-                        </div>
-                      </div>
-                      <div>
-                        {/* Col 2 */}
-                        <div className="flex space-x-6">
-                          {/* Col 1 */}
-                          <div className="mt-7">
-                            <div className="flex">
-                              <p>Joining Date</p>
-                              <p className="text-[#E03137] ml-1">*</p>
-                            </div>
-                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                              <DatePicker
-                                value={joiningDate}
-                                onChange={(newDate) => {
-                                  setJoiningDate(newDate);
-                                  setErrors({});
-                                }}
-                                format="DD/MM/YYYY"
-                                className="border-gray-200 rounded-[5px] border-[1px] w-[540px] h-[40px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
-                                slotProps={{
-                                  textField: {
-                                    error: Boolean(errors.joiningDate),
-                                  },
-                                }}
-                              />
-                            </LocalizationProvider>
-                            {errors.joiningDate && (
-                              <p className="text-red-500 text-[12px] mt-6 mb-[-25px] caret-transparent">
-                                {errors.joiningDate}
-                              </p>
-                            )}
-                          </div>
-                          <div className="mt-7">
-                            <p>End Date</p>
-                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                              <DatePicker
-                                value={endDate}
-                                format="DD/MM/YYYY"
-                                onChange={(newDate) => {
-                                  setEndDate(newDate);
-                                  setErrors({});
-                                }}
-                                className="border-gray-200 rounded-[5px] border-[1px] w-[540px] h-[40px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
-                                renderInput={(params) => (
-                                  <TextField {...params} />
-                                )}
-                              />
-                            </LocalizationProvider>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Text 5 */}
-                    <div className="mt-[3%] ml-[3%]">
-                      <p className="text-[20px] font-bold">Credential</p>
-                      {/* table*/}
-                      <div className="text-[14px] ml-[15px] border-l border-b border-r w-[95%] mb-5">
-                        <table className="rounded-[5px] mt-[2%] bg-white overflow-hidden caret-transparent border-gray-200 border">
-                          <thead>
-                            <tr className="bg-[#010101] text-left">
-                              <th className="px-5 py-3 caret-transparent text-white font-normal">
-                                Credential
-                              </th>
-                              <th className="px-1 py-3 caret-transparent text-white font-normal"></th>
-                              <th className="px-5 py-3 caret-transparent text-white font-normal">
-                                Documents
-                              </th>
-                              <th className="px-5 py-3 caret-transparent text-white font-normal">
-                                Expiry day
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr className="cursor-pointer">
-                              <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                                <div className="text-left w-[240px]  ">
-                                  Photo ID
-                                </div>
-                              </td>
-                              <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
-                                <FileUpload
-                                  fileType="photoID"
-                                  selectedEmployee={selectedEmployee}
-                                  setSelectedFile={(file) =>
-                                    setSelectedFiles((prev) => ({
-                                      ...prev,
-                                      photoID: file,
-                                    }))
-                                  }
-                                />
-                              </td>
-                              <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                                <div className="text-left w-[240px]  ">
-                                  {" "}
-                                  {selectedFiles.photoID && (
-                                    <a
-                                      href={URL.createObjectURL(
-                                        selectedFiles.photoID
-                                      )}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                      }}
-                                    >
-                                      Preview Photo ID
-                                    </a>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                                <div className="text-left w-[240px]  ">--</div>
-                              </td>
-                            </tr>
-                            <tr className="cursor-pointer">
-                              <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                                <div className="text-left w-[240px]  ">
-                                  Certificate
-                                </div>
-                              </td>
-                              <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
-                                <FileUpload
-                                  fileType="certificate"
-                                  selectedEmployee={selectedEmployee}
-                                  setSelectedFile={(file) =>
-                                    setSelectedFiles((prev) => ({
-                                      ...prev,
-                                      certificate: file,
-                                    }))
-                                  }
-                                />
-                              </td>
-                              <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                                <div className="text-left w-[240px]  ">
-                                  {selectedFiles.certificate && (
-                                    <a
-                                      href={URL.createObjectURL(
-                                        selectedFiles.certificate
-                                      )}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                      }}
-                                    >
-                                      Preview Certificate
-                                    </a>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                                <div className="text-left w-[240px]  ">--</div>
-                              </td>
-                            </tr>
-                            <tr className="cursor-pointer">
-                              <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                                <div className="text-left w-[240px]  ">
-                                  Graduation Certificate
-                                </div>
-                              </td>
-                              <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
-                                <FileUpload
-                                  fileType="graduationCertificate"
-                                  selectedEmployee={selectedEmployee}
-                                  setSelectedFile={(file) =>
-                                    setSelectedFiles((prev) => ({
-                                      ...prev,
-                                      graduationCertificate: file,
-                                    }))
-                                  }
-                                />
-                              </td>
-                              <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                                <div className="text-left w-[240px]  ">
-                                  {selectedFiles.graduationCertificate && (
-                                    <a
-                                      href={URL.createObjectURL(
-                                        selectedFiles.graduationCertificate
-                                      )}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                      }}
-                                    >
-                                      Preview Graduation Certificate
-                                    </a>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                                <div className="text-left w-[240px]  ">--</div>
-                              </td>
-                            </tr>
-                            <tr className="cursor-pointer">
-                              <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                                <div className="text-left w-[240px] ">
-                                  Order
-                                </div>
-                              </td>
-                              <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
-                                <FileUpload
-                                  fileType="order"
-                                  selectedEmployee={selectedEmployee}
-                                  setSelectedFile={(file) =>
-                                    setSelectedFiles((prev) => ({
-                                      ...prev,
-                                      order: file,
-                                    }))
-                                  }
-                                />
-                              </td>
-                              <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                                <div className="text-left w-[240px]">
-                                  {selectedFiles.order && (
-                                    <a
-                                      href={URL.createObjectURL(
-                                        selectedFiles.order
-                                      )}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                      }}
-                                    >
-                                      Preview Order
-                                    </a>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                                <div className="text-left w-[240px]">--</div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
                       </div>
                     </div>
                   </div>
-                  <div className="flex flex-col">
-                    <div className="bg-gray-300 w-[110%] h-0.5 mt-[2%] mb-[1%] ml-[-5%]"></div>
-                    <div className="flex justify-end mr-[10px] mb-[-2%]">
-                      <button
-                        onClick={closeModal}
-                        className="mt-1 bg-white text-[#FF6262] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] "
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={() => {
-                          handleCreate();
-                        }}
-                        className="mt-1 bg-[#E7F7EF] text-[#097C44] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] ml-[10px]"
-                      >
-                        Create
-                      </button>
+                  <div className="sticky bottom-0 bg-white z-10 p-4">
+                    <div className="flex flex-col">
+                      <div className="bg-gray-300 w-[110%] h-0.5 mt-[2%] mb-[1%] ml-[-5%]"></div>
+                      <div className="flex justify-end mr-[10px] mb-[-2%]">
+                        <button
+                          onClick={closeModal}
+                          className="mt-1 bg-white text-[#FF6262] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] "
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => {
+                            handleCreate();
+                          }}
+                          className="mt-1 bg-[#E7F7EF] text-[#097C44] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] ml-[10px]"
+                        >
+                          Create
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </Modal>
@@ -3518,7 +3592,7 @@ const Employee = () => {
                         className="px-6 py-5 border-b border-gray-300 text-gray-500"
                       />
                       <SortableHeader
-                        label="Position"
+                        label="Jobtitle"
                         sortKey="jobtitle"
                         sortConfig={sortConfig}
                         onSort={requestSort}

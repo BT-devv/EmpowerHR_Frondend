@@ -16,7 +16,8 @@ import { jwtDecode } from "jwt-decode";
 import { CircularProgress } from "@mui/material";
 import alert from "../components/Alert";
 import SortableHeader from "../components/SortableHeader";
-
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 // icon
 import { CiSearch } from "react-icons/ci";
 import { BiFilterAlt } from "react-icons/bi";
@@ -24,6 +25,7 @@ import { HiOutlineDotsHorizontal } from "react-icons/hi";
 import { IoTrashBinOutline } from "react-icons/io5";
 import { FaRegAddressCard } from "react-icons/fa";
 import { IoIosArrowRoundBack, IoIosArrowDown } from "react-icons/io";
+import { PiExport } from "react-icons/pi";
 
 Modal.setAppElement("#root");
 const Payroll = () => {
@@ -154,6 +156,40 @@ const Payroll = () => {
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
+  };
+
+  const exportPayrollToExcel = () => {
+    const formattedData = mergedData.map((item) => ({
+      EmployeeID: item.employeeID,
+      Name: item.employeeName,
+      Department: departData.find((r) => r._id === item.department)?.name,
+      JobTitle: positionData.find((r) => r._id === item.jobtitle)?.name,
+      MonthYear: `${item.month} - ${item.year}`,
+      PayDate: formatDate(item.payDate),
+      BaseSalary: item.baseSalary,
+      NetSalary: item.netSalary,
+      OverTimePay: item.otPay,
+      Total: item.total,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(formattedData);
+    const colWidths = Object.keys(formattedData[0]).map((key) => {
+      const maxLength = Math.max(
+        key.length,
+        ...formattedData.map((item) =>
+          item[key] ? item[key].toString().length : 0
+        )
+      );
+      return { wch: maxLength + 2 };
+    });
+    ws["!cols"] = colWidths;
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Payroll");
+    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([excelBuffer], {
+      type: "application/octet-stream",
+    });
+    saveAs(blob, "payroll.xlsx");
   };
 
   useEffect(() => {
@@ -736,6 +772,13 @@ const Payroll = () => {
               <BiFilterAlt className="w-[25px] h-[25px]" />
               <p className="ml-2 caret-transparent">Filter</p>
             </div>
+            <div
+              onClick={() => exportPayrollToExcel()}
+              className="flex items-center justify-center h-[50px] px-4 text-white font-normal rounded-[12px] border-2 bg-[#2EB67D] border-gray-200 hover:border-[#2EB67D] focus:border-[#2EB67D] text-[15px] cursor-pointer"
+            >
+              <PiExport className="w-[25px] h-[25px]" />
+              <p className="ml-2 caret-transparent">Export</p>
+            </div>
             <Modal
               isOpen={showFilterModal}
               onRequestClose={() => setShowFilterModal(false)}
@@ -805,16 +848,24 @@ const Payroll = () => {
                 className="flex-1 border px-2 py-1 w-full rounded h-[50px]"
               />
 
-              <div className="flex justify-end mt-5">
-                <p
-                  onClick={() => {
-                    setShowFilterModal(false);
-                    clearFilters();
-                  }}
-                  className="mt-1 -mb-10 text-red-500 w-fit ml-[10px] cursor-pointer"
+              <div className="flex justify-end -mb-5 mt-5">
+                <div>
+                  <p
+                    onClick={() => {
+                      setShowFilterModal(false);
+                      clearFilters();
+                    }}
+                    className="mt-1 -mb-10 text-red-500 w-fit ml-[10px] p-3 cursor-pointer"
+                  >
+                    Clear Filter
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowFilterModal(false)}
+                  className="mt-1 bg-[#E7F7EF] text-[#097C44] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] ml-[10px]"
                 >
-                  Clear Filter
-                </p>
+                  Save
+                </button>
               </div>
             </Modal>
 

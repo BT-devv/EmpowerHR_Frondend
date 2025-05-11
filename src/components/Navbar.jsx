@@ -3,7 +3,6 @@ import { jwtDecode } from "jwt-decode";
 import apiRoutes from "../../apiRoutes";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import ClickOutside from "../components/ClickOutside";
 import NotificationDropdown from "../components/NotificationDropdown";
 // Icon
 import { CiSearch } from "react-icons/ci";
@@ -31,25 +30,35 @@ const Navbar = () => {
     setIsOpen(false);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.removeItem("token");
     localStorage.removeItem("expiryTime");
+    setName("");
+    setRole("");
+    setAvatar("");
     setLogout(false);
 
-    Swal.fire({
+    await Swal.fire({
       text: "Logged out successfully",
       icon: "success",
       timer: 2000,
       showConfirmButton: false,
       timerProgressBar: true,
     });
-    setTimeout(() => {
-      navigate("/", { replace: true });
-    }, 2000);
+
+    navigate("/", { replace: true });
   };
 
   const token = localStorage.getItem("token");
-  const decodedToken = jwtDecode(token);
+  let decodedToken = null;
+
+  if (token) {
+    try {
+      decodedToken = jwtDecode(token);
+    } catch (error) {
+      console.error("Invalid token:", error);
+    }
+  }
 
   useEffect(() => {
     if (token) {
@@ -59,7 +68,7 @@ const Navbar = () => {
     } else {
       console.error("Token không tồn tại hoặc không hợp lệ.");
     }
-  }, []);
+  }, [decodedToken]);
 
   return (
     <div className="w-[calc(100vw-270px)] flex justify-between items-center relative">
@@ -74,7 +83,9 @@ const Navbar = () => {
       </div>
 
       <div className="flex items-center relative">
-        <NotificationDropdown employeeID={decodedToken.employeeID} />
+        {decodedToken && (
+          <NotificationDropdown employeeID={decodedToken.employeeID} />
+        )}
 
         {/* dropdown languages */}
         <div className="relative inline-block ml-[35px] text-[14px]">

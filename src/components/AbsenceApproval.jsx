@@ -30,6 +30,7 @@ const AbsenceForm = () => {
   const [reasonReject, setReasonReject] = useState("");
   const [reasonBorder, setReasonBorder] = useState(false);
   const [reasonError, setReasonError] = useState("");
+  const [lineManagers, setLineManagers] = useState([]);
 
   const [showFilterModal, setShowFilterModal] = useState(false);
 
@@ -77,7 +78,6 @@ const AbsenceForm = () => {
       absenceID: selectedEmployee._id,
       status: updateStatus,
     };
-    console.log(data);
     setProgress(true);
     try {
       const response = await axios.put(apiRoutes.absence.updateStatus, data, {
@@ -248,16 +248,45 @@ const AbsenceForm = () => {
       })
       .then((response) => {
         const allRequests = response.data.absences;
-        const filtered = allRequests.filter((req) => {
-          const managerList = req.lineManagers?.[0]?.split(",") || [];
-          return managerList.includes(decodedToken.employeeID);
-        });
+        const filtered = allRequests
+          .map((req) => {
+            const managerList =
+              req.lineManagers?.[0]?.split(",").map((id) => id.trim()) || [];
+            return {
+              ...req,
+              lineManagers: managerList,
+            };
+          })
+          .filter((req) => req.lineManagers.includes(decodedToken.employeeID))
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
         setDataPending(filtered);
       })
       .catch((error) => {
         console.error("Error fetching data from API", error);
       });
+  };
+
+  // Get all users
+  useEffect(() => {
+    axios
+      .get(apiRoutes.user.getAll, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then((response) => {
+        setLineManagers(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data from API", error);
+      });
+  }, []);
+
+  const getEmployeeName = (id) => {
+    const employee = lineManagers.find((d) => d.employeeID === id);
+    return employee ? `${employee.firstName} ${employee.lastName}` : "--";
   };
 
   return (
@@ -277,7 +306,7 @@ const AbsenceForm = () => {
       <div className="flex flex-wrap w-full items-center gap-x-4 px-4 py-6">
         <div>
           <p className="text-[#252C58] text-[20px] font-light">
-            Absencex Request
+            Absence Request
           </p>
         </div>
 
@@ -340,16 +369,24 @@ const AbsenceForm = () => {
             className="flex-1 w-full border px-2 py-1 rounded h-[50px]"
           />
 
-          <div className="flex justify-end">
-            <p
-              onClick={() => {
-                setShowFilterModal(false);
-                clearFilters();
-              }}
-              className="mt-1 -mb-10 text-red-500 w-fit ml-[10px] cursor-pointer"
+          <div className="flex justify-end -mb-5 mt-5">
+            <div>
+              <p
+                onClick={() => {
+                  setShowFilterModal(false);
+                  clearFilters();
+                }}
+                className="mt-1 -mb-10 text-red-500 w-fit ml-[10px] p-3 cursor-pointer"
+              >
+                Clear Filter
+              </p>
+            </div>
+            <button
+              onClick={() => setShowFilterModal(false)}
+              className="mt-1 bg-[#E7F7EF] text-[#097C44] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] ml-[10px]"
             >
-              Clear Filter
-            </p>
+              Save
+            </button>
           </div>
         </Modal>
       </div>
@@ -374,7 +411,7 @@ const AbsenceForm = () => {
                   className="px-5 py-5 border-b border-gray-300 text-gray-500"
                 />
                 <SortableHeader
-                  label="Date"
+                  label="Date Request"
                   sortKey="createdAt"
                   sortConfig={sortConfig}
                   onSort={requestSort}
@@ -513,8 +550,10 @@ const AbsenceForm = () => {
                   <p className="font-bold w-1/3">Line Manager:</p>
                   <p className="w-2/3">
                     {Array.isArray(selectedEmployee.lineManagers)
-                      ? selectedEmployee.lineManagers.join(", ")
-                      : selectedEmployee.lineManagers || "---"}
+                      ? selectedEmployee.lineManagers
+                          .map(getEmployeeName)
+                          .join(", ")
+                      : "---"}
                   </p>
                 </div>
                 <div className="flex mt-[8%]">

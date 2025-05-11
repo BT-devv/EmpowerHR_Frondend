@@ -21,6 +21,7 @@ const OvertimeHistory = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [lineManagers, setLineManagers] = useState([]);
 
   const [showFilterModal, setShowFilterModal] = useState(false);
 
@@ -85,6 +86,7 @@ const OvertimeHistory = () => {
           (req) => req.employeeID === decodedToken.employeeID
         );
         const combined = [...pendingRequests, ...historyRequests];
+        combined.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setDataHistory(combined);
       } catch (error) {
         console.error("Error fetching data from API", error);
@@ -93,6 +95,28 @@ const OvertimeHistory = () => {
 
     fetchPendingAndHistory();
   }, []);
+
+  // Get all users
+  useEffect(() => {
+    axios
+      .get(apiRoutes.user.getAll, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then((response) => {
+        setLineManagers(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data from API", error);
+      });
+  }, []);
+
+  const getEmployeeName = (id) => {
+    const employee = lineManagers.find((d) => d.employeeID === id);
+    return employee ? `${employee.firstName} ${employee.lastName}` : "--";
+  };
 
   // Format date
   const formatDate = (dateString) => {
@@ -229,16 +253,24 @@ const OvertimeHistory = () => {
           className="flex-1 border px-2 py-1 w-full rounded h-[50px]"
         />
 
-        <div className="flex justify-end">
-          <p
-            onClick={() => {
-              setShowFilterModal(false);
-              clearFilters();
-            }}
-            className="mt-1 -mb-10 text-red-500 w-fit ml-[10px] cursor-pointer"
+        <div className="flex justify-end -mb-5 mt-5">
+          <div>
+            <p
+              onClick={() => {
+                setShowFilterModal(false);
+                clearFilters();
+              }}
+              className="mt-1 -mb-10 text-red-500 w-fit ml-[10px] p-3 cursor-pointer"
+            >
+              Clear Filter
+            </p>
+          </div>
+          <button
+            onClick={() => setShowFilterModal(false)}
+            className="mt-1 bg-[#E7F7EF] text-[#097C44] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] ml-[10px]"
           >
-            Clear Filter
-          </p>
+            Save
+          </button>
         </div>
       </Modal>
       {/* List */}
@@ -262,8 +294,8 @@ const OvertimeHistory = () => {
                   className="px-5 py-5 border-b border-gray-300 text-gray-500"
                 />
                 <SortableHeader
-                  label="Date"
-                  sortKey="date"
+                  label="Date Request"
+                  sortKey="createdAt"
                   sortConfig={sortConfig}
                   onSort={requestSort}
                   className="px-5 py-5 border-b border-gray-300 text-gray-500"
@@ -297,7 +329,7 @@ const OvertimeHistory = () => {
                   </td>
 
                   <td className="px-5 py-6 border-b border-gray-200 truncate text-left w-[20%]">
-                    {formatDate(item.date)}
+                    {formatDate(item.createdAt)}
                   </td>
                   <td className="px-3 py-6 border-b border-gray-200 w-[15%]">
                     <div
@@ -386,7 +418,7 @@ const OvertimeHistory = () => {
                 <div className="flex mt-[8%]">
                   <p className="font-bold w-1/3">Line Manager:</p>
                   <p className="w-2/3">
-                    {selectedEmployee.projectManager || "---"}
+                    {getEmployeeName(selectedEmployee.projectManager) || "---"}
                   </p>
                 </div>
                 <div className="flex mt-[8%]">

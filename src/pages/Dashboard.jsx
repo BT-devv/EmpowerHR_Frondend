@@ -7,15 +7,12 @@ import { format, differenceInDays } from "date-fns";
 import axios from "axios";
 import UsePermission from "../components/UsePermission";
 import alert from "../components/Alert";
-import * as XLSX from "xlsx";
-import { saveAs } from "file-saver";
 
 // icon
 import { BsPatchCheck } from "react-icons/bs";
 import { GoCodeSquare } from "react-icons/go";
 import { AiOutlineDollar } from "react-icons/ai";
 import { HiOutlineTicket } from "react-icons/hi2";
-import { PiExport } from "react-icons/pi";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -79,51 +76,6 @@ const Dashboard = () => {
         }
       });
   }, []);
-
-  const exportEmployeesToExcel = () => {
-    const formattedData = user.map((item) => ({
-      EmployeeID: `${item.employeeID}`,
-      Name: `${item.firstName} ${item.lastName}`,
-      Department: depart.find((d) => d._id === item.department)?.name || "",
-      JobTitle: job.find((j) => j._id === item.jobtitle)?.name || "",
-      Alias: `${item.alias}`,
-      Gender: `${item.gender}`,
-      DateOfBirth: `${item.dateOfBirth}`,
-      CardNumber: `${item.idCardNumber}`,
-      PhoneNumber: `${item.phoneNumber}`,
-      EmailCompany: `${item.emailCompany}`,
-      EmailPersonal: `${item.emailPersonal}`,
-      Address: `${item.province} ${item.city}`,
-      Type: `${item.employeeType}`,
-      JoiningDate: `${item.joiningDate}`,
-    }));
-
-    const ws = XLSX.utils.json_to_sheet(formattedData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Employees");
-    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-    const data = new Blob([excelBuffer], {
-      type: "application/octet-stream",
-    });
-    saveAs(data, "employees.xlsx");
-  };
-
-  const exportHolidayToExcel = () => {
-    const formattedData = data.map((item) => ({
-      Name: `${item.name}`,
-      StartDate: `${item.startDate}`,
-      EndDate: `${item.endDate}`,
-    }));
-
-    const ws = XLSX.utils.json_to_sheet(formattedData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Holiday");
-    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-    const blob = new Blob([excelBuffer], {
-      type: "application/octet-stream",
-    });
-    saveAs(blob, "holiday.xlsx");
-  };
 
   // Get data dropdown
   useEffect(() => {
@@ -239,13 +191,8 @@ const Dashboard = () => {
 
             {/* Events */}
             <div className="flex flex-col items-start bg-white p-6 rounded-lg shadow-md col-span-2 min-h-[470px] w-[79%]">
-              <div className="flex items-center justify-between w-full mb-2">
-                <h2 className="text-2xl font-semibold mb-2">Upcoming events</h2>
-                <PiExport
-                  onClick={exportHolidayToExcel}
-                  className="w-[30px] h-[30px] cursor-pointer hover:text-[#2EB67D]"
-                />
-              </div>
+              <h2 className="text-2xl font-semibold mb-2">Upcoming events</h2>
+
               {/* Divider */}
               <div className="bg-black opacity-60 w-full h-0.5 mt-2 mb-2" />
               {/* Holidays Section */}
@@ -323,13 +270,7 @@ const Dashboard = () => {
           <div className="flex-1 bg-white p-6 rounded-lg shadow-md">
             {/* Employees */}
             <div className="flex flex-col items-start mb-6 w-full">
-              <div className="flex items-center justify-between w-full mb-2">
-                <p className="font-semibold text-2xl">Employees Overview</p>
-                <PiExport
-                  onClick={exportEmployeesToExcel}
-                  className="w-[30px] h-[30px] cursor-pointer hover:text-[#2EB67D]"
-                />
-              </div>
+              <p className="font-semibold text-2xl">Employees Overview</p>
 
               {/* List */}
               {user.length > 0 ? (

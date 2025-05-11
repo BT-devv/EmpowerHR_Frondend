@@ -30,6 +30,8 @@ const OvertimeForm = () => {
 
   const token = localStorage.getItem("token");
   const decodedToken = jwtDecode(token);
+  const PM_ROLE_ID = "68199ae7b7b47ece4ec4e329";
+  const ADMIN_ROLE_ID = "67fc24eb88df30b9541815ec";
 
   // Get all users
   useEffect(() => {
@@ -42,7 +44,9 @@ const OvertimeForm = () => {
       })
       .then((response) => {
         const filteredManagers = response.data.filter(
-          (user) => user._id !== decodedToken._id
+          (user) =>
+            (user.role === PM_ROLE_ID || user.role === ADMIN_ROLE_ID) &&
+            user._id !== decodedToken._id
         );
 
         setDatamanagers(filteredManagers);

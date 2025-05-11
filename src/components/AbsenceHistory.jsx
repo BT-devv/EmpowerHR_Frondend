@@ -19,6 +19,7 @@ const AbsenceHistory = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [lineManagers, setLineManagers] = useState([]);
 
   const [showFilterModal, setShowFilterModal] = useState(false);
 
@@ -103,40 +104,56 @@ const AbsenceHistory = () => {
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   };
+
+  const getEmployeeName = (id) => {
+    const employee = lineManagers.find((d) => d.employeeID === id);
+    return employee ? `${employee.firstName} ${employee.lastName}` : "--";
+  };
+
   // Get all history
   useEffect(() => {
-    const fetchPendingAndHistory = async () => {
+    const fetchData = async () => {
       try {
-        const [pendingRes, historyRes] = await Promise.all([
+        const [pendingRes, historyRes, userRes] = await Promise.all([
           axios.get(apiRoutes.absence.listPending, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
+            headers: { Authorization: `Bearer ${token}` },
           }),
           axios.get(apiRoutes.absence.history, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get(apiRoutes.user.getAll, {
+            headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
 
-        const pendingRequests = pendingRes.data.absences.filter(
-          (req) => req.employeeID === decodedToken.employeeID
+        setLineManagers(userRes.data);
+
+        const parseLineManagers = (req) => ({
+          ...req,
+          lineManagers:
+            req.lineManagers?.[0]?.split(",").map((id) => id.trim()) || [],
+        });
+
+        const pendingRequests = pendingRes.data.absences
+          .filter((req) => req.employeeID === decodedToken.employeeID)
+          .map(parseLineManagers);
+
+        const historyRequests = historyRes.data.absences
+          .filter((req) => req.employeeID === decodedToken.employeeID)
+          .map(parseLineManagers);
+
+        const combinedRequests = [...pendingRequests, ...historyRequests];
+        combinedRequests.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
 
-        const historyRequests = historyRes.data.absences.filter(
-          (req) => req.employeeID === decodedToken.employeeID
-        );
-        const combined = [...pendingRequests, ...historyRequests];
-        setDataHistory(combined);
+        setDataHistory(combinedRequests);
       } catch (error) {
-        console.error("Error fetching data from API", error);
+        console.error("Error fetching data", error);
       }
     };
 
-    fetchPendingAndHistory();
+    fetchData();
   }, []);
 
   return (
@@ -217,16 +234,24 @@ const AbsenceHistory = () => {
           className="flex-1 border px-2 py-1 w-full rounded h-[50px]"
         />
 
-        <div className="flex justify-end">
-          <p
-            onClick={() => {
-              setShowFilterModal(false);
-              clearFilters();
-            }}
-            className="mt-1 -mb-10 text-red-500 w-fit ml-[10px] cursor-pointer"
+        <div className="flex justify-end -mb-5 mt-5">
+          <div>
+            <p
+              onClick={() => {
+                setShowFilterModal(false);
+                clearFilters();
+              }}
+              className="mt-1 -mb-10 text-red-500 w-fit ml-[10px] p-3 cursor-pointer"
+            >
+              Clear Filter
+            </p>
+          </div>
+          <button
+            onClick={() => setShowFilterModal(false)}
+            className="mt-1 bg-[#E7F7EF] text-[#097C44] w-[100px] h-[45px] rounded-[10px] border-[#C5C5C5] ml-[10px]"
           >
-            Clear Filter
-          </p>
+            Save
+          </button>
         </div>
       </Modal>
       {/* List */}
@@ -250,7 +275,7 @@ const AbsenceHistory = () => {
                   className="px-5 py-5 border-b border-gray-300 text-gray-500"
                 />
                 <SortableHeader
-                  label="Date"
+                  label="Date Request"
                   sortKey="createdAt"
                   sortConfig={sortConfig}
                   onSort={requestSort}
@@ -370,7 +395,11 @@ const AbsenceHistory = () => {
                 <div className="flex mt-[8%]">
                   <p className="font-bold w-1/3">Line Manager:</p>
                   <p className="w-2/3">
-                    {selectedEmployee.lineManagers || "---"}
+                    {Array.isArray(selectedEmployee.lineManagers)
+                      ? selectedEmployee.lineManagers
+                          .map(getEmployeeName)
+                          .join(", ")
+                      : "---"}
                   </p>
                 </div>
                 <div className="flex mt-[8%]">

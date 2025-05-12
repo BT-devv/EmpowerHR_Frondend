@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 import apiRoutes from "../../apiRoutes";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import NotificationDropdown from "../components/NotificationDropdown";
@@ -23,6 +24,7 @@ const Navbar = () => {
   const [role, setRole] = useState("");
   const [avatar, setAvatar] = useState("");
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
+  const [roleData, setRoleData] = useState([]);
 
   const toggleDropdown = () => setIsOpen(!isOpen);
   const handleSelect = (country) => {
@@ -69,6 +71,26 @@ const Navbar = () => {
       console.error("Token không tồn tại hoặc không hợp lệ.");
     }
   }, [decodedToken]);
+
+  // Get all role
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    axios
+      .get(apiRoutes.role.getRole, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then((response) => {
+        setRoleData(response.data);
+      })
+      .catch((error) => {
+        if (error.response?.status === 403) {
+          console.warn("Bạn không có quyền xem user.");
+        }
+      });
+  }, []);
 
   return (
     <div className="w-[calc(100vw-270px)] flex justify-between items-center relative">
@@ -136,8 +158,8 @@ const Navbar = () => {
           />
           <div className="flex-grow ml-[25px] ">
             <p className="text-[14px] font-bold text-left w-full">{name}</p>
-            <p className=" text-gray-500 text-[12px] mt-[5px] text-left w-[70%]">
-              {role === "67fc24eb88df30b9541815ec" ? "Admin" : "Employee"}
+            <p className=" text-gray-500 text-[12px] mt-[5px] text-left w-[70%] capitalize">
+              {roleData.find((r) => r._id === role)?.name}
             </p>
           </div>
           <div className="text-gray-600 cursor-pointer text-xl border-2 rounded-[50%] ml-5">

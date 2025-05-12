@@ -56,7 +56,7 @@ const Attendance = () => {
     });
   };
 
-  // Get all users
+  // Get all attendance
   useEffect(() => {
     const token = localStorage.getItem("token");
 

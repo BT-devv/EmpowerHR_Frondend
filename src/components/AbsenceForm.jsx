@@ -2,18 +2,18 @@ import { IoIosArrowDown } from "react-icons/io";
 import apiRoutes from "../../apiRoutes";
 import { useState, useEffect } from "react";
 import RichTextEditor from "../components/RichTextEditor";
-
-import {
-  LocalizationProvider,
-  DatePicker,
-  TimePicker,
-} from "@mui/x-date-pickers";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import dayjs from "dayjs";
+import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import TextField from "@mui/material/TextField";
 import { jwtDecode } from "jwt-decode";
 import Swal from "sweetalert2";
 import axios from "axios";
 import { CircularProgress } from "@mui/material";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 
 const AbsenceForm = () => {
   const [progress, setProgress] = useState(false);
@@ -84,44 +84,43 @@ const AbsenceForm = () => {
       return;
     }
 
-    const formattedTimeFrom = new Date(timeFrom).toLocaleTimeString("vi-VN", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-    const formattedTimeTo = new Date(timeTo).toLocaleTimeString("vi-VN", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
+    // const formattedTimeFrom = new Date(timeFrom).toLocaleTimeString("vi-VN", {
+    //   hour: "2-digit",
+    //   minute: "2-digit",
+    //   hour12: false,
+    // });
+    // const formattedTimeTo = new Date(timeTo).toLocaleTimeString("vi-VN", {
+    //   hour: "2-digit",
+    //   minute: "2-digit",
+    //   hour12: false,
+    // });
 
     let formData = {
       lineManagers: lineManagers.map((item) => item.id),
       teammates: teammates.map((item) => item.id),
       reason,
       type,
+      dateFrom,
+      dateTo,
     };
 
     if (type === "Full Day") {
       formData = {
         ...formData,
-        dateFrom,
-        dateTo,
       };
     } else if (type === "Half Day") {
       formData = {
         ...formData,
-        dateFrom,
-        dateTo,
         session: dayType,
       };
     } else if (type === "Leave Desk") {
       formData = {
         ...formData,
-        leaveFromTime: formattedTimeFrom,
-        leaveToTime: formattedTimeTo,
+        leaveFromTime: dayjs(timeFrom).local().format("YYYY-MM-DD HH:mm:ss"),
+        leaveToTime: dayjs(timeTo).local().format("YYYY-MM-DD HH:mm:ss"),
       };
     }
+    console.log(formData);
     setProgress(true);
     try {
       const response = await axios.post(apiRoutes.absence.request, formData, {
@@ -178,15 +177,15 @@ const AbsenceForm = () => {
 
     if (option === "Full Time") {
       setDayType("");
-      setTimeFrom("");
-      setTimeTo("");
+      setTimeFrom(null);
+      setTimeTo(null);
     } else if (option === "Half Day") {
-      setTimeFrom("");
-      setTimeTo("");
+      setTimeFrom(null);
+      setTimeTo(null);
+      setDayType("Select Day Type");
     } else if (option === "Leave Desk") {
-      setDateFrom("");
-      setDateTo("");
-      setDayType("");
+      setDateFrom(null);
+      setDateTo(null);
     }
   };
 
@@ -255,7 +254,7 @@ const AbsenceForm = () => {
   }, []);
 
   return (
-    <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[10px] h-auto w-[calc(100vw-340px)] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] text-[14px] p-1">
+    <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[10px] h-auto w-[calc(100vw-340px)] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] text-[14px] p-1 overflow-x-hidden">
       {progress && (
         <div
           style={{
@@ -373,32 +372,31 @@ const AbsenceForm = () => {
           </div>
         </div>
       </div>
-      {type !== "Leave Desk" && (
-        <div className="flex ml-[4%] mt-3">
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <div className="w-full">
-              <p className="mb-2">From</p>
-              <DatePicker
-                value={dateFrom}
-                onChange={setDateFrom}
-                format="DD/MM/YYYY"
-                className="border-gray-200 rounded-[5px] border-[1px] w-[91%] h-[40px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
-                renderInput={(params) => <TextField {...params} fullWidth />}
-              />
-            </div>{" "}
-            <div className="w-full">
-              <p className="mb-2">To</p>
-              <DatePicker
-                value={dateTo}
-                onChange={setDateTo}
-                format="DD/MM/YYYY"
-                className="border-gray-200 rounded-[5px] border-[1px] w-[91%] h-[40px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
-                renderInput={(params) => <TextField {...params} fullWidth />}
-              />
-            </div>
-          </LocalizationProvider>
-        </div>
-      )}
+      <div className="flex ml-[4%] mt-3">
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <div className="w-full">
+            <p className="mb-2">From</p>
+            <DatePicker
+              value={dateFrom}
+              onChange={setDateFrom}
+              format="DD/MM/YYYY"
+              className="border-gray-200 rounded-[5px] border-[1px] w-[91%] h-[40px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
+              renderInput={(params) => <TextField {...params} fullWidth />}
+            />
+          </div>{" "}
+          <div className="w-full">
+            <p className="mb-2">To</p>
+            <DatePicker
+              value={dateTo}
+              onChange={setDateTo}
+              format="DD/MM/YYYY"
+              className="border-gray-200 rounded-[5px] border-[1px] w-[91%] h-[40px] mt-[5px] pl-[10px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
+              renderInput={(params) => <TextField {...params} fullWidth />}
+            />
+          </div>
+        </LocalizationProvider>
+      </div>
+
       {type === "Half Day" && (
         <div className="flex ml-[4%] mt-7 w-full">
           <div className="w-full">
@@ -436,27 +434,27 @@ const AbsenceForm = () => {
         </div>
       )}
       {type === "Leave Desk" && (
-        <div className="flex ml-[4%] mt-3">
+        <div className="flex ml-[4%] mt-5">
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <div className="w-full">
               <p className="mb-2">Leave From</p>
-              <TimePicker
+              <DateTimePicker
                 value={timeFrom}
-                onChange={setTimeFrom}
-                views={["hours", "minutes"]}
-                format="hh:mm"
-                renderInput={(params) => <TextField {...params} fullWdth />}
+                onChange={(newValue) => setTimeFrom(newValue)}
+                format="YYYY-MM-DD HH:mm:ss" // Định dạng ngày giờ
+                ampm={false} // Định dạng 24h
+                renderInput={(params) => <TextField {...params} fullWidth />}
                 className="border-gray-200 rounded-[5px] border-[1px] w-[91%] h-[40px] mt-[5px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
               />
             </div>
             <div className="w-full">
               <p className="mb-2">Leave To</p>
-              <TimePicker
+              <DateTimePicker
                 value={timeTo}
-                onChange={setTimeTo}
-                views={["hours", "minutes"]}
-                format="hh:mm"
-                renderInput={(params) => <TextField {...params} fullWdth />}
+                onChange={(newValue) => setTimeTo(newValue)}
+                format="YYYY-MM-DD HH:mm:ss" // Định dạng ngày giờ
+                ampm={false} // Định dạng 24h
+                renderInput={(params) => <TextField {...params} fullWidth />}
                 className="border-gray-200 rounded-[5px] border-[1px] w-[91%] h-[40px] mt-[5px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
               />
             </div>
@@ -537,7 +535,7 @@ const AbsenceForm = () => {
           </div>
         </div>
       </div>
-      <div className="mt-[3%] ml-[4%] w-[96%]">
+      <div className="mt-2 ml-[4%] w-[96%]">
         <p>Reason</p>
         <div className="mt-[1%]">
           <RichTextEditor value={reason} onChange={setReason} />

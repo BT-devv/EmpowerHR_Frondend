@@ -17,7 +17,7 @@
     "@heroicons/react": "^2.2.0",
     "@mui/lab": "^6.0.0-beta.29",
     "@mui/material": "^6.4.6",
-    "@mui/x-date-pickers": "^7.27.1",
+    "@mui/x-date-pickers": "^7.29.3",
     "@reduxjs/toolkit": "^2.4.0",
     "@schedule-x/calendar": "^2.28.0",
     "@schedule-x/drag-and-drop": "^2.28.0",

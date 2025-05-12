@@ -69,10 +69,6 @@ const AbsenceForm = () => {
   const token = localStorage.getItem("token");
   const decodedToken = jwtDecode(token);
 
-  useEffect(() => {
-    fetchPending();
-  }, []);
-
   const handleApprove = async () => {
     const data = {
       absenceID: selectedEmployee._id,
@@ -97,6 +93,7 @@ const AbsenceForm = () => {
         });
         setIsModalReject(false);
         setIsDetailModalOpen(false);
+        fetchPending();
       } else {
         Swal.fire({
           text: message,
@@ -266,6 +263,9 @@ const AbsenceForm = () => {
         console.error("Error fetching data from API", error);
       });
   };
+  useEffect(() => {
+    fetchPending();
+  }, []);
 
   // Get all users
   useEffect(() => {

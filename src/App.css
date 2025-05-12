@@ -5,3 +5,12 @@
 .body {
   background-color: aqua;
 }
+.scroll-hidden {
+  overflow-y: auto; /* Đảm bảo cuộn được */
+  -ms-overflow-style: none; /* IE và Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scroll-hidden::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}

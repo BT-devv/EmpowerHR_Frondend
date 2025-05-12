@@ -134,7 +134,7 @@ const OvertimeForm = () => {
   };
 
   return (
-    <div className="bg-white ml-[3%] mt-[2%] rounded-[10px] h-auto w-[calc(100vw-340px)] text-left shadow-md mb-[1%] p-6 text-[14px]">
+    <div className="bg-white ml-[3%] mt-[2%] rounded-[10px] h-auto w-[calc(100vw-340px)] text-left shadow-md p-1 text-[14px] overflow-x-hidden">
       {progress && (
         <div
           style={{
@@ -147,7 +147,7 @@ const OvertimeForm = () => {
           <CircularProgress size={80} style={{ color: "#069855" }} />
         </div>
       )}
-      <div className="ml-[3%]">
+      <div className="ml-[3%] mt-7">
         <p>Manager Approval</p>
         <div className="space-x-5">
           <div
@@ -202,7 +202,7 @@ const OvertimeForm = () => {
           </div>
         </div>
       </div>
-      <div className="mt-[1%] ml-[3%]">
+      <div className="mt-1 ml-[3%]">
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <div className="w-full">
             <p className="mb-2">Date</p>
@@ -217,7 +217,7 @@ const OvertimeForm = () => {
         </LocalizationProvider>
       </div>
 
-      <div className="flex mt-[3%] ml-[3%]">
+      <div className="flex mt-7 ml-[3%]">
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <div className="w-full">
             <p className="mb-2">From</p>
@@ -226,6 +226,7 @@ const OvertimeForm = () => {
               onChange={(newValue) => setStartTime(newValue)}
               views={["hours", "minutes"]}
               format="hh:mm"
+              ampm={false}
               renderInput={(params) => <TextField {...params} fullWidth />}
               className="border-gray-200 rounded-[5px] border-[1px] w-[95%] h-[40px] mt-[5px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
             />
@@ -237,6 +238,7 @@ const OvertimeForm = () => {
               onChange={(newValue) => setEndTime(newValue)}
               views={["hours", "minutes"]}
               format="hh:mm"
+              ampm={false}
               renderInput={(params) => <TextField {...params} fullWidth />}
               className="border-gray-200 rounded-[5px] border-[1px] w-[95%] h-[40px] mt-[5px] hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 placeholder:text-[#B8BDC5] placeholder:text-[14px] placeholder:font-light"
             />
@@ -244,12 +246,12 @@ const OvertimeForm = () => {
         </LocalizationProvider>
       </div>
 
-      <div className="mt-[3%] ml-[3%] w-full">
+      <div className="mt-7 ml-[3%] w-full">
         <p className="mb-2">Reason</p>
         <RichTextEditor value={reason} onChange={setReason} />
       </div>
 
-      <div className="flex justify-center">
+      <div className="flex justify-center mb-5">
         <button
           className="mt-5 bg-[#2EB67D] text-white outline-none w-[15%] text-[18px] focus:outline-none"
           onClick={handleSubmit}

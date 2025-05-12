@@ -36,6 +36,7 @@ const NotificationDropdown = ({ employeeID }) => {
             type: data.type,
             message: data.message,
             data: data.data,
+            timestamp: new Date().toLocaleString(),
             read: false,
           },
           ...prev,
@@ -104,7 +105,12 @@ const NotificationDropdown = ({ employeeID }) => {
                   <div className="font-semibold text-[15px]">
                     {noti.message}
                   </div>
-                  <div className="text-xs text-gray-500">{noti.type}</div>
+                  <div className="flex justify-between">
+                    <div className="text-xs text-gray-500">{noti.type}</div>
+                    <div className="text-xs text-gray-400">
+                      {noti.timestamp}
+                    </div>
+                  </div>
                 </li>
               ))
             )}

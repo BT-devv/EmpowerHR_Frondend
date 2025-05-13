@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import TabSelector from "../components/TabSelector";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import UsePermission from "../components/UsePermission";
 import OvertimeApproval from "../components/OvertimeApproval";
 import OvertimeForm from "../components/OvertimeForm";
@@ -11,6 +11,8 @@ import axios from "axios";
 
 const Overtime = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const { hasPermission, loading } = UsePermission("overtime.read");
   const [selectedTab, setSelectedTab] = useState("overtime");
   const [roleData, setRoleData] = useState([]);
@@ -43,14 +45,29 @@ const Overtime = () => {
   const tabs =
     role === "employee" || role === "intern"
       ? [
-          { key: "overtime", label: "Overtime Form" },
+          { key: "form", label: "Overtime Form" },
           { key: "history", label: "History" },
         ]
       : [
-          { key: "overtime", label: "Overtime Form" },
+          { key: "form", label: "Overtime Form" },
           { key: "approval", label: "Approval Manager" },
           { key: "history", label: "History" },
         ];
+
+  useEffect(() => {
+    const currentTab = location.pathname.split("/").pop();
+    const validTab = tabs.find((t) => t.key === currentTab);
+    if (validTab) {
+      setSelectedTab(currentTab);
+    } else {
+      navigate(`/overtime/form`);
+    }
+  }, [location.pathname, tabs, navigate]);
+
+  const handleTabSelect = (key) => {
+    setSelectedTab(key);
+    navigate(`/overtime/${key}`);
+  };
 
   useEffect(() => {
     if (!loading && !hasPermission) {
@@ -66,11 +83,11 @@ const Overtime = () => {
         <TabSelector
           tabs={tabs}
           selectedTab={selectedTab}
-          onTabSelect={(key) => setSelectedTab(key)}
+          onTabSelect={handleTabSelect}
           wrapperClassName="gap-10 md:gap-10 text-[#1C1C1C] ml-7"
         />
       </div>
-      {selectedTab === "overtime" && <OvertimeForm />}
+      {selectedTab === "form" && <OvertimeForm />}
 
       {selectedTab === "approval" &&
         role !== "employee" &&

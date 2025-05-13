@@ -46,8 +46,8 @@ const Slidebar = () => {
       "/calendar": "calendar",
       "/employee": "employee",
       "/attendance": "attendance",
-      "/overtime": "overtime",
-      "/absence": "absence",
+      "/overtime/form": "overtime",
+      "/absence/form": "absence",
       "/settings": "settings",
       "/qrscanner": "qrscanner",
     };
@@ -147,13 +147,13 @@ const Slidebar = () => {
               "Overtime",
               <IoTimeOutline className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />,
               "overtime",
-              "/overtime"
+              "/overtime/form"
             )}
             {renderMenuItem(
               "Absence",
               <IoCloseCircleOutline className="h-[25px] w-[25px] mr-[20px] ml-[20px]" />,
               "absence",
-              "/absence"
+              "/absence/form"
             )}
           </ul>
         </div>

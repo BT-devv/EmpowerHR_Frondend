@@ -103,7 +103,7 @@ const DashboardAdmin = () => {
         },
       })
       .then((response) => {
-        const attendanceData = response.data;
+        const attendanceData = response.data.data;
         const totalWorkFromOfficeAndLate = attendanceData.filter(
           (item) => item.status === "Work from office" || item.status === "late"
         ).length;

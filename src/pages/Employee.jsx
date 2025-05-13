@@ -15,6 +15,7 @@ import TabSelector from "../components/TabSelector";
 import PaginationFooter from "../components/PaginationFooter";
 import ClickOutside from "../components/ClickOutside";
 import UsePermission from "../components/UsePermission";
+import AttendanceDetail from "../components/AttendanceDetail";
 import { CircularProgress } from "@mui/material";
 import alert1 from "../components/Alert";
 import SortableHeader from "../components/SortableHeader";
@@ -1315,6 +1316,7 @@ const Employee = () => {
               ]}
               selectedTab={selectedTab}
               onTabSelect={handleTabSelect}
+              type="line"
               wrapperClassName="gap-10 md:gap-10 text-[#1C1C1C] ml-7"
             />
           </div>
@@ -2127,18 +2129,29 @@ const Employee = () => {
                     <p className="text-[20px] font-bold">Credential</p>
                     <div className="flex items-center justify-center">
                       {isCredentialOpen ? (
-                        <button
-                          type="button"
-                          className="ml-[-70%] bg-[#2EB67D] text-white outline-none w-fit text-[16px] caret-transparent focus:outline-none flex items-center"
-                          onClick={() => {
-                            if (isCredentialOpen) {
-                              handleUploadFiles();
-                            }
-                          }}
-                        >
-                          <GoPlus className="w-[25px] h-[25px] mr-2" />
-                          Save
-                        </button>
+                        <div className="flex space-x-4">
+                          <button
+                            type="button"
+                            className="ml-[-10%] bg-[#2EB67D] text-white outline-none w-fit text-[16px] caret-transparent focus:outline-none flex items-center"
+                            onClick={() => {
+                              if (isCredentialOpen) {
+                                handleUploadFiles();
+                              }
+                            }}
+                          >
+                            <GoPlus className="w-[25px] h-[25px] mr-2" />
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            className="ml-[-70%] bg-red-400 text-white outline-none w-fit text-[16px] caret-transparent focus:outline-none flex items-center"
+                            onClick={() => {
+                              setIsCredentialOpen(!isCredentialOpen);
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
                       ) : (
                         <button
                           type="button"
@@ -2399,7 +2412,10 @@ const Employee = () => {
                                 </td>
 
                                 <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
-                                  <div className="text-left w-[90px]">
+                                  <div
+                                    className="text-left w-[90px]"
+                                    onClick={() => alert1()}
+                                  >
                                     <FaRegTrashCan className="w-[25px] h-[25px] text-red-400" />
                                   </div>
                                 </td>
@@ -2427,6 +2443,9 @@ const Employee = () => {
                 </div>
               </div>
             </>
+          )}
+          {selectedTab === "attendance" && (
+            <AttendanceDetail employeeID={selectedEmployee.employeeID} />
           )}
         </div>
       ) : (
@@ -2615,7 +2634,7 @@ const Employee = () => {
                   className="bg-white rounded-[20px] shadow-lg w-auto max-w-[80%] p-12 transition-all duration-500 max-h-[85%] overflow-y-auto no-scrollbar mt-10"
                   overlayClassName="fixed inset-0 bg-[#A8C1B7] bg-opacity-50 flex justify-center items-center"
                 >
-                  <div className="sticky top-0 bg-white z-10">
+                  <div className="sticky top-0 bg-white z-10 ">
                     <div className=" flex flex-col mt-[-2%]">
                       <div className="flex items-center mb-2">
                         <IoIosArrowRoundBack

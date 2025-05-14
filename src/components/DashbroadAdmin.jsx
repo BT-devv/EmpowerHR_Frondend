@@ -103,12 +103,14 @@ const DashboardAdmin = () => {
         },
       })
       .then((response) => {
+        const today = new Date().toISOString().split("T")[0];
         const attendanceData = response.data.data;
-        const totalWorkFromOfficeAndLate = attendanceData.filter(
-          (item) => item.status === "Work from office" || item.status === "late"
+        const todayWFOLate = attendanceData.filter(
+          (item) =>
+            (item.status === "Work from office" || item.status === "late") &&
+            item.date?.startsWith(today)
         ).length;
-
-        setTotalWFOLate(totalWorkFromOfficeAndLate);
+        setTotalWFOLate(todayWFOLate);
       })
       .catch((error) => {
         if (error.response?.status === 403) {
@@ -262,15 +264,18 @@ const DashboardAdmin = () => {
 
               {/* List */}
               {user.length > 0 ? (
-                <div className="mt-[20px] text-[14px] h-[290px] overflow-y-auto ">
+                <div className="mt-[20px] text-[14px] h-[290px] overflow-y-auto scroll-hidden">
                   <table className=" bg-white table-fixed w-full">
                     <thead>
                       <tr className="border-gray-300 border-t border-b-2 text-left">
                         <th className="px-1 py-3 border-b border-gray-300 caret-transparent text-gray-500">
                           Name
                         </th>
-                        <th className="px-2 py-3 border-b border-gray-300 caret-transparent text-gray-500">
+                        <th className="px-5 py-3 border-b border-gray-300 caret-transparent text-gray-500">
                           Department
+                        </th>
+                        <th className="px-5 py-3 border-b border-gray-300 caret-transparent text-gray-500">
+                          Employee Type
                         </th>
                       </tr>
                     </thead>
@@ -303,7 +308,7 @@ const DashboardAdmin = () => {
                             </div>
                           </td>
                           <td
-                            className={`px-2 py-5 border-b border-gray-200 truncate text-left text-[13px] font-light`}
+                            className={`px-5 py-5 border-b border-gray-200 truncate text-left text-[13px] font-light`}
                           >
                             <div
                               className={`text-center p-3 rounded-[6px] w-fit h-[40px] flex items-center justify-center ${getRandomColorBg()}`}
@@ -312,6 +317,15 @@ const DashboardAdmin = () => {
                                 depart.find((r) => r._id === item.department)
                                   ?.name
                               }
+                            </div>
+                          </td>
+                          <td
+                            className={`px-5 py-5 border-b border-gray-200 truncate text-left text-[13px] font-light`}
+                          >
+                            <div
+                              className={`text-center p-3 rounded-[6px] w-fit h-[40px] flex items-center justify-center ${getRandomColorBg()}`}
+                            >
+                              {item.employeeType}
                             </div>
                           </td>
                         </tr>

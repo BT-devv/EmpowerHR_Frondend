@@ -46,6 +46,7 @@ const OvertimeForm = () => {
         const filteredManagers = response.data.filter(
           (user) =>
             (user.role === PM_ROLE_ID || user.role === ADMIN_ROLE_ID) &&
+            user.status === "Active" &&
             user._id !== decodedToken._id
         );
 
@@ -86,7 +87,6 @@ const OvertimeForm = () => {
       endTime: formattedEndTime,
       reason,
     };
-    console.log(formData);
     setProgress(true);
     try {
       const response = await axios.post(apiRoutes.overtime.request, formData, {
@@ -142,6 +142,7 @@ const OvertimeForm = () => {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
+            zIndex: 9999,
           }}
         >
           <CircularProgress size={80} style={{ color: "#069855" }} />

@@ -37,8 +37,8 @@ function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="message" element={<Chat />} />
           <Route path="calendar" element={<Calendar />} />
-          <Route path="overtime" element={<Overtime />} />
-          <Route path="absence" element={<Absence />} />
+          <Route path="/overtime/:tab" element={<Overtime />} />
+          <Route path="/absence/:tab" element={<Absence />} />
 
           <Route path="employee" element={<Employee />} />
           <Route path="payroll" element={<Payroll />} />

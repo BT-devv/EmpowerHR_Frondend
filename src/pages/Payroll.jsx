@@ -429,7 +429,7 @@ const Payroll = () => {
           showConfirmButton: false,
         });
         fetchBase();
-        setModalAddSalaryIsOpen(false);
+        setModalAddBaseIsOpen(false);
       } else {
         Swal.fire({
           text: "Add Base Salary Fail",

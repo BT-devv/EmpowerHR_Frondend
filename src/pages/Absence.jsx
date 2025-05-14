@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import TabSelector from "../components/TabSelector";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import UsePermission from "../components/UsePermission";
 import { jwtDecode } from "jwt-decode";
 import apiRoutes from "../../apiRoutes";
@@ -11,6 +11,7 @@ import AbsenceHistory from "../components/AbsenceHistory";
 
 const Absence = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { hasPermission, loading } = UsePermission("absence.read");
   const [selectedTab, setSelectedTab] = useState("absence");
 
@@ -44,14 +45,29 @@ const Absence = () => {
   const tabs =
     role === "employee" || role === "intern"
       ? [
-          { key: "absence", label: "Absence Form" },
+          { key: "form", label: "Absence Form" },
           { key: "history", label: "History" },
         ]
       : [
-          { key: "absence", label: "Absence Form" },
+          { key: "form", label: "Absence Form" },
           { key: "approval", label: "Approval Manager" },
           { key: "history", label: "History" },
         ];
+
+  useEffect(() => {
+    const currentTab = location.pathname.split("/").pop();
+    const validTab = tabs.find((t) => t.key === currentTab);
+    if (validTab) {
+      setSelectedTab(currentTab);
+    } else {
+      navigate(`/absence/form`);
+    }
+  }, [location.pathname, tabs, navigate]);
+
+  const handleTabSelect = (key) => {
+    setSelectedTab(key);
+    navigate(`/absence/${key}`);
+  };
 
   useEffect(() => {
     if (!loading && !hasPermission) {
@@ -67,12 +83,12 @@ const Absence = () => {
         <TabSelector
           tabs={tabs}
           selectedTab={selectedTab}
-          onTabSelect={(key) => setSelectedTab(key)}
+          onTabSelect={handleTabSelect}
           wrapperClassName="gap-10 md:gap-10 text-[#1C1C1C] ml-7"
         />
       </div>
 
-      {selectedTab === "absence" && <AbsenceForm />}
+      {selectedTab === "form" && <AbsenceForm />}
 
       {selectedTab === "approval" &&
         role !== "employee" &&

@@ -10,7 +10,6 @@ import { useNavigate } from "react-router-dom";
 // icon
 import { IoIosArrowRoundForward } from "react-icons/io";
 import { PiCalendarDotDuotone } from "react-icons/pi";
-import { PiNumberEight } from "react-icons/pi";
 
 const tasks = [
   {
@@ -40,10 +39,86 @@ const DashboardEmployee = () => {
   const [user, setUser] = useState([]);
   const [dataPendingA, setDataPendingA] = useState([]);
   const [dataPendingO, setDataPendingO] = useState([]);
+  const [clockLabelTime, setClockLabelTime] = useState(""); // ví dụ: "09:15 - 14 May"
+  const [liveClockTime, setLiveClockTime] = useState("");
+  const [firstIn, setFirstIn] = useState("--:--");
+  const [lastOut, setLastOut] = useState("--:--");
 
   const [weekStart, setWeekStart] = useState(
     startOfWeek(new Date(), { weekStartsOn: 1 })
   );
+
+  const fetchAttendanceData = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const decodedToken = jwtDecode(token);
+      const employeeId = decodedToken.employeeID;
+
+      const response = await axios.get(
+        `${apiRoutes.attendance.getAttendance}?employeeID=${employeeId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const today = new Date().toLocaleDateString("en-CA").split("T")[0];
+      const todayAttendance = response.data.data.find(
+        (record) => record.date.split("T")[0] === today
+      );
+      if (todayAttendance) {
+        setFirstIn(todayAttendance.checkIn?.slice(0, 5) || "--:--");
+        setLastOut(todayAttendance.checkOut?.slice(0, 5) || "--:--");
+      } else {
+        setFirstIn("--:--");
+        setLastOut("--:--");
+      }
+    } catch (error) {
+      console.error("Error fetching attendance data:", error);
+      setFirstIn("--:--");
+      setLastOut("--:--");
+    }
+  };
+
+  useEffect(() => {
+    fetchAttendanceData();
+  }, []);
+
+  const handleClockIn = async () => {
+    await fetchAttendanceData();
+    navigate("/qrscanner", "_blank", "noopener,noreferrer");
+  };
+
+  useEffect(() => {
+    const updateLabelTime = () => {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, "0");
+      const minutes = String(now.getMinutes()).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      const month = now.toLocaleString("en-US", { month: "short" }); // "May"
+      setClockLabelTime(`${hours}:${minutes} - ${day} ${month}`);
+    };
+
+    updateLabelTime();
+    const interval = setInterval(updateLabelTime, 60 * 1000); // mỗi phút
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const updateLiveTime = () => {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, "0");
+      const m = String(now.getMinutes()).padStart(2, "0");
+      const s = String(now.getSeconds()).padStart(2, "0");
+      setLiveClockTime(`${h}h ${m}m ${s}s`);
+    };
+
+    updateLiveTime();
+    const interval = setInterval(updateLiveTime, 1000); // mỗi giây
+    return () => clearInterval(interval);
+  }, []);
 
   // Get all attendance
   useEffect(() => {
@@ -144,7 +219,6 @@ const DashboardEmployee = () => {
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
         setDataPendingA(filtered);
-        console.log(filtered);
       })
       .catch((error) => {
         console.error("Error fetching data from API", error);
@@ -286,7 +360,10 @@ const DashboardEmployee = () => {
               </div>
               <div className="flex gap-10 w-full">
                 {/* Cột 1 */}
-                <div className="flex-1 flex flex-col space-y-4 mt-5 h-[200px] overflow-y-auto scroll-hidden">
+                <div
+                  onClick={() => navigate("/absence/approval")}
+                  className="flex-1 flex flex-col space-y-4 mt-5 h-[200px] overflow-y-auto scroll-hidden cursor-pointer"
+                >
                   <div className="flex justify-between font-semibold">
                     <p>Absence Request</p>
                     <p>{dataPendingA.length} pending</p>
@@ -295,8 +372,11 @@ const DashboardEmployee = () => {
                     dataPendingA.map((person) => (
                       <div
                         key={person._id}
-                        className="flex items-center space-x-4 w-full"
+                        className="flex items-center space-x-4 w-full relative group"
                       >
+                        <div className="absolute left-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                          More Detail
+                        </div>
                         <img
                           alt="avatar"
                           src={apiRoutes.file.avatar(person.avatar)}
@@ -325,7 +405,10 @@ const DashboardEmployee = () => {
                 <div className="border-l h-auto border-gray-300"></div>
 
                 {/* Cột 2 */}
-                <div className="flex-1 flex flex-col space-y-4 mt-5 h-[200px] overflow-y-auto scroll-hidden">
+                <div
+                  onClick={() => navigate("/overtime/approval")}
+                  className="flex-1 flex flex-col space-y-4 mt-5 h-[200px] overflow-y-auto scroll-hidden cursor-pointer"
+                >
                   <div className="flex justify-between font-semibold">
                     <p>Overtime Request</p>
                     <p>{dataPendingO.length} pending</p>
@@ -334,8 +417,12 @@ const DashboardEmployee = () => {
                     dataPendingO.map((person) => (
                       <div
                         key={person._id}
-                        className="flex items-center space-x-4 w-full"
+                        className="flex items-center space-x-4 w-full relative group"
                       >
+                        {/* Tooltip */}
+                        <div className="absolute left-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                          More Detail
+                        </div>
                         <img
                           alt="avatar"
                           src={apiRoutes.file.avatar(person.avatar)}
@@ -429,25 +516,25 @@ const DashboardEmployee = () => {
           <div className="p-4 border rounded-lg shadow-md bg-white w-full max-w-5xl mx-auto mt-6 h-fit">
             <div className="flex justify-between text-lg text-left font-semibold">
               <h2>Clock In/Out</h2>
-              <h2>--:-- - 27 Oct</h2>
+              <h2>{clockLabelTime}</h2>
             </div>
             <div className="flex justify-between mt-5">
               <div className="flex text-lg text-left space-x-4">
                 <h2>First in</h2>
-                <h2>--:--</h2>
+                <h2>{firstIn}</h2>
               </div>
               <div className="flex text-lg text-left space-x-4">
                 <h2>Last out</h2>
-                <h2>--:--</h2>
+                <h2>{lastOut}</h2>
               </div>
             </div>
             <div
+              onClick={handleClockIn}
               className="flex p-3 w-full mt-5 justify-center"
-              onClick={alert}
             >
               <button className="flex items-center justify-center w-full gap-2 text-[15px] font-medium text-white bg-[#2EB67D] px-4 py-3 rounded transition">
                 <IoIosArrowRoundForward size={25} />
-                Clock in 0h 0m 0s
+                Clock in {liveClockTime}
               </button>
             </div>
           </div>

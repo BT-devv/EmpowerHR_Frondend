@@ -37,6 +37,16 @@ const Attendance = () => {
   const [moreOptions, setMoreOptions] = useState(null);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [thisStats, setThisStats] = useState({
+    onTime: 0,
+    late: 0,
+    overtime: 0,
+  });
+  const [lastStats, setLastStats] = useState({
+    onTime: 0,
+    late: 0,
+    overtime: 0,
+  });
 
   const [filters, setFilters] = useState({
     name: "",
@@ -69,6 +79,44 @@ const Attendance = () => {
       })
       .then((response) => {
         setData(response.data.data);
+
+        const now = new Date();
+        const thisMonth = now.getMonth();
+        const thisYear = now.getFullYear();
+
+        const lastMonthDate = new Date(thisYear, thisMonth - 1, 1);
+        const lastMonth = lastMonthDate.getMonth();
+        const lastYear = lastMonthDate.getFullYear();
+
+        const thisMonthData = response.data.data.filter((a) => {
+          const d = new Date(a.date);
+          return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+        });
+
+        const lastMonthData = response.data.data.filter((a) => {
+          const d = new Date(a.date);
+          return d.getMonth() === lastMonth && d.getFullYear() === lastYear;
+        });
+
+        const countStats = (dataset) => {
+          return {
+            onTime: dataset.filter(
+              (a) =>
+                a.status === "Work from office" &&
+                new Date(`1970-01-01T${a.checkIn}:00`).getHours() < 9
+            ).length,
+            late: dataset.filter((a) => a.status === "late").length,
+            overtime: dataset.filter(
+              (a) => a.overtime === true || Number(a.workDuration) > 8
+            ).length,
+          };
+        };
+
+        const thisStatsResult = countStats(thisMonthData);
+        const lastStatsResult = countStats(lastMonthData);
+
+        setThisStats(thisStatsResult);
+        setLastStats(lastStatsResult);
       })
       .catch((error) => {
         if (error.response?.status === 403) {
@@ -77,25 +125,14 @@ const Attendance = () => {
       });
   }, []);
 
-  // Get all department
-  // useEffect(() => {
-  //   const token = localStorage.getItem("token");
-  //   axios
-  //     .get(apiRoutes.department.getAllDepartment, {
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //         "Content-Type": "application/json",
-  //       },
-  //     })
-  //     .then((response) => {
-  //       setDepart(response.data);
-  //     })
-  //     .catch((error) => {
-  //       if (error.response?.status === 403) {
-  //         console.warn("Bạn không có quyền xem user.");
-  //       }
-  //     });
-  // }, []);
+  const percentChange = (thisVal, lastVal) => {
+    if (lastVal === 0) {
+      if (thisVal === 0) return "0%";
+      return "+∞%";
+    }
+    const diff = ((thisVal - lastVal) / lastVal) * 100;
+    return `${diff > 0 ? "+" : ""}${Math.round(diff)}%`;
+  };
 
   // Format date
   const formatDate = (dateString) => {
@@ -110,6 +147,8 @@ const Attendance = () => {
     switch (status) {
       case "absent":
         return "Absent";
+      case "pending":
+        return "Pending";
       case "Work from office":
         return "Work from office";
       case "Work from home":
@@ -251,7 +290,9 @@ const Attendance = () => {
             <p className="font-bold text-[30px]">{onTime}</p>
             <div className="flex">
               <FaArrowTrendUp className="text-[#FF0404] mr-1 mt-1" />
-              <p className="text-[#FF0404] mr-1">16%</p>
+              <p className="text-[#FF0404] mr-1">
+                {percentChange(thisStats.onTime, lastStats.onTime)}
+              </p>
               <p className="font-bold">this month</p>
             </div>
           </div>
@@ -267,7 +308,9 @@ const Attendance = () => {
             <p className="font-bold text-[30px]">{late}</p>
             <div className="flex">
               <FaArrowTrendUp className="text-[#FF0404] mr-1 mt-1" />
-              <p className="text-[#FF0404] mr-1">16%</p>
+              <p className="text-[#FF0404] mr-1">
+                {percentChange(thisStats.late, lastStats.late)}
+              </p>
               <p className="font-bold">this month</p>
             </div>
           </div>
@@ -283,7 +326,9 @@ const Attendance = () => {
             <p className="font-bold text-[30px]">{overtime}</p>
             <div className="flex">
               <FaArrowTrendUp className="text-[#FF0404] mr-1 mt-1" />
-              <p className="text-[#FF0404] mr-1">16%</p>
+              <p className="text-[#FF0404] mr-1">
+                {percentChange(thisStats.overtime, lastStats.overtime)}
+              </p>
               <p className="font-bold">this month</p>
             </div>
           </div>
@@ -382,6 +427,7 @@ const Attendance = () => {
             <option value="Work from home">Work from home</option>
             <option value="absent">Absent</option>
             <option value="late">Late</option>
+            <option value="pending">Pending</option>
           </select>
 
           <div className="flex gap-2 mb-3">
@@ -524,6 +570,10 @@ const Attendance = () => {
                           item.status === "Work from home"
                             ? "text-[#8A8A8A] bg-[#EFEFEF]"
                             : ""
+                        } ${
+                          item.status === "pending"
+                            ? "text-[#2EB67D] bg-[#e1f1e7]"
+                            : ""
                         }`}
                       >
                         {getStatusDisplay(item.status)}
@@ -541,6 +591,8 @@ const Attendance = () => {
                           item.status === "Work from home"
                             ? "text-[#8A8A8A] "
                             : ""
+                        } ${
+                          item.status === "pending" ? "text-[#2EB67D] " : ""
                         }`}
                       >
                         {item.checkIn ? item.checkIn.slice(0, 5) : "00:00"}
@@ -561,7 +613,9 @@ const Attendance = () => {
                           item.status === "Work from home"
                             ? "text-[#8A8A8A] "
                             : ""
-                        }`}
+                        } ${
+                          item.status === "pending" ? "text-[#2EB67D] " : ""
+                        } `}
                       >
                         {item.checkOut ? item.checkOut.slice(0, 5) : "00:00"}
                       </div>

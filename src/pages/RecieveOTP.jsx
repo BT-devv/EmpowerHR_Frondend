@@ -148,7 +148,7 @@ const RecieveOPT = () => {
               email inbox, including the spam folder. If the code still hasn’t
               arrived, you can request a new one after 30 seconds or tap
               <span className="text-[#2EB67D] cursor-pointer border-b-[2px] border-[#2EB67D] ">
-                {`Resend OTP`}
+                {` Resend OTP `}
               </span>
               to receive a new code.
             </p>

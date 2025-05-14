@@ -18,7 +18,7 @@ const TabSelector = ({
                       ? "font-bold border-black"
                       : "border-transparent text-gray-500 hover:text-black"
                   }`
-                : `font-light w-[10%] rounded-[10px] p-4 ${
+                : `font-bold w-[10%] rounded-[10px] p-4 ${
                     selectedTab === tab.key
                       ? "bg-[#2EB67D] text-white"
                       : "bg-[#B8E4D2]"

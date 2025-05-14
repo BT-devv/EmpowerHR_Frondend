@@ -33,8 +33,6 @@ const Navbar = () => {
   };
 
   const handleLogout = async () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("expiryTime");
     setName("");
     setRole("");
     setAvatar("");
@@ -47,7 +45,8 @@ const Navbar = () => {
       showConfirmButton: false,
       timerProgressBar: true,
     });
-
+    localStorage.removeItem("token");
+    localStorage.removeItem("expiryTime");
     navigate("/", { replace: true });
   };
 

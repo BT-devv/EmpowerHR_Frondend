@@ -86,11 +86,6 @@ const DashboardEmployee = () => {
     fetchAttendanceData();
   }, []);
 
-  const handleClockIn = async () => {
-    await fetchAttendanceData();
-    navigate("/qrscanner", "_blank", "noopener,noreferrer");
-  };
-
   useEffect(() => {
     const updateLabelTime = () => {
       const now = new Date();
@@ -183,7 +178,7 @@ const DashboardEmployee = () => {
         const allUsers = response.data;
         const today = dayjs().format("YYYY-MM-DD");
         const joinedToday = allUsers.filter(
-          (user) => dayjs(user.joiningDate).format("YYYY-MM-DD") === today
+          (user) => dayjs(user.startDate).format("YYYY-MM-DD") === today
         );
 
         setUser(joinedToday);
@@ -528,10 +523,7 @@ const DashboardEmployee = () => {
                 <h2>{lastOut}</h2>
               </div>
             </div>
-            <div
-              onClick={handleClockIn}
-              className="flex p-3 w-full mt-5 justify-center"
-            >
+            <div className="flex p-3 w-full mt-5 justify-center">
               <button className="flex items-center justify-center w-full gap-2 text-[15px] font-medium text-white bg-[#2EB67D] px-4 py-3 rounded transition">
                 <IoIosArrowRoundForward size={25} />
                 Clock in {liveClockTime}
@@ -598,7 +590,7 @@ const DashboardEmployee = () => {
                     />
                     <div className="ml-3">
                       <p className="font-bold text-[13px] text-left">
-                        {person.name}
+                        {` ${person.firstName} ${person.lastName} `}
                       </p>
                       <p className="text-[13px] mt-1 font-light text-left">
                         ID: {person.employeeID}
@@ -618,7 +610,7 @@ const DashboardEmployee = () => {
             <div className=" text-lg text-left font-semibold">
               <h2>New Members Today</h2>
             </div>
-            <div className="flex flex-col h-[200px] overflow-y-auto">
+            <div className="flex flex-col h-[200px] overflow-y-auto  scroll-hidden">
               {user.length > 0 ? (
                 user.map((person) => (
                   <div key={person._id} className="flex items-center mt-5 ml-5">
@@ -633,10 +625,10 @@ const DashboardEmployee = () => {
                     />
                     <div className="ml-3">
                       <p className="font-bold text-[13px] text-left">
-                        {person.name}
+                        {` ${person.firstName} ${person.lastName} `}
                       </p>
                       <p className="text-[13px] mt-1 font-light text-left">
-                        ID: {person.employeeID}
+                        Joining on {format(person.startDate, "dd MMM, yyyy")}
                       </p>
                     </div>
                   </div>

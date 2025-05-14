@@ -11,7 +11,12 @@ import ClickOutside from "../components/ClickOutside";
 import avatar from "../assets/avatar.png";
 import Swal from "sweetalert2";
 import { CircularProgress } from "@mui/material";
+import { jwtDecode } from "jwt-decode";
+
 import FileUpload from "../components/FileUpload";
+import TabSelector from "../components/TabSelector";
+import alert1 from "../components/Alert";
+import AttendanceDetail from "../components/AttendanceDetail";
 
 // icon
 import { IoIosArrowDown } from "react-icons/io";
@@ -21,13 +26,14 @@ import { GoPlus } from "react-icons/go";
 import { IoBookmarkOutline } from "react-icons/io5";
 import { IoCloseCircleOutline } from "react-icons/io5";
 import { FaRegTrashCan } from "react-icons/fa6";
-
+import { FaRegEye } from "react-icons/fa";
+import { FaRegEyeSlash } from "react-icons/fa";
 const EmployeeDetail = () => {
   const { id } = useParams();
   const [employee, setEmployee] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isGenderOpen, setIsGenderOpen] = useState(false);
-
+  const [selectedTab, setSelectedTab] = useState("general");
   // fields
   const [fileInfos, setFileInfos] = useState({});
 
@@ -41,7 +47,103 @@ const EmployeeDetail = () => {
   const [departData, setDepartData] = useState([]);
   const [positionData, setPositionData] = useState([]);
 
+  const [newPassword, setNewPassword] = useState("");
+  const [reNewPassword, setReNewPassword] = useState("");
+  const [showNewPass, setShowNewPass] = useState(false);
+  const [showReNewPass, setShowReNewPass] = useState(false);
+
+  const [newPasswordError, setNewPasswordError] = useState("");
+  const [newPasswordBorder, setNewPasswordBorder] = useState(false);
+  const [reNewPasswordError, setReNewPasswordError] = useState("");
+  const [reNewPasswordBorder, setReNewPasswordBorder] = useState(false);
+
   const token = localStorage.getItem("token");
+  const decodedToken = jwtDecode(token);
+
+  const handleContinue = async (e) => {
+    e.preventDefault();
+
+    let isValid = true;
+    if (!newPassword) {
+      setNewPasswordError("New Password is required.");
+      isValid = false;
+      setNewPasswordBorder(true);
+    } else {
+      setNewPasswordError("");
+      setNewPasswordBorder(false);
+    }
+    if (!reNewPassword) {
+      setReNewPasswordError("Re-enter Password is required.");
+      isValid = false;
+      setReNewPasswordBorder(true);
+    } else {
+      setReNewPasswordError("");
+      setReNewPasswordBorder(false);
+    }
+    if (reNewPassword != newPassword) {
+      setReNewPasswordError("New Password and Re-enter Password do not match!");
+      isValid = false;
+    }
+    if (!isValid) {
+      return;
+    }
+    setLoading(true);
+
+    try {
+      const response = await axios.post(apiRoutes.user.resetPass, {
+        emailCompany: decodedToken.emailCompany,
+        newPassword,
+      });
+
+      const { success, message } = response.data;
+      if (success) {
+        Swal.fire({
+          text: message,
+          icon: "success",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+        setNewPassword("");
+        setReNewPassword("");
+      } else {
+        Swal.fire({
+          text: message,
+          icon: "error",
+          showConfirmButton: false,
+          timerProgressBar: true,
+          timer: 2000,
+        });
+      }
+    } catch (error) {
+      if (error.response?.status === 500) {
+        Swal.fire({
+          text: error.response?.data?.message,
+          icon: "error",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+      } else {
+        Swal.fire({
+          text: "An unexpected error occurred. Please try again later.",
+          icon: "error",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTabSelect = async (key) => {
+    if (key !== "general" && key !== "attendance" && key !== "password") {
+      alert1();
+    }
+    setSelectedTab(key);
+  };
 
   // edit form 1
   const [isEditing1, setIsEditing1] = useState(false);
@@ -166,6 +268,7 @@ const EmployeeDetail = () => {
             timer: 2000,
             timerProgressBar: true,
           });
+          fetchEmployee();
           setIsEditing1(false);
         } else {
           alert("Cập nhật thất bại: " + response.data.message);
@@ -184,7 +287,7 @@ const EmployeeDetail = () => {
       }
     } catch (error) {
       console.error("Lỗi cập nhật:", error);
-      alert("Có lỗi xảy ra khi cập nhật: " + error);
+      console.log("Có lỗi xảy ra khi cập nhật: " + error);
     } finally {
       setLoading(false);
     }
@@ -252,7 +355,7 @@ const EmployeeDetail = () => {
 
   const handleSaveClick2 = async () => {
     if (!employee?._id) {
-      alert("Không tìm thấy ID nhân viên!");
+      console.log("Không tìm thấy ID nhân viên!");
       return;
     }
     if (!isFormChanged2()) {
@@ -286,16 +389,16 @@ const EmployeeDetail = () => {
           icon: "success",
           showConfirmButton: false,
           timerProgressBar: true,
-
           timer: 2000,
         });
+        fetchEmployee();
         setIsEditing2(false);
       } else {
-        alert("Cập nhật thất bại: " + response.data.message);
+        console.log("Cập nhật thất bại: " + response.data.message);
       }
     } catch (error) {
       console.error("Lỗi cập nhật:", error);
-      alert("Có lỗi xảy ra khi cập nhật.");
+      console.log("Có lỗi xảy ra khi cập nhật.");
     } finally {
       setLoading(false);
     }
@@ -347,7 +450,7 @@ const EmployeeDetail = () => {
 
   const handleSaveClick3 = async () => {
     if (!employee?.employeeID) {
-      alert("Không tìm thấy ID nhân viên!");
+      console.log("Không tìm thấy ID nhân viên!");
       return;
     }
     if (!isFormChanged3()) {
@@ -356,13 +459,13 @@ const EmployeeDetail = () => {
         icon: "info",
         showConfirmButton: false,
         timerProgressBar: true,
-
         timer: 1500,
       }).then(() => {
         setIsEditing2(false);
       });
       return;
     }
+    fetchEmployee();
     setLoading(true);
     try {
       const response = await axios.put(
@@ -387,11 +490,11 @@ const EmployeeDetail = () => {
           setIsEditing3(false);
         });
       } else {
-        alert("Cập nhật thất bại: " + response.data.message);
+        console.log("Cập nhật thất bại: " + response.data.message);
       }
     } catch (error) {
       console.error("Lỗi cập nhật:", error);
-      alert("Có lỗi xảy ra khi cập nhật.");
+      console.log("Có lỗi xảy ra khi cập nhật.");
     } finally {
       setLoading(false);
     }
@@ -548,19 +651,22 @@ const EmployeeDetail = () => {
     return `${day}/${month}/${year}`;
   };
 
-  useEffect(() => {
-    axios(apiRoutes.user.profile(id), {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    })
-      .then((response) => {
-        setEmployee(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching data from API", error);
+  const fetchEmployee = async () => {
+    try {
+      const res = await axios(apiRoutes.user.profile(id), {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
+      setEmployee(res.data);
+    } catch (error) {
+      console.error("Error fetching employee:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchEmployee();
   }, [id]);
 
   if (!employee) return <div>Loading...</div>;
@@ -579,804 +685,936 @@ const EmployeeDetail = () => {
           <CircularProgress size={80} style={{ color: "#069855" }} />
         </div>
       )}
-      <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-full text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
-        <div className="flex ml-[2%] mt-[2%] mb-[2%]">
-          {isEditing1 ? (
-            <div className="relative">
-              {preview ? (
+      <div className="bg-white ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-[70px] text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] flex items-center">
+        <TabSelector
+          tabs={[
+            { key: "general", label: "General" },
+            { key: "job", label: "Job" },
+            { key: "attendance", label: "Attendance" },
+            { key: "payroll", label: "Payroll" },
+            { key: "performance", label: "Performance" },
+            { key: "documents", label: "Documents" },
+            { key: "dependents", label: "Dependents" },
+            { key: "password", label: "Security" },
+          ]}
+          selectedTab={selectedTab}
+          onTabSelect={handleTabSelect}
+          type="line"
+          wrapperClassName="gap-10 md:gap-10 text-[#1C1C1C] ml-7"
+        />
+      </div>
+      {selectedTab === "general" && (
+        <>
+          <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-full text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
+            <div className="flex ml-[2%] mt-[2%] mb-[2%]">
+              {isEditing1 ? (
+                <div className="relative">
+                  {preview ? (
+                    <img
+                      src={preview}
+                      alt="preview"
+                      className="w-[230px] h-[230px] object-cover border border-gray-300"
+                    />
+                  ) : (
+                    <button
+                      onClick={handleChooseFile}
+                      className="flex flex-col rounded-none border-[1px] w-[230px] h-[230px] bg-[#EAEAEA] border-gray-400 text-[#C5C5C5] text-[10px] justify-center items-center hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
+                    >
+                      <HiOutlinePhoto className="w-[30px] h-[30px]" />
+                      <p className="w-[150px] mt-[5px] text-[12px]">
+                        Image: png, jpg, jpeg. Size Maximum: 1mb. Resolution:
+                        500x500px.
+                      </p>
+                    </button>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    ref={fileInputRef}
+                    className="hidden"
+                  />
+                </div>
+              ) : (
                 <img
-                  src={preview}
-                  alt="preview"
+                  alt="avatar"
+                  src={apiRoutes.file.avatar(employee.avatar)}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = avatar;
+                  }}
                   className="w-[230px] h-[230px] object-cover border border-gray-300"
                 />
-              ) : (
-                <button
-                  onClick={handleChooseFile}
-                  className="flex flex-col rounded-none border-[1px] w-[230px] h-[230px] bg-[#EAEAEA] border-gray-400 text-[#C5C5C5] text-[10px] justify-center items-center hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2"
-                >
-                  <HiOutlinePhoto className="w-[30px] h-[30px]" />
-                  <p className="w-[150px] mt-[5px] text-[12px]">
-                    Image: png, jpg, jpeg. Size Maximum: 1mb. Resolution:
-                    500x500px.
-                  </p>
-                </button>
               )}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                ref={fileInputRef}
-                className="hidden"
-              />
-            </div>
-          ) : (
-            <img
-              alt="avatar"
-              src={
-                apiRoutes.file.avatar(employee.avatar)
-                  ? apiRoutes.file.avatar(employee.avatar)
-                  : avatar
-              }
-              className="w-[230px] h-[230px] object-cover border border-gray-300"
-            />
-          )}
 
-          <div className="ml-[3%] w-full ">
-            <div className="flex items-center justify-between">
-              <p className="text-[20px] font-bold ">Personal Information</p>
-              {isEditing1 ? (
-                <div className="flex space-x-2 mr-[3%]">
-                  <IoBookmarkOutline
-                    onClick={handleSaveClick1}
-                    className="w-[25px] h-[25px] cursor-pointer hover:text-[#069855]"
-                  />
-                  <IoCloseCircleOutline
-                    onClick={handleCancelClick1}
-                    className="w-[25px] h-[25px]  cursor-pointer hover:text-[#069855]"
-                  />
-                </div>
-              ) : (
-                <BiEdit
-                  className="w-[25px] h-[25px] mr-[4%] text-[#069855] cursor-pointer"
-                  onClick={handleEditClick1}
-                />
-              )}
-            </div>
-            <div className="grid grid-cols-4 gap-2 mt-8">
-              <div>
-                <p className="w-fit text-[#828282]">ID Employee</p>
-                {isEditing1 ? (
-                  <input
-                    readOnly
-                    type="text"
-                    value={employee.employeeID}
-                    disabled
-                    className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[6%] whitespace-nowrap"
-                  ></input>
-                ) : (
-                  <p className="mt-[5%] font-bold ">{employee.employeeID}</p>
-                )}
-              </div>
-              <div>
-                <p className="text-[#828282]">First Name</p>
-                {isEditing1 ? (
-                  <input
-                    type="text"
-                    name="firstName"
-                    value={formData1.firstName}
-                    onChange={handleChange1}
-                    className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[6%] "
-                  />
-                ) : (
-                  <p className="w-fit font-bold mt-[5%]">
-                    {employee.firstName}
-                  </p>
-                )}
-              </div>
-              <div>
-                <p className="text-[#828282] w-fit">Last Name</p>
-
-                {isEditing1 ? (
-                  <input
-                    type="text"
-                    name="lastName"
-                    value={formData1.lastName}
-                    onChange={handleChange1}
-                    className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[6%]"
-                  />
-                ) : (
-                  <p className="w-fit font-bold mt-[5%]">{employee.lastName}</p>
-                )}
-              </div>
-              <div>
-                <p className="w-fit text-[#828282] whitespace-nowrap">Alias</p>
-                {isEditing1 ? (
-                  <input
-                    type="text"
-                    name="alias"
-                    value={formData1.alias}
-                    onChange={handleChange1}
-                    className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[5%]"
-                  />
-                ) : (
-                  <p className=" w-fit font-bold mt-[5%]">{employee.alias}</p>
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-4 gap-x-3 mt-6">
-              <div>
-                <p className="w-fit text-[#828282] ">ID Card</p>
-                {isEditing1 ? (
-                  <input
-                    type="text"
-                    name="idCardNumber"
-                    value={formData1.idCardNumber}
-                    onChange={handleChange1}
-                    className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[5%]"
-                  />
-                ) : (
-                  <p className=" w-fit font-bold mt-[5%]">
-                    {employee.idCardNumber}
-                  </p>
-                )}
-              </div>
-              <div>
-                <p className="text-[#828282] mb-2">Date of Birth</p>
-                {isEditing1 ? (
-                  <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <DatePicker
-                      value={
-                        formData1.dateOfBirth
-                          ? dayjs(formData1.dateOfBirth)
-                          : null
-                      }
-                      onChange={(newDate) =>
-                        setFormData1((prev) => ({
-                          ...prev,
-                          dateOfBirth: newDate ? newDate.toISOString() : "",
-                        }))
-                      }
-                      renderInput={(params) => (
-                        <TextField {...params} fullWidth />
-                      )}
-                      slotProps={{ textField: { size: "small" } }}
-                    />
-                  </LocalizationProvider>
-                ) : (
-                  <p className="mt-2 font-bold">
-                    {formatDate(employee.dateOfBirth)}
-                  </p>
-                )}
-              </div>
-              <div>
-                <p className="w-fit text-[#828282]">Gender</p>
-
-                {isEditing1 ? (
-                  <ClickOutside className="w-full" setIsOpen={setIsGenderOpen}>
-                    <div className="relative">
-                      <div
-                        className="inline-flex w-[260px] border-gray-200 border-1 h-[42px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
-                        onClick={toggleGenderDropdown}
-                      >
-                        <span className="text-[15px]">{formData1.gender}</span>
-                        <IoIosArrowDown />
-                      </div>
+              <div className="ml-[3%] w-full ">
+                <div className="flex items-center justify-between">
+                  <p className="text-[20px] font-bold ">Personal Information</p>
+                  {isEditing1 ? (
+                    <div className="flex space-x-2 mr-[3%]">
+                      <IoBookmarkOutline
+                        onClick={handleSaveClick1}
+                        className="w-[25px] h-[25px] cursor-pointer hover:text-[#069855]"
+                      />
+                      <IoCloseCircleOutline
+                        onClick={handleCancelClick1}
+                        className="w-[25px] h-[25px]  cursor-pointer hover:text-[#069855]"
+                      />
                     </div>
-                    {isGenderOpen && (
-                      <div className="absolute z-10 mt-2 w-[260px] bg-white rounded-md shadow-lg border border-gray-200">
-                        <ul className="py-1">
-                          {genderData.map((option, index) => (
-                            <li
-                              key={index}
-                              onClick={() => {
-                                setFormData1((prev) => ({
-                                  ...prev,
-                                  gender: option,
-                                }));
-                                setIsGenderOpen(false);
-                              }}
-                              className="block px-4 py-2 text-[15px] w-[260px] text-gray-700 cursor-pointer hover:bg-gray-100"
-                            >
-                              {option}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                  ) : (
+                    <BiEdit
+                      className="w-[25px] h-[25px] mr-[4%] text-[#069855] cursor-pointer"
+                      onClick={handleEditClick1}
+                    />
+                  )}
+                </div>
+                <div className="grid grid-cols-4 gap-2 mt-8">
+                  <div>
+                    <p className="w-fit text-[#828282]">ID Employee</p>
+                    {isEditing1 ? (
+                      <input
+                        readOnly
+                        type="text"
+                        value={employee.employeeID}
+                        disabled
+                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[6%] whitespace-nowrap"
+                      ></input>
+                    ) : (
+                      <p className="mt-[5%] font-bold ">
+                        {employee.employeeID}
+                      </p>
                     )}
-                  </ClickOutside>
-                ) : (
-                  <p className="w-fit font-bold mt-[5%]">{employee.gender}</p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-fit text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
-        <div className="ml-[2%] w-full">
-          <div className="flex items-center justify-between mt-[2%]">
-            <p className="text-[20px] font-bold">Contact Detail</p>
-            {isEditing2 ? (
-              <div className="flex space-x-2 mr-[4%]">
-                <IoBookmarkOutline
-                  onClick={handleSaveClick2}
-                  className="w-[25px] h-[25px] cursor-pointer hover:text-[#069855]"
-                />
-                <IoCloseCircleOutline
-                  onClick={handleCancelClick2}
-                  className="w-[25px] h-[25px] mr-[5%] cursor-pointer hover:text-[#069855]"
-                />
-              </div>
-            ) : (
-              <BiEdit
-                className="w-[25px] h-[25px] mr-[5%] text-[#069855] cursor-pointer"
-                onClick={handleEditClick2}
-              />
-            )}
-          </div>
-          <div>
-            <div className="grid grid-cols-2 mt-[2%]">
-              <div>
-                <p className="text-[#828282]">Phone Number</p>
+                  </div>
+                  <div>
+                    <p className="text-[#828282]">First Name</p>
+                    {isEditing1 ? (
+                      <input
+                        type="text"
+                        name="firstName"
+                        value={formData1.firstName}
+                        onChange={handleChange1}
+                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[6%] "
+                      />
+                    ) : (
+                      <p className="w-fit font-bold mt-[5%]">
+                        {employee.firstName}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-[#828282] w-fit">Last Name</p>
 
-                {isEditing2 ? (
-                  <input
-                    type="text"
-                    name="phoneNumber"
-                    value={formData2.phoneNumber}
-                    onChange={handleChange2}
-                    className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
-                  />
-                ) : (
-                  <p className="w-fit font-bold mt-[2%]">
-                    {employee.phoneNumber == "" ? "--" : employee.phoneNumber}
-                  </p>
-                )}
-              </div>
-              <div>
-                <p className="text-[#828282]">Email Company</p>
-
-                {isEditing2 ? (
-                  <input
-                    type="text"
-                    name="emailCompany"
-                    value={formData2.emailCompany}
-                    onChange={handleChange2}
-                    className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
-                  />
-                ) : (
-                  <p className="w-fit font-bold mt-[2%]">
-                    {employee.emailCompany == "" ? "--" : employee.emailCompany}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 mt-[3%]">
-              <div>
-                <p className="text-[#828282]">Address</p>
-                {isEditing2 ? (
-                  <input
-                    type="text"
-                    name="address"
-                    value={formData2.address}
-                    onChange={handleChange2}
-                    className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
-                  />
-                ) : (
-                  <p className="w-fit font-bold mt-[2%]">
-                    {employee.address == "" ? "--" : employee.address}
-                  </p>
-                )}
-              </div>
-              <div>
-                <p className="text-[#828282]">Email Person</p>
-                {isEditing2 ? (
-                  <input
-                    type="text"
-                    name="emailPersonal"
-                    value={formData2.emailPersonal}
-                    onChange={handleChange2}
-                    className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
-                  />
-                ) : (
-                  <p className="w-fit font-bold mt-[2%]">
-                    {employee.emailPersonal == ""
-                      ? "--"
-                      : employee.emailPersonal}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 mt-[3%] mb-[3%]">
-              <div>
-                <p className="text-[#828282]">Province</p>
-                {isEditing2 ? (
-                  <input
-                    type="text"
-                    name="province"
-                    value={formData2.province}
-                    onChange={handleChange2}
-                    className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
-                  />
-                ) : (
-                  <p className="w-fit font-bold mt-[2%]">
-                    {employee.province == "" ? "--" : employee.province}
-                  </p>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-x-10">
-                <div>
-                  <p className="text-[#828282]">Postcode</p>
-                  {isEditing2 ? (
-                    <input
-                      type="text"
-                      name="postcode"
-                      value={formData2.postcode}
-                      onChange={handleChange2}
-                      className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
-                    />
-                  ) : (
-                    <p className="w-fit font-bold mt-[2%]">
-                      {employee.postcode == "" ? "--" : employee.postcode}
+                    {isEditing1 ? (
+                      <input
+                        type="text"
+                        name="lastName"
+                        value={formData1.lastName}
+                        onChange={handleChange1}
+                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[6%]"
+                      />
+                    ) : (
+                      <p className="w-fit font-bold mt-[5%]">
+                        {employee.lastName}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="w-fit text-[#828282] whitespace-nowrap">
+                      Alias
                     </p>
-                  )}
+                    {isEditing1 ? (
+                      <input
+                        type="text"
+                        name="alias"
+                        value={formData1.alias}
+                        onChange={handleChange1}
+                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[5%]"
+                      />
+                    ) : (
+                      <p className=" w-fit font-bold mt-[5%]">
+                        {employee.alias}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[#828282]">City</p>
-
-                  {isEditing2 ? (
-                    <input
-                      type="text"
-                      name="city"
-                      value={formData2.city}
-                      onChange={handleChange2}
-                      className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
-                    />
-                  ) : (
-                    <p className="w-fit font-bold mt-[2%]">
-                      {employee.city == "" ? "--" : employee.city}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-auto text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
-        <div className="ml-[2%] w-full">
-          <div className="flex items-center justify-between mt-[2%]">
-            <p className="text-[20px] font-bold">Bank Account</p>
-            {isEditing3 ? (
-              <div className="flex space-x-2 mr-[4%]">
-                <IoBookmarkOutline
-                  onClick={handleSaveClick3}
-                  className="w-[25px] h-[25px] cursor-pointer hover:text-[#069855]"
-                />
-                <IoCloseCircleOutline
-                  onClick={handleCancelClick3}
-                  className="w-[25px] h-[25px] cursor-pointer hover:text-[#069855]"
-                />
-              </div>
-            ) : (
-              <BiEdit
-                className="w-[25px] h-[25px] mr-[5%] text-[#069855] cursor-pointer"
-                onClick={handleEditClick3}
-              />
-            )}
-          </div>
-          <div>
-            <div className="grid grid-cols-2 mt-[2%]">
-              <div>
-                <p className="text-[#828282] ">Bank Account Name</p>
-                {isEditing3 ? (
-                  <input
-                    type="text"
-                    name="bankName"
-                    value={formData3.bankName}
-                    onChange={handleChange3}
-                    className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
-                  />
-                ) : (
-                  <p className="w-fit font-bold mt-[2%]">
-                    {employee.bankName == "" ? "--" : employee.bankName}
-                  </p>
-                )}
-              </div>
-              <div>
-                <p className="text-[#828282]">Account Name</p>
-                {isEditing3 ? (
-                  <input
-                    type="text"
-                    name="bankAccountName"
-                    value={formData3.bankAccountName}
-                    onChange={handleChange3}
-                    className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
-                  />
-                ) : (
-                  <p className="w-fit font-bold mt-[2%]">
-                    {employee.bankAccountName == ""
-                      ? "--"
-                      : employee.bankAccountName}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 mt-[3%] mb-[3%]">
-              <div>
-                <p className="text-[#828282]">Bank Account Number</p>
-                {isEditing3 ? (
-                  <input
-                    type="text"
-                    name="bankAccountNumber"
-                    value={formData3.bankAccountNumber}
-                    onChange={handleChange3}
-                    className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
-                  />
-                ) : (
-                  <p className="w-fit font-bold mt-[2%]">
-                    {employee.bankAccountNumber == ""
-                      ? "--"
-                      : employee.bankAccountNumber}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-auto text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
-        <div className="ml-[2%]">
-          <div className="flex items-center justify-between mt-[2%]">
-            <p className="text-[20px] font-bold">Employee Access</p>
-          </div>
-          <div>
-            <div className="grid grid-cols-4 mt-[2%]">
-              <div>
-                <p className="text-[#828282]">Employee Type</p>
-                <p className="w-fit font-bold">{employee.employeeType}</p>
-              </div>
-              <div>
-                <p className="text-[#828282]">Department</p>
-                <p className="w-fit font-bold">
-                  {departData.find((r) => r._id === employee.department)
-                    ?.name || "--"}
-                </p>
-              </div>
-              <div>
-                <p className="text-[#828282]">Position</p>
-                <p className="w-fit font-bold">
-                  {positionData.find((r) => r._id === employee.jobtitle)
-                    ?.name || "--"}
-                </p>
-              </div>
-              <div>
-                <p className="text-[#828282]">Role</p>
-                <p className="w-fit font-bold capitalize">
-                  {roleData.find((r) => r._id === employee.role)?.name || "--"}
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 mt-[3%] mb-[3%]">
-              <div>
-                <p className="text-[#828282]">Joining Date</p>
-                <p className="mt-2 font-bold">
-                  {formatDate(employee.joiningDate) === "NaN/NaN/NaN"
-                    ? "--"
-                    : formatDate(employee.joiningDate)}
-                </p>
-              </div>
-              <div>
-                <p className="text-[#828282]">End Date</p>
-
-                <p className="mt-2 font-bold">
-                  {formatDate(employee.endDate) === "NaN/NaN/NaN"
-                    ? "--"
-                    : formatDate(employee.endDate)}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-auto text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] mb-[2%]">
-        <div className="mt-[2%] ml-[2%]">
-          <div className="flex items-center justify-between">
-            <p className="text-[20px] font-bold">Credential</p>
-            <div className="flex items-center justify-center">
-              {isCredentialOpen ? (
-                <button
-                  type="button"
-                  className="ml-[-70%] bg-[#2EB67D] text-white outline-none w-fit text-[16px] caret-transparent focus:outline-none flex items-center"
-                  onClick={() => {
-                    if (isCredentialOpen) {
-                      handleUploadFiles();
-                    }
-                  }}
-                >
-                  <GoPlus className="w-[25px] h-[25px] mr-2" />
-                  Save
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsCredentialOpen(!isCredentialOpen);
-                  }}
-                  className="ml-[-70%] bg-[#2EB67D] text-white outline-none w-fit text-[16px] caret-transparent focus:outline-none flex items-center"
-                >
-                  <GoPlus className="w-[25px] h-[25px] mr-2" />
-                  Credential
-                </button>
-              )}
-            </div>
-          </div>
-          {/* table*/}
-          {isCredentialOpen ? (
-            <div className="text-[14px] ml-[15px] border-l border-b border-r w-fit mb-5">
-              <table className="rounded-[5px] mt-[2%] bg-white overflow-hidden w-[calc(100vw-500px)] caret-transparent border-gray-200 border">
-                <thead>
-                  <tr className="bg-[#010101] text-left">
-                    <th className="px-5 py-3 caret-transparent text-white font-normal">
-                      Credential
-                    </th>
-                    <th className="px-1 py-3 caret-transparent text-white font-normal"></th>
-                    <th className="px-5 py-3 caret-transparent text-white font-normal">
-                      Documents
-                    </th>
-                    <th className="px-5 py-3 caret-transparent text-white font-normal">
-                      Expiry day
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="cursor-pointer">
-                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                      <div className="text-left w-[240px]  ">Photo ID</div>
-                    </td>
-                    <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
-                      <FileUpload
-                        fileType="photoID"
-                        selectedEmployee={employee}
-                        setSelectedFile={(file) =>
-                          setSelectedFiles((prev) => ({
-                            ...prev,
-                            photoID: file,
-                          }))
-                        }
+                <div className="grid grid-cols-4 gap-x-3 mt-6">
+                  <div>
+                    <p className="w-fit text-[#828282] ">ID Card</p>
+                    {isEditing1 ? (
+                      <input
+                        type="text"
+                        name="idCardNumber"
+                        value={formData1.idCardNumber}
+                        onChange={handleChange1}
+                        className="border border-gray-300 rounded-md p-1 w-full font-bold mt-[5%]"
                       />
-                    </td>
-                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                      <div className="text-left w-[240px]  ">
-                        {" "}
-                        {selectedFiles.photoID && (
-                          <a
-                            href={URL.createObjectURL(selectedFiles.photoID)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
+                    ) : (
+                      <p className=" w-fit font-bold mt-[5%]">
+                        {employee.idCardNumber}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-[#828282] mb-2">Date of Birth</p>
+                    {isEditing1 ? (
+                      <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <DatePicker
+                          value={
+                            formData1.dateOfBirth
+                              ? dayjs(formData1.dateOfBirth)
+                              : null
+                          }
+                          onChange={(newDate) =>
+                            setFormData1((prev) => ({
+                              ...prev,
+                              dateOfBirth: newDate ? newDate.toISOString() : "",
+                            }))
+                          }
+                          renderInput={(params) => (
+                            <TextField {...params} fullWidth />
+                          )}
+                          slotProps={{ textField: { size: "small" } }}
+                        />
+                      </LocalizationProvider>
+                    ) : (
+                      <p className="mt-2 font-bold">
+                        {formatDate(employee.dateOfBirth)}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="w-fit text-[#828282]">Gender</p>
+
+                    {isEditing1 ? (
+                      <ClickOutside
+                        className="w-full"
+                        setIsOpen={setIsGenderOpen}
+                      >
+                        <div className="relative">
+                          <div
+                            className="inline-flex w-[260px] border-gray-200 border-1 h-[42px] items-center justify-between gap-x-1.5 rounded-[8px] mt-[5px] pl-[15px] bg-white px-3 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 text-gray-400 hover:border-[#2EB67D] hover:border-2 focus:border-[#2EB67D] focus:outline-none focus:border-2 cursor-pointer"
+                            onClick={toggleGenderDropdown}
                           >
-                            Preview Photo ID
-                          </a>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                      <div className="text-left w-[240px]  ">--</div>
-                    </td>
-                  </tr>
-                  <tr className="cursor-pointer">
-                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                      <div className="text-left w-[240px]  ">Certificate</div>
-                    </td>
-                    <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
-                      <FileUpload
-                        fileType="certificate"
-                        selectedEmployee={employee}
-                        setSelectedFile={(file) =>
-                          setSelectedFiles((prev) => ({
-                            ...prev,
-                            certificate: file,
-                          }))
-                        }
-                      />
-                    </td>
-                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                      <div className="text-left w-[240px]  ">
-                        {selectedFiles.certificate && (
-                          <a
-                            href={URL.createObjectURL(
-                              selectedFiles.certificate
-                            )}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
-                          >
-                            Preview Certificate
-                          </a>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                      <div className="text-left w-[240px]  ">--</div>
-                    </td>
-                  </tr>
-                  <tr className="cursor-pointer">
-                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                      <div className="text-left w-[240px]  ">
-                        Graduation Certificate
-                      </div>
-                    </td>
-                    <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
-                      <FileUpload
-                        fileType="graduationCertificate"
-                        selectedEmployee={employee}
-                        setSelectedFile={(file) =>
-                          setSelectedFiles((prev) => ({
-                            ...prev,
-                            graduationCertificate: file,
-                          }))
-                        }
-                      />
-                    </td>
-                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                      <div className="text-left w-[240px]  ">
-                        {selectedFiles.graduationCertificate && (
-                          <a
-                            href={URL.createObjectURL(
-                              selectedFiles.graduationCertificate
-                            )}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
-                          >
-                            Preview Graduation Certificate
-                          </a>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                      <div className="text-left w-[240px]  ">--</div>
-                    </td>
-                  </tr>
-                  <tr className="cursor-pointer">
-                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                      <div className="text-left w-[240px] ">Order</div>
-                    </td>
-                    <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
-                      <FileUpload
-                        fileType="order"
-                        selectedEmployee={employee}
-                        setSelectedFile={(file) =>
-                          setSelectedFiles((prev) => ({
-                            ...prev,
-                            order: file,
-                          }))
-                        }
-                      />
-                    </td>
-                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                      <div className="text-left w-[240px]">
-                        {selectedFiles.order && (
-                          <a
-                            href={URL.createObjectURL(selectedFiles.order)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
-                          >
-                            Preview Order
-                          </a>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
-                      <div className="text-left w-[240px]">--</div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="text-[14px] ml-[15px] border-l border-b border-r w-fit mb-5">
-              <table className="rounded-[5px] mt-[2%] bg-white overflow-hidden w-[calc(100vw-500px)] caret-transparent border-gray-200 border">
-                <thead>
-                  <tr className="bg-[#010101] text-left">
-                    <th className="px-5 py-3 caret-transparent text-white font-normal">
-                      Credential
-                    </th>
-                    <th className="px-1 py-3 caret-transparent text-white font-normal">
-                      Upload Date
-                    </th>
-                    <th className="px-5 py-3 caret-transparent text-white font-normal">
-                      Documents
-                    </th>
-                    <th className="px-5 py-3 caret-transparent text-white font-normal">
-                      Expiry day
-                    </th>
-                    <th className="px-5 py-3 caret-transparent text-white font-normal">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    { key: "photoID", label: "Photo ID" },
-                    { key: "certificate", label: "Certificate" },
-                    {
-                      key: "graduationCertificate",
-                      label: "Graduation Certificate",
-                    },
-                    { key: "order", label: "Order" },
-                  ]
-                    .filter((field) => employee[field.key])
-                    .map((field) => (
-                      <tr key={field.key} className="cursor-pointer">
-                        <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
-                          <div className="text-left w-[200px]">
-                            {field.label}
+                            <span className="text-[15px]">
+                              {formData1.gender}
+                            </span>
+                            <IoIosArrowDown />
                           </div>
-                        </td>
+                        </div>
+                        {isGenderOpen && (
+                          <div className="absolute z-10 mt-2 w-[260px] bg-white rounded-md shadow-lg border border-gray-200">
+                            <ul className="py-1">
+                              {genderData.map((option, index) => (
+                                <li
+                                  key={index}
+                                  onClick={() => {
+                                    setFormData1((prev) => ({
+                                      ...prev,
+                                      gender: option,
+                                    }));
+                                    setIsGenderOpen(false);
+                                  }}
+                                  className="block px-4 py-2 text-[15px] w-[260px] text-gray-700 cursor-pointer hover:bg-gray-100"
+                                >
+                                  {option}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </ClickOutside>
+                    ) : (
+                      <p className="w-fit font-bold mt-[5%]">
+                        {employee.gender}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-fit text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
+            <div className="ml-[2%] w-full">
+              <div className="flex items-center justify-between mt-[2%]">
+                <p className="text-[20px] font-bold">Contact Detail</p>
+                {isEditing2 ? (
+                  <div className="flex space-x-2 mr-[4%]">
+                    <IoBookmarkOutline
+                      onClick={handleSaveClick2}
+                      className="w-[25px] h-[25px] cursor-pointer hover:text-[#069855]"
+                    />
+                    <IoCloseCircleOutline
+                      onClick={handleCancelClick2}
+                      className="w-[25px] h-[25px] mr-[5%] cursor-pointer hover:text-[#069855]"
+                    />
+                  </div>
+                ) : (
+                  <BiEdit
+                    className="w-[25px] h-[25px] mr-[5%] text-[#069855] cursor-pointer"
+                    onClick={handleEditClick2}
+                  />
+                )}
+              </div>
+              <div>
+                <div className="grid grid-cols-2 mt-[2%]">
+                  <div>
+                    <p className="text-[#828282]">Phone Number</p>
 
-                        <td className="px-1 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
-                          <div className="text-left w-[240px]">--</div>
+                    {isEditing2 ? (
+                      <input
+                        type="text"
+                        name="phoneNumber"
+                        value={formData2.phoneNumber}
+                        onChange={handleChange2}
+                        className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
+                      />
+                    ) : (
+                      <p className="w-fit font-bold mt-[2%]">
+                        {employee.phoneNumber == ""
+                          ? "--"
+                          : employee.phoneNumber}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-[#828282]">Email Company</p>
+
+                    {isEditing2 ? (
+                      <input
+                        type="text"
+                        name="emailCompany"
+                        value={formData2.emailCompany}
+                        onChange={handleChange2}
+                        className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
+                      />
+                    ) : (
+                      <p className="w-fit font-bold mt-[2%]">
+                        {employee.emailCompany == ""
+                          ? "--"
+                          : employee.emailCompany}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 mt-[3%]">
+                  <div>
+                    <p className="text-[#828282]">Address</p>
+                    {isEditing2 ? (
+                      <input
+                        type="text"
+                        name="address"
+                        value={formData2.address}
+                        onChange={handleChange2}
+                        className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
+                      />
+                    ) : (
+                      <p className="w-fit font-bold mt-[2%]">
+                        {employee.address == "" ? "--" : employee.address}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-[#828282]">Email Person</p>
+                    {isEditing2 ? (
+                      <input
+                        type="text"
+                        name="emailPersonal"
+                        value={formData2.emailPersonal}
+                        onChange={handleChange2}
+                        className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
+                      />
+                    ) : (
+                      <p className="w-fit font-bold mt-[2%]">
+                        {employee.emailPersonal == ""
+                          ? "--"
+                          : employee.emailPersonal}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 mt-[3%] mb-[3%]">
+                  <div>
+                    <p className="text-[#828282]">Province</p>
+                    {isEditing2 ? (
+                      <input
+                        type="text"
+                        name="province"
+                        value={formData2.province}
+                        onChange={handleChange2}
+                        className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
+                      />
+                    ) : (
+                      <p className="w-fit font-bold mt-[2%]">
+                        {employee.province == "" ? "--" : employee.province}
+                      </p>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-10">
+                    <div>
+                      <p className="text-[#828282]">Postcode</p>
+                      {isEditing2 ? (
+                        <input
+                          type="text"
+                          name="postcode"
+                          value={formData2.postcode}
+                          onChange={handleChange2}
+                          className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
+                        />
+                      ) : (
+                        <p className="w-fit font-bold mt-[2%]">
+                          {employee.postcode == "" ? "--" : employee.postcode}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-[#828282]">City</p>
+
+                      {isEditing2 ? (
+                        <input
+                          type="text"
+                          name="city"
+                          value={formData2.city}
+                          onChange={handleChange2}
+                          className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
+                        />
+                      ) : (
+                        <p className="w-fit font-bold mt-[2%]">
+                          {employee.city == "" ? "--" : employee.city}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-auto text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
+            <div className="ml-[2%] w-full">
+              <div className="flex items-center justify-between mt-[2%]">
+                <p className="text-[20px] font-bold">Bank Account</p>
+                {isEditing3 ? (
+                  <div className="flex space-x-2 mr-[4%]">
+                    <IoBookmarkOutline
+                      onClick={handleSaveClick3}
+                      className="w-[25px] h-[25px] cursor-pointer hover:text-[#069855]"
+                    />
+                    <IoCloseCircleOutline
+                      onClick={handleCancelClick3}
+                      className="w-[25px] h-[25px] cursor-pointer hover:text-[#069855]"
+                    />
+                  </div>
+                ) : (
+                  <BiEdit
+                    className="w-[25px] h-[25px] mr-[5%] text-[#069855] cursor-pointer"
+                    onClick={handleEditClick3}
+                  />
+                )}
+              </div>
+              <div>
+                <div className="grid grid-cols-2 mt-[2%]">
+                  <div>
+                    <p className="text-[#828282] ">Bank Account Name</p>
+                    {isEditing3 ? (
+                      <input
+                        type="text"
+                        name="bankName"
+                        value={formData3.bankName}
+                        onChange={handleChange3}
+                        className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
+                      />
+                    ) : (
+                      <p className="w-fit font-bold mt-[2%]">
+                        {employee.bankName == "" ? "--" : employee.bankName}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-[#828282]">Account Name</p>
+                    {isEditing3 ? (
+                      <input
+                        type="text"
+                        name="bankAccountName"
+                        value={formData3.bankAccountName}
+                        onChange={handleChange3}
+                        className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
+                      />
+                    ) : (
+                      <p className="w-fit font-bold mt-[2%]">
+                        {employee.bankAccountName == ""
+                          ? "--"
+                          : employee.bankAccountName}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 mt-[3%] mb-[3%]">
+                  <div>
+                    <p className="text-[#828282]">Bank Account Number</p>
+                    {isEditing3 ? (
+                      <input
+                        type="text"
+                        name="bankAccountNumber"
+                        value={formData3.bankAccountNumber}
+                        onChange={handleChange3}
+                        className="border border-gray-300 rounded-md p-1 w-auto font-bold mt-[2%]"
+                      />
+                    ) : (
+                      <p className="w-fit font-bold mt-[2%]">
+                        {employee.bankAccountNumber == ""
+                          ? "--"
+                          : employee.bankAccountNumber}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-auto text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
+            <div className="ml-[2%]">
+              <div className="flex items-center justify-between mt-[2%]">
+                <p className="text-[20px] font-bold">Employee Access</p>
+              </div>
+              <div>
+                <div className="grid grid-cols-4 mt-[2%]">
+                  <div>
+                    <p className="text-[#828282]">Employee Type</p>
+                    <p className="w-fit font-bold">{employee.employeeType}</p>
+                  </div>
+                  <div>
+                    <p className="text-[#828282]">Department</p>
+                    <p className="w-fit font-bold">
+                      {departData.find((r) => r._id === employee.department)
+                        ?.name || "--"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[#828282]">Position</p>
+                    <p className="w-fit font-bold">
+                      {positionData.find((r) => r._id === employee.jobtitle)
+                        ?.name || "--"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[#828282]">Role</p>
+                    <p className="w-fit font-bold capitalize">
+                      {roleData.find((r) => r._id === employee.role)?.name ||
+                        "--"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 mt-[3%] mb-[3%]">
+                  <div>
+                    <p className="text-[#828282]">Joining Date</p>
+                    <p className="mt-2 font-bold">
+                      {formatDate(employee.joiningDate) === "NaN/NaN/NaN"
+                        ? "--"
+                        : formatDate(employee.joiningDate)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[#828282]">End Date</p>
+
+                    <p className="mt-2 font-bold">
+                      {formatDate(employee.endDate) === "NaN/NaN/NaN"
+                        ? "--"
+                        : formatDate(employee.endDate)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-auto text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)] mb-[2%]">
+            <div className="mt-[2%] ml-[2%]">
+              <div className="flex items-center justify-between">
+                <p className="text-[20px] font-bold">Credential</p>
+                <div className="flex items-center justify-center">
+                  {isCredentialOpen ? (
+                    <button
+                      type="button"
+                      className="ml-[-70%] bg-[#2EB67D] text-white outline-none w-fit text-[16px] caret-transparent focus:outline-none flex items-center"
+                      onClick={() => {
+                        if (isCredentialOpen) {
+                          handleUploadFiles();
+                        }
+                      }}
+                    >
+                      <GoPlus className="w-[25px] h-[25px] mr-2" />
+                      Save
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsCredentialOpen(!isCredentialOpen);
+                      }}
+                      className="ml-[-70%] bg-[#2EB67D] text-white outline-none w-fit text-[16px] caret-transparent focus:outline-none flex items-center"
+                    >
+                      <GoPlus className="w-[25px] h-[25px] mr-2" />
+                      Credential
+                    </button>
+                  )}
+                </div>
+              </div>
+              {/* table*/}
+              {isCredentialOpen ? (
+                <div className="text-[14px] ml-[15px] border-l border-b border-r w-fit mb-5">
+                  <table className="rounded-[5px] mt-[2%] bg-white overflow-hidden w-[calc(100vw-500px)] caret-transparent border-gray-200 border">
+                    <thead>
+                      <tr className="bg-[#010101] text-left">
+                        <th className="px-5 py-3 caret-transparent text-white font-normal">
+                          Credential
+                        </th>
+                        <th className="px-1 py-3 caret-transparent text-white font-normal"></th>
+                        <th className="px-5 py-3 caret-transparent text-white font-normal">
+                          Documents
+                        </th>
+                        <th className="px-5 py-3 caret-transparent text-white font-normal">
+                          Expiry day
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="cursor-pointer">
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]  ">Photo ID</div>
                         </td>
-                        <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
-                          <div className="w-[200px]">
-                            {fileInfos[field.key] && (
+                        <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
+                          <FileUpload
+                            fileType="photoID"
+                            selectedEmployee={employee}
+                            setSelectedFile={(file) =>
+                              setSelectedFiles((prev) => ({
+                                ...prev,
+                                photoID: file,
+                              }))
+                            }
+                          />
+                        </td>
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]  ">
+                            {" "}
+                            {selectedFiles.photoID && (
                               <a
-                                href={apiRoutes.file.file(employee[field.key])}
+                                href={URL.createObjectURL(
+                                  selectedFiles.photoID
+                                )}
                                 target="_blank"
-                                rel="noreferrer"
+                                rel="noopener noreferrer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
                               >
-                                Download {field.label}
+                                Preview Photo ID
                               </a>
                             )}
                           </div>
                         </td>
-
-                        <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
-                          <div className="text-left w-[200px]">--</div>
-                        </td>
-
-                        <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
-                          <div className="text-left w-[90px]">
-                            <FaRegTrashCan className="w-[25px] h-[25px] text-red-400" />
-                          </div>
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]  ">--</div>
                         </td>
                       </tr>
-                    ))}
-                  {![
-                    "photoID",
-                    "certificate",
-                    "graduationCertificate",
-                    "order",
-                  ].some((key) => employee[key]) && (
-                    <tr>
-                      <td
-                        colSpan={5}
-                        className="text-center text-gray-400 py-5 border-b border-gray-200 w-[calc(100vw-430px)] text-[15px]"
-                      >
-                        No file data available
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                      <tr className="cursor-pointer">
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]  ">
+                            Certificate
+                          </div>
+                        </td>
+                        <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
+                          <FileUpload
+                            fileType="certificate"
+                            selectedEmployee={employee}
+                            setSelectedFile={(file) =>
+                              setSelectedFiles((prev) => ({
+                                ...prev,
+                                certificate: file,
+                              }))
+                            }
+                          />
+                        </td>
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]  ">
+                            {selectedFiles.certificate && (
+                              <a
+                                href={URL.createObjectURL(
+                                  selectedFiles.certificate
+                                )}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                              >
+                                Preview Certificate
+                              </a>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]  ">--</div>
+                        </td>
+                      </tr>
+                      <tr className="cursor-pointer">
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]  ">
+                            Graduation Certificate
+                          </div>
+                        </td>
+                        <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
+                          <FileUpload
+                            fileType="graduationCertificate"
+                            selectedEmployee={employee}
+                            setSelectedFile={(file) =>
+                              setSelectedFiles((prev) => ({
+                                ...prev,
+                                graduationCertificate: file,
+                              }))
+                            }
+                          />
+                        </td>
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]  ">
+                            {selectedFiles.graduationCertificate && (
+                              <a
+                                href={URL.createObjectURL(
+                                  selectedFiles.graduationCertificate
+                                )}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                              >
+                                Preview Graduation Certificate
+                              </a>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]  ">--</div>
+                        </td>
+                      </tr>
+                      <tr className="cursor-pointer">
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px] ">Order</div>
+                        </td>
+                        <td className="px-1 py-2 border-b border-gray-200  text-[14px] text-[#252C58] w-[240px] ">
+                          <FileUpload
+                            fileType="order"
+                            selectedEmployee={employee}
+                            setSelectedFile={(file) =>
+                              setSelectedFiles((prev) => ({
+                                ...prev,
+                                order: file,
+                              }))
+                            }
+                          />
+                        </td>
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]">
+                            {selectedFiles.order && (
+                              <a
+                                href={URL.createObjectURL(selectedFiles.order)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                              >
+                                Preview Order
+                              </a>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-5 py-2 border-b border-gray-200  text-[14px] text-[#252C58]">
+                          <div className="text-left w-[240px]">--</div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-[14px] ml-[15px] border-l border-b border-r w-fit mb-5">
+                  <table className="rounded-[5px] mt-[2%] bg-white overflow-hidden w-[calc(100vw-500px)] caret-transparent border-gray-200 border">
+                    <thead>
+                      <tr className="bg-[#010101] text-left">
+                        <th className="px-5 py-3 caret-transparent text-white font-normal">
+                          Credential
+                        </th>
+                        <th className="px-1 py-3 caret-transparent text-white font-normal">
+                          Upload Date
+                        </th>
+                        <th className="px-5 py-3 caret-transparent text-white font-normal">
+                          Documents
+                        </th>
+                        <th className="px-5 py-3 caret-transparent text-white font-normal">
+                          Expiry day
+                        </th>
+                        <th className="px-5 py-3 caret-transparent text-white font-normal">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { key: "photoID", label: "Photo ID" },
+                        { key: "certificate", label: "Certificate" },
+                        {
+                          key: "graduationCertificate",
+                          label: "Graduation Certificate",
+                        },
+                        { key: "order", label: "Order" },
+                      ]
+                        .filter((field) => employee[field.key])
+                        .map((field) => (
+                          <tr key={field.key} className="cursor-pointer">
+                            <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
+                              <div className="text-left w-[200px]">
+                                {field.label}
+                              </div>
+                            </td>
+
+                            <td className="px-1 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
+                              <div className="text-left w-[240px]">--</div>
+                            </td>
+                            <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
+                              <div className="w-[200px]">
+                                {fileInfos[field.key] && (
+                                  <a
+                                    href={apiRoutes.file.file(
+                                      employee[field.key]
+                                    )}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    Download {field.label}
+                                  </a>
+                                )}
+                              </div>
+                            </td>
+
+                            <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
+                              <div className="text-left w-[200px]">--</div>
+                            </td>
+
+                            <td className="px-5 py-2 border-b border-gray-200 text-[14px] text-[#252C58]">
+                              <div className="text-left w-[90px]">
+                                <FaRegTrashCan className="w-[25px] h-[25px] text-red-400" />
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      {![
+                        "photoID",
+                        "certificate",
+                        "graduationCertificate",
+                        "order",
+                      ].some((key) => employee[key]) && (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className="text-center text-gray-400 py-5 border-b border-gray-200 w-[calc(100vw-430px)] text-[15px]"
+                          >
+                            No file data available
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
-          )}
+          </div>
+        </>
+      )}
+      {selectedTab === "attendance" && (
+        <AttendanceDetail employeeID={employee.employeeID} />
+      )}
+      {selectedTab === "password" && (
+        <div className="bg-[#FFFFFF] ml-[3%] mt-[2%] rounded-[8px] w-[calc(100vw-340px)] h-auto text-left shadow-[0px_1px_3px_rgba(0,0,0,0.2)]">
+          <div className="ml-[2%] w-full">
+            <div className="flex items-center justify-between mt-[2%]">
+              <p className="text-[20px] font-bold">Change Password</p>
+            </div>
+            <div className="mt-8 space-y-6">
+              {/* New Password */}
+              <div className="relative w-[40%]">
+                <label className="text-gray-500 text-[15px]">
+                  Enter New Password
+                </label>
+                <input
+                  type={showNewPass ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className={`mt-2 text-black bg-[#e8eaef] h-[50px] rounded-[12px] w-full px-4 outline-none focus:border-[#2EB67D] hover:border-[#2EB67D] focus:border-2 hover:border-2 ${
+                    newPasswordBorder ? "border-2 border-red-500" : ""
+                  }`}
+                />
+                <div
+                  className="absolute right-4 top-[52px] cursor-pointer"
+                  onClick={() => setShowNewPass((prev) => !prev)}
+                >
+                  {showNewPass ? (
+                    <FaRegEyeSlash className="text-gray-600 w-5 h-5" />
+                  ) : (
+                    <FaRegEye className="text-gray-600 w-5 h-5" />
+                  )}
+                </div>
+                {newPasswordError && (
+                  <p className="text-red-500 text-[13px] mt-2">
+                    {newPasswordError}
+                  </p>
+                )}
+              </div>
+
+              {/* Confirm New Password */}
+              <div className="relative w-[40%]">
+                <label className="text-gray-500 text-[15px]">
+                  Re-enter New Password
+                </label>
+                <input
+                  type={showReNewPass ? "text" : "password"}
+                  value={reNewPassword}
+                  onChange={(e) => setReNewPassword(e.target.value)}
+                  className={`mt-2 text-black bg-[#e8eaef] h-[50px] rounded-[12px] w-full px-4 outline-none focus:border-[#2EB67D] hover:border-[#2EB67D] focus:border-2 hover:border-2 ${
+                    reNewPasswordBorder ? "border-2 border-red-500" : ""
+                  }`}
+                />
+                <div
+                  className="absolute right-4 top-[52px] cursor-pointer"
+                  onClick={() => setShowReNewPass((prev) => !prev)}
+                >
+                  {showReNewPass ? (
+                    <FaRegEyeSlash className="text-gray-600 w-5 h-5" />
+                  ) : (
+                    <FaRegEye className="text-gray-600 w-5 h-5" />
+                  )}
+                </div>
+                {reNewPasswordError && (
+                  <p className="text-red-500 text-[13px] mt-2">
+                    {reNewPasswordError}
+                  </p>
+                )}
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex justify-start ">
+                <button
+                  type="submit"
+                  className="bg-[#2EB67D] hover:bg-[#23986A] mb-6 text-white px-6 py-2 rounded-[10px] text-[16px]"
+                  onClick={handleContinue}
+                >
+                  Change Password
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -283,6 +283,7 @@ const Employee = () => {
             timer: 2000,
             timerProgressBar: true,
           });
+          await refreshCurrentEmployee();
           setIsEditing1(false);
         } else {
           alert("Cập nhật thất bại: " + response.data.message);
@@ -296,6 +297,7 @@ const Employee = () => {
             timer: 2000,
             timerProgressBar: true,
           });
+          fetchUsers();
           setIsEditing1(false);
         }
       }
@@ -408,6 +410,7 @@ const Employee = () => {
           timerProgressBar: true,
           showConfirmButton: false,
         }).then(() => {
+          refreshCurrentEmployee();
           setIsEditing2(false);
         });
       } else {
@@ -494,6 +497,7 @@ const Employee = () => {
           timer: 2000,
           timerProgressBar: true,
         });
+        await refreshCurrentEmployee();
         setIsEditing4(false);
       } else {
         alert("Cập nhật thất bại: " + response.data.message);
@@ -557,7 +561,14 @@ const Employee = () => {
       );
 
       if (response.data.success) {
-        alert("Cập nhật thành công!");
+        Swal.fire({
+          text: response.data.message,
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
+        await refreshCurrentEmployee();
         setIsEditing3(false);
       } else {
         alert("Cập nhật thất bại: " + response.data.message);
@@ -723,8 +734,26 @@ const Employee = () => {
       });
   };
 
+  const refreshCurrentEmployee = async () => {
+    try {
+      const res = await axios.get(
+        apiRoutes.user.profile(selectedEmployee._id),
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      setSelectedEmployee(res.data);
+    } catch (error) {
+      console.error("Lỗi khi refresh employee:", error);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
+    refreshCurrentEmployee();
   }, []);
 
   // form validation
@@ -961,6 +990,7 @@ const Employee = () => {
         });
         setModalIsOpen(false);
         fetchUsers();
+        closeModal();
       } else {
         Swal.fire({
           text: message,
@@ -1128,6 +1158,12 @@ const Employee = () => {
     setAddress("");
     setProvince("");
     setPostcode("");
+    setEmailCompany("");
+    setEmailPersonal("");
+    setBankName("");
+    setAccountName("");
+    setbankAccountNumber("");
+    setJoiningDate(null);
     setCity("");
     setDateOfBirth(null);
     setGender("Gender");
@@ -1262,6 +1298,7 @@ const Employee = () => {
     }
     return sorted;
   }, [currentItems, sortConfig]);
+
   const handleTabSelect = async (key) => {
     if (key !== "general" && key !== "attendance") {
       alert1();
@@ -1286,6 +1323,7 @@ const Employee = () => {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
+            zIndex: 9999,
           }}
         >
           <CircularProgress size={80} style={{ color: "#069855" }} />

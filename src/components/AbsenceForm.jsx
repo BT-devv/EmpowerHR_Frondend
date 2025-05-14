@@ -84,17 +84,6 @@ const AbsenceForm = () => {
       return;
     }
 
-    // const formattedTimeFrom = new Date(timeFrom).toLocaleTimeString("vi-VN", {
-    //   hour: "2-digit",
-    //   minute: "2-digit",
-    //   hour12: false,
-    // });
-    // const formattedTimeTo = new Date(timeTo).toLocaleTimeString("vi-VN", {
-    //   hour: "2-digit",
-    //   minute: "2-digit",
-    //   hour12: false,
-    // });
-
     let formData = {
       lineManagers: lineManagers.map((item) => item.id),
       teammates: teammates.map((item) => item.id),
@@ -120,7 +109,6 @@ const AbsenceForm = () => {
         leaveToTime: dayjs(timeTo).local().format("YYYY-MM-DD HH:mm:ss"),
       };
     }
-    console.log(formData);
     setProgress(true);
     try {
       const response = await axios.post(apiRoutes.absence.request, formData, {
@@ -238,11 +226,12 @@ const AbsenceForm = () => {
         const filteredManagers = response.data.filter(
           (user) =>
             (user.role === PM_ROLE_ID || user.role === ADMIN_ROLE_ID) &&
+            user.status === "Active" &&
             user._id !== decodedToken._id
         );
 
         const filteredTeammates = response.data.filter(
-          (user) => user._id !== decodedToken._id
+          (user) => user.status === "Active" && user._id !== decodedToken._id
         );
 
         setDatamanagers(filteredManagers);
@@ -262,6 +251,7 @@ const AbsenceForm = () => {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
+            zIndex: 9999,
           }}
         >
           <CircularProgress size={80} style={{ color: "#069855" }} />

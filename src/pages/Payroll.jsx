@@ -1355,7 +1355,7 @@ const Payroll = () => {
             selectedTab={selectedTab2}
             onTabSelect={(key) => setSelectedTab2(key)}
             type="button"
-            wrapperClassName="flex gap-10 md:gap-5 text-[#1C1C1C] ml-[3%] mt-[2%] text-center"
+            wrapperClassName="flex gap-10 md:gap-5 text-[#1C1C1C] ml-[3%] mt-[2%] text-center font-bold"
           />
 
           {selectedTab2 === "base" && (
@@ -1609,7 +1609,7 @@ const Payroll = () => {
                       {sortedItems1.map((item, index) => (
                         <tr
                           key={item._id}
-                          className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer text-[15px] font-bold"
+                          className="hover:bg-[rgba(0,84,232,0.03)] cursor-pointer text-[15px]"
                         >
                           <td className="px-1 py-6 border-b border-gray-200 text-left w-[10%]">
                             {index + 1}
